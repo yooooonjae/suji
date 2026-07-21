@@ -80,7 +80,7 @@
   <div class="hero-stats stagger">
     <div class="hero-stat"><div class="v num-hero"><span data-count="236388">0</span><small>건</small></div><div class="k">아파트 실거래 수집</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="77">0</span><small>계열</small></div><div class="k">시장 시계열 (10년)</div></div>
-    <div class="hero-stat"><div class="v num-hero"><span data-count="9">0</span><small>종</small></div><div class="k">공공 데이터셋 연동</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="10">0</span><small>종</small></div><div class="k">공공 데이터셋 연동</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="6">0</span><small>모델</small></div><div class="k">예측 벤치마크</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="152">0</span><small>개</small></div><div class="k">자동화 검증 테스트</div></div>
   </div>
@@ -97,7 +97,7 @@
     <a class="ch-card" href="#/ch5"><div class="n">Ⅴ</div><h4>상권 — 272만 업소의 지도</h4><p>시도 × 업종 매트릭스와 주요상권 1,227곳 — 근생 비율의 실증적 근거.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch6"><div class="n">Ⅵ</div><h4>사례 — 네 개의 표준 사업</h4><p>실데이터 파라미터로 계산한 신축 3건 + 재건축 1건의 수지 구조.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch7"><div class="n">Ⅶ</div><h4>컨설팅 — 절차·리스크·전략</h4><p>정비사업 7단계 타임라인과 시장 상황 × 사업유형 전략 매트릭스.</p><span class="go">상세보기 →</span></a>
-    <a class="ch-card" href="#/ch8"><div class="n">Ⅷ</div><h4>방법론 — 출처·가정·한계</h4><p>6개 기관 9종 데이터셋 출처, 모델 가정, 검증 체계와 한계의 투명한 고지.</p><span class="go">상세보기 →</span></a>
+    <a class="ch-card" href="#/ch8"><div class="n">Ⅷ</div><h4>방법론 — 출처·가정·한계</h4><p>7개 기관 10종 데이터셋 출처, 모델 가정, 검증 체계와 한계의 투명한 고지.</p><span class="go">상세보기 →</span></a>
   </div>
 </section>
 
@@ -152,6 +152,13 @@
         <figcaption>한국은행 ECOS. 기업대출 금리는 PF 조달비용의 하한 대리지표.</figcaption>
       </figure>
     </div>
+
+    <figure class="viz reveal">
+      <div class="viz-head"><div class="viz-title" id="permit-title">주택 인허가 맥박 — 서울 대표 시군구</div><div class="viz-unit">신축·증축 세대/월 · 공급 선행 신호</div></div>
+      <div id="chart-permits"></div>
+      <figcaption id="permit-cap">국토교통부 건축HUB. 미분양(재고)이 수요라면 인허가는 <b>공급 파이프라인</b>의 선행 신호다.
+      시도 전체가 아닌 대표 시군구의 표본 맥박이므로 절대량이 아닌 흐름으로 읽는다.</figcaption>
+    </figure>
 
     <figure class="viz reveal">
       <div class="viz-head"><div class="viz-title">시장 온도 진단 — 가격 흐름과 미분양 재고</div><div class="viz-unit">최근 1년 변동 기준</div></div>
@@ -523,13 +530,14 @@
         <tr><td>한국부동산원 R-ONE</td><td>아파트 매매·전세가격지수, ㎡당 평균 분양가격 (시도별 월간 10년) + 상업용부동산 임대동향 — 오피스·중대형상가 임대지수·공실률·투자수익률 (시도별 분기 10년)</td><td>OpenAPI</td></tr>
         <tr><td>국토교통부 실거래가(RTMS)</td><td>아파트 매매 220,465건·분양권 15,923건 — 시도별 대표 시군구 표본</td><td>광주·전남은 2026-07 행정구역 통폐합(전남광주통합특별시)으로 신 법정동코드 재수집</td></tr>
         <tr><td>KOSIS(국토부·KICT)</td><td>미분양·준공후 미분양·착공·준공(월간)·인허가(연간)·건설공사비지수</td><td>OpenAPI</td></tr>
+        <tr><td>국토교통부 건축HUB</td><td>건축 인허가 기본개요 — 공동주택 신축·증축 세대수(대표 시군구 동 단위 월별 표본)</td><td>OpenAPI · Accept 헤더 필수·발코니변경 중복 제외</td></tr>
         <tr><td>한국은행 ECOS</td><td>기준금리(일별→월말)·주택담보/기업대출 가중평균금리</td><td>OpenAPI</td></tr>
         <tr><td>주택도시보증공사(HUG)</td><td>민간아파트 지역별 ㎡당 분양가격 (17개 시도 월간)</td><td>결측월(분양실적 없음)은 보간 없이 결측 처리</td></tr>
         <tr><td>소상공인시장진흥공단</td><td>상가업소 시도 × 업종 매트릭스(272만), 주요상권 1,227곳</td><td>OpenAPI + 공표 CSV</td></tr>
       </tbody>
     </table>
     </div>
-    <p class="footnote">표는 기관 기준 6행. 데이터셋 기준으로는 RTMS 2종(매매·분양권), 상권 2종(상가업소·주요상권), R-ONE 2종(주택가격동향·상업용 임대동향)을 포함해 9종이다.
+    <p class="footnote">표는 기관 기준 6행. 데이터셋 기준으로는 RTMS 2종(매매·분양권), 상권 2종(상가업소·주요상권), R-ONE 2종(주택가격동향·상업용 임대동향), 건축HUB 인허가를 포함해 10종이다.
     상가업소 DB는 소매·음식·서비스업 중심으로, 건설업·제조업 등 비상가 업종은 집계에 사실상 포함되지 않는다.</p>
 
     <h4>수지모델 핵심 가정</h4>
@@ -568,7 +576,7 @@
 
 <footer class="colophon">
   <div style="font-weight:800;color:var(--ink-2);margin-bottom:6px">수지(收支) — 대한민국 부동산 개발의 손익 구조</div>
-  개인 연구 포트폴리오 · 데이터 기준일 {{BUILT_AT}} · 공공 데이터셋 9종 수집(6개 기관 API) · 모델 152 테스트 검증<br>
+  개인 연구 포트폴리오 · 데이터 기준일 {{BUILT_AT}} · 공공 데이터셋 10종 수집(7개 기관 API) · 모델 152 테스트 검증<br>
   본 페이지는 로컬 정적 사이트로 빌드되었고, 모든 데이터가 로컬에 내장되어 외부 네트워크 요청이 없다.
 </footer>
 
@@ -581,6 +589,7 @@ window.__DATA_CASES = {{DATA_CASES}};
 window.__DATA_SBIZ = {{DATA_SBIZ}};
 window.__DATA_EDA = {{DATA_EDA}};
 window.__DATA_COMMERCIAL = {{DATA_COMMERCIAL}};
+window.__DATA_ARCHUB = {{DATA_ARCHUB}};
 </script>
 <script>
 {{JS:feasibility.js}}
