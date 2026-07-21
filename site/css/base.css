@@ -1,0 +1,154 @@
+/* ============================================================
+   기본 조판·구조 — 「수지(收支)」
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+body {
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  color: var(--ink);
+  background: var(--ground);
+  word-break: keep-all;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--blueprint-wash); color: var(--blueprint); }
+
+/* 제도지 격자 — 지면 전체에 아주 옅게 */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(var(--hairline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
+  background-size: 56px 56px;
+  opacity: .28;
+}
+:root[data-theme="dark"] body::before { opacity: .18; }
+
+a { color: var(--blueprint-2); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--blueprint-2); outline-offset: 2px; }
+
+/* ---------- 수치 서체 ---------- */
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.num-hero { font-family: var(--font-num); font-weight: 700; letter-spacing: -.02em; }
+
+/* ---------- 레이아웃 골격 ---------- */
+.wrap { position: relative; z-index: 1; }
+.col-read { max-width: var(--col-read); margin-inline: auto; padding-inline: var(--sp-4); }
+.col-wide { max-width: var(--col-wide); margin-inline: auto; padding-inline: var(--sp-4); }
+section.chapter { padding-block: var(--sp-7) 0; }
+section.chapter:last-of-type { padding-bottom: var(--sp-7); }
+
+/* ---------- 챕터 레일 (좌측 고정 내비) ---------- */
+nav.rail {
+  position: fixed; left: 0; top: 0; bottom: 0; z-index: 10;
+  width: 64px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 14px;
+  border-right: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--ground) 82%, transparent);
+  backdrop-filter: blur(8px);
+}
+nav.rail a {
+  display: grid; place-items: center;
+  width: 34px; height: 34px;
+  font-size: 11px; font-weight: 700; letter-spacing: .04em;
+  color: var(--ink-3); border: 1px solid transparent; border-radius: var(--radius);
+}
+nav.rail a:hover { color: var(--blueprint-2); text-decoration: none; }
+nav.rail a.active {
+  color: var(--blueprint); border-color: var(--blueprint);
+  background: var(--blueprint-wash);
+}
+@media (max-width: 1180px) { nav.rail { display: none; } }
+
+/* ---------- 도곽 (도면 표제란) — 챕터 헤더 ---------- */
+header.tblock {
+  max-width: var(--col-wide); margin-inline: auto;
+  margin-bottom: var(--sp-5); padding-inline: var(--sp-4);
+}
+.tblock-frame {
+  display: grid; grid-template-columns: auto 1fr auto;
+  border: 1.5px solid var(--hairline-2);
+  background: var(--surface);
+}
+.tblock-no {
+  display: grid; place-items: center;
+  padding: var(--sp-3) var(--sp-4);
+  border-right: 1.5px solid var(--hairline-2);
+  font-family: var(--font-num); font-size: 30px; font-weight: 700;
+  color: var(--blueprint);
+  min-width: 92px;
+}
+.tblock-main { padding: var(--sp-3) var(--sp-4); }
+.tblock-eyebrow {
+  font-size: var(--t-caption); font-weight: 700; letter-spacing: .14em;
+  color: var(--ink-3); text-transform: uppercase; margin-bottom: 4px;
+}
+.tblock-title {
+  font-size: var(--t-h1); font-weight: 800; line-height: 1.22;
+  letter-spacing: -.015em; text-wrap: balance;
+}
+.tblock-meta {
+  display: grid; align-content: center; gap: 3px; text-align: right;
+  padding: var(--sp-3) var(--sp-4);
+  border-left: 1.5px solid var(--hairline-2);
+  font-size: var(--t-caption); color: var(--ink-3);
+  min-width: 128px;
+}
+.tblock-meta b { color: var(--ink-2); font-weight: 700; }
+@media (max-width: 720px) {
+  .tblock-frame { grid-template-columns: auto 1fr; }
+  .tblock-meta { display: none; }
+}
+
+/* ---------- 치수선 (dimension line) 구분 장식 ---------- */
+.dim-rule {
+  max-width: var(--col-wide); margin: var(--sp-6) auto 0; padding-inline: var(--sp-4);
+  display: flex; align-items: center; gap: 10px;
+  color: var(--ink-3); font-size: var(--t-caption); letter-spacing: .1em;
+}
+.dim-rule::before, .dim-rule::after {
+  content: ""; flex: 1; height: 9px;
+  background:
+    linear-gradient(var(--axis), var(--axis)) center / 100% 1px no-repeat,
+    linear-gradient(var(--axis), var(--axis)) left center / 1px 9px no-repeat,
+    linear-gradient(var(--axis), var(--axis)) right center / 1px 9px no-repeat;
+}
+
+/* ---------- 본문 타이포 ---------- */
+.chapter h3 {
+  font-size: var(--t-h2); font-weight: 800; letter-spacing: -.01em;
+  margin: var(--sp-6) 0 var(--sp-3); text-wrap: balance;
+}
+.chapter h4 {
+  font-size: var(--t-h3); font-weight: 700;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+.chapter p { margin-bottom: var(--sp-3); color: var(--ink); max-width: var(--col-read); }
+.chapter p.lede {
+  font-size: 18px; line-height: 1.8; color: var(--ink-2);
+}
+.chapter ul, .chapter ol { margin: 0 0 var(--sp-3) 1.2em; max-width: var(--col-read); }
+.chapter li { margin-bottom: var(--sp-1); }
+.caption { font-size: var(--t-caption); color: var(--ink-3); line-height: 1.6; }
+.footnote {
+  font-size: var(--t-small); color: var(--ink-2);
+  border-left: 2px solid var(--hairline-2); padding-left: var(--sp-2);
+  margin: var(--sp-3) 0; max-width: var(--col-read);
+}
+
+/* ---------- 스크롤 리빌 ---------- */
+.reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } }
+
+/* ---------- 헤더 상단 얇은 진행바 ---------- */
+#progress {
+  position: fixed; top: 0; left: 0; height: 2px; z-index: 20;
+  background: var(--blueprint-2); width: 0%;
+}
