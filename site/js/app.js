@@ -208,13 +208,13 @@
       cells: drivers.map(k => lagKeys.map(l => (corr[k].by_lag[l] || { r: 0 }).r)),
     }, { xName: "시차", yName: "지표", labelW: 150, cellH: 40, cellText: true, width: 1160,
          vFmt: v => (v >= 0 ? "+" : "") + v.toFixed(2), vLabel: "상관계수 r",
-         legend: "값 = 전국 매매지수 YoY와의 상관계수 r · 파랑 = 역상관, 주황 = 정상관 (진할수록 강함)", aria: "지표별 시차 상관" });
+         legend: "값 = 전국 집값(전년 대비)과 각 지표가 함께 움직이는 정도 · 파랑 = 반대로 움직임, 주황 = 같이 움직임 (진할수록 강함)", aria: "지표별 시차 상관" });
     // ①-보조 시도별 동시상관 (17행 × 5지표 — 셀 텍스트 없이 색+툴팁)
     const xs2 = E.correlation.data.cross_sido;
     if (xs2 && $("#eda-corr-sido")) {
       const cols = ["base_rate_level", "base_rate_12mchg", "unsold_yoy_own", "cci_yoy", "presale_yoy"];
-      const colLabels = { base_rate_level: "기준금리 레벨", base_rate_12mchg: "금리 12개월 변화",
-                          unsold_yoy_own: "자체 미분양 YoY", cci_yoy: "공사비 YoY", presale_yoy: "분양가 YoY" };
+      const colLabels = { base_rate_level: "기준금리 수준", base_rate_12mchg: "금리 1년 변화",
+                          unsold_yoy_own: "해당 시도 미분양", cci_yoy: "공사비", presale_yoy: "분양가" };
       const rows = SIDO_ORDER.filter(n => n !== "전국" && xs2.some(r => r.sido === n))
         .map(n => xs2.find(r => r.sido === n));
       C.heatmap($("#eda-corr-sido"), {
@@ -238,7 +238,7 @@
     C.hbars($("#eda-dist"), D.map(d => ({
       name: d.sido,
       value: Number.isFinite(d.median) ? d.median / 1e4 : null,
-      note: d.note ? "원천 무거래 (수집 시군구 0건)" : undefined,
+      note: d.note ? "수집된 거래 없음 (표본 시군구 0건)" : undefined,
     })), { color: "--s2", fmt: v => fmt.num(v, 0) + "만", labelW: 60, rowH: 34, aria: "시도별 ㎡당 매매가 중위" });
     // ④ 계절성 스트립 (1×12)
     const sea = E.seasonality.data;
@@ -296,7 +296,7 @@
       vt.textContent = sido + " — 오피스 조사 대상 아님";
       yt.textContent = sido + " — 오피스 조사 대상 아님";
       $("#chart-office-vac").innerHTML = $("#chart-office-rent").innerHTML = $("#chart-office-yield").innerHTML =
-        `<p class="caption" style="padding:var(--sp-3) 0">${sido}은(는) 한국부동산원 오피스 임대동향조사 대상 지역이 아니다. 다른 시도를 선택해 보라.</p>`;
+        `<p class="caption" style="padding:var(--sp-3) 0">${sido}은(는) 한국부동산원 오피스 임대동향 조사 대상이 아니다. 다른 시도를 선택하면 볼 수 있다.</p>`;
       $("#office-yield-cap").textContent = "";
       return;
     }
@@ -316,7 +316,7 @@
     const lastY = yld[yld.length - 1];
     $("#office-yield-cap").textContent =
       `최근 분기(${lastY.yq}) 소득수익률 ${lastY.income.toFixed(2)}% — 연환산 약 ${(lastY.income * 4).toFixed(1)}%. ` +
-      "이 값이 Ⅲ장 수익형 계산기 cap rate 가정의 실측 근거다 (자본수익률은 가격 변동분).";
+      "이 값이 Ⅲ장 수익형 계산기의 환원율(cap rate) 가정을 정할 때 참고하는 실제 수치다. 자본수익률은 건물 가격 자체의 변동분이다.";
   }
 
   /* ---------- Ⅵ. 사례 ---------- */

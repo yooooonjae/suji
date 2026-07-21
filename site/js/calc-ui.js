@@ -46,11 +46,11 @@
       ["nb_ratio", "근생 비율", "%", 0, 30, 1],
     ],
     수익형: [
-      ["eff_ratio", "전용률(임대면적/연면적)", "%", 45, 90, 1],
+      ["eff_ratio", "임대 가능 면적 비율", "%", 45, 90, 1],
       ["rent_py", "월 임대료(평당)", "만원", 3, 45, 0.5],
       ["vacancy", "공실률", "%", 0, 30, 1],
       ["opex", "운영경비율(임대수입 대비)", "%", 10, 45, 1],
-      ["cap", "매각 cap rate", "%", 3, 10, 0.1],
+      ["cap", "매각 환원율(cap rate)", "%", 3, 10, 0.1],
     ],
     분양: [
       ["avg_supply", "평균 공급면적", "㎡", 40, 160, 0.1],
@@ -72,7 +72,7 @@
       ["pf_rate", "PF 금리", "%", 3, 12, 0.1],
     ],
     정비: [
-      ["prior_eok", "종전자산평가액", "억원", 100, 20000, 50],
+      ["prior_eok", "기존 자산 평가액(종전자산)", "억원", 100, 20000, 50],
       ["members", "조합원 수", "명", 50, 5000, 10],
       ["mem_price_py", "조합원 평당 분양가", "만원", 600, 5000, 10],
       ["gen_units", "일반분양 세대", "세대", 0, 3000, 10],
@@ -217,14 +217,14 @@
   function kpiHTML(r) {
     const kpis = [
       ["개발이익", fmt.eok(r.profit), r.profit >= 0 ? "pos" : "neg", "hero"],
-      ["마진율(수입 대비)", r.margin_on_revenue == null ? "―" : Math.abs(r.margin_on_revenue) > 10 ? "±1,000% 초과" : fmt.pct(r.margin_on_revenue), (r.margin_on_revenue || 0) >= 0 ? "pos" : "neg"],
+      ["수입 대비 이익률", r.margin_on_revenue == null ? "―" : Math.abs(r.margin_on_revenue) > 10 ? "±1,000% 초과" : fmt.pct(r.margin_on_revenue), (r.margin_on_revenue || 0) >= 0 ? "pos" : "neg"],
       ["IRR(연)", r.irr_annual == null ? "―" : fmt.pct(r.irr_annual), (r.irr_annual || 0) >= 0 ? "pos" : "neg"],
       [lastIncome ? "매각가치(총수입)" : "총수입", fmt.eok(r.revenue_total), ""],
       ["총지출", fmt.eok(r.cost_total), ""],
     ];
     if (lastIncome) {
       kpis.splice(3, 0, ["연 NOI", fmt.eok(lastIncome.noi), ""],
-        ["원가수익률(YoC)", r.cost_total ? fmt.pct(lastIncome.noi / r.cost_total) : "―",
+        ["총사업비 대비 수익률(YoC)", r.cost_total ? fmt.pct(lastIncome.noi / r.cost_total) : "―",
          (lastIncome.noi / (r.cost_total || 1)) >= st.cap / 100 ? "pos" : "neg"]);
     }
     if (mode !== "신축분양") {
@@ -246,10 +246,10 @@
       const yoc = r.cost_total ? lastIncome.noi / r.cost_total : 0;
       const spread = yoc - st.cap / 100;
       const sp = (spread * 100).toFixed(2) + "%p";
-      if (spread >= 0.015) { cls = "good"; txt = `우량 — 원가수익률(Yield on Cost) ${fmt.pct(yoc)}가 cap rate를 ${sp} 상회. 개발 프리미엄이 충분하다`; }
-      else if (spread >= 0.0075) { cls = "good"; txt = `성립 — 원가수익률 ${fmt.pct(yoc)}, cap rate 대비 +${sp}. 통상 요구 스프레드(0.75~1.5%p) 안이다`; }
-      else if (spread >= 0) { cls = "warn"; txt = `경계 — 원가수익률과 cap rate 차이가 ${sp}에 불과. 임대료·공실 가정을 점검해야 한다`; }
-      else { cls = "bad"; txt = `부적정 — 원가수익률 ${fmt.pct(yoc)}가 cap rate보다 낮다. 매각가치가 원가에 미달한다`; }
+      if (spread >= 0.015) { cls = "good"; txt = `우량 — 총사업비 대비 수익률 ${fmt.pct(yoc)}가 매각 환원율보다 ${sp} 높다. 개발 후 이익 여력이 충분하다`; }
+      else if (spread >= 0.0075) { cls = "good"; txt = `성립 — 총사업비 대비 수익률 ${fmt.pct(yoc)}, 매각 환원율보다 +${sp}. 통상 요구 폭(0.75~1.5%p) 안이다`; }
+      else if (spread >= 0) { cls = "warn"; txt = `경계 — 수익률과 매각 환원율 차이가 ${sp}에 불과. 임대료·공실 가정을 점검해야 한다`; }
+      else { cls = "bad"; txt = `부적정 — 총사업비 대비 수익률 ${fmt.pct(yoc)}가 매각 환원율보다 낮다. 매각가치가 원가에 미달한다`; }
     } else {
       // 정비사업 비현실 입력 가드 — 비례율이 실무 가능역을 크게 벗어나면 판정 대신 재검토 안내
       if (mode !== "신축분양" && r.proportion_rate != null && (r.proportion_rate < 0.5 || r.proportion_rate > 3)) {
@@ -264,7 +264,7 @@
       else { cls = "bad"; txt = `부적정 — 손실 ${fmt.eok(-r.profit)}, 현재 구조로는 성립하지 않는다`; }
       if (r.irr_annual != null) txt += ` · 연 IRR ${fmt.pct(r.irr_annual)}`;
       if (mode !== "신축분양" && r.proportion_rate != null) {
-        txt += ` · 비례율 ${fmt.pct(r.proportion_rate, 1)}` + (r.proportion_rate >= 1 ? " (무상지분 여력)" : " (분담금 부담 증가)");
+        txt += ` · 비례율 ${fmt.pct(r.proportion_rate, 1)}` + (r.proportion_rate >= 1 ? " (조합원 부담 줄일 여지)" : " (분담금 부담 증가)");
       }
     }
     return `<div class="verdict ${cls}">${txt}</div>`;

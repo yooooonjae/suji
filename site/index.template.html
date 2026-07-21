@@ -74,7 +74,7 @@
   <h1><span class="stagger">수지<span class="hanja">(收支)</span> —</span><span class="stagger">땅 위에 세우는 손익의 구조</span></h1>
   <p class="sub stagger">
     토지의 용적률에서 조합의 비례율까지. 대한민국 부동산 개발사업의 수익 구조를
-    공공 데이터 전량과 검증된 재무 모델로 해부하고, 시행사·자산운용사·컨설턴트가
+    공개 데이터를 모아 검증된 재무 모델로 분석했다. 시행사·자산운용사·컨설턴트가
     사업성 검토에 바로 쓸 수 있는 도구로 만들었다.
   </p>
   <div class="hero-stats stagger">
@@ -90,12 +90,12 @@
 <section id="home-cards" class="col-wide" aria-label="챕터 바로가기">
   <div class="dim-rule" style="margin-top:0;padding-inline:0">여덟 개의 장</div>
   <div class="chapter-cards" style="margin-top:var(--sp-4)">
-    <a class="ch-card" href="#/ch1"><div class="n">Ⅰ</div><h4>시장 — 열일곱 개의 사이클</h4><p>시도별 매매·전세지수, 미분양, 금리, 시장 온도 진단, 탐색적 데이터 분석, 6모델 12개월 예측.</p><span class="go">상세보기 →</span></a>
+    <a class="ch-card" href="#/ch1"><div class="n">Ⅰ</div><h4>시장 — 열일곱 지역의 다른 흐름</h4><p>시도별 매매·전세지수, 미분양, 금리, 시장 온도 진단, 탐색적 데이터 분석, 6모델 12개월 예측.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch2"><div class="n">Ⅱ</div><h4>구조 — 수지표의 해부학</h4><p>땅에서 세대수까지, 여섯 갈래 지출과 정비사업의 비례율 문법.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch3"><div class="n">Ⅲ</div><h4>계산기 — 30초 사업성 검토</h4><p>4개 사업유형 실시간 수지분석. 용도지역에서 세대수까지 자동 도출.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch4"><div class="n">Ⅳ</div><h4>민감도 — 사업성을 흔드는 변수들</h4><p>어떤 변수가 이익을 좌우하는지, 분양가 × 공사비 손익분기 지도까지. 계산기와 실시간 연동.</p><span class="go">상세보기 →</span></a>
-    <a class="ch-card" href="#/ch5"><div class="n">Ⅴ</div><h4>상권 — 272만 업소의 지도</h4><p>시도 × 업종 매트릭스와 주요상권 1,227곳 — 근생 비율의 실증적 근거.</p><span class="go">상세보기 →</span></a>
-    <a class="ch-card" href="#/ch6"><div class="n">Ⅵ</div><h4>사례 — 네 개의 표준 사업</h4><p>실데이터 파라미터로 계산한 신축 3건 + 재건축 1건의 수지 구조.</p><span class="go">상세보기 →</span></a>
+    <a class="ch-card" href="#/ch5"><div class="n">Ⅴ</div><h4>상권 — 272만 업소의 지도</h4><p>시도별 업종 분포와 주요상권 1,227곳 — 근생 비율을 정할 실제 근거.</p><span class="go">상세보기 →</span></a>
+    <a class="ch-card" href="#/ch6"><div class="n">Ⅵ</div><h4>사례 — 네 개의 표준 사업</h4><p>실제 데이터에서 뽑은 입력값으로 계산한 신축 3건 + 재건축 1건의 수지 구조.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch7"><div class="n">Ⅶ</div><h4>컨설팅 — 절차·리스크·전략</h4><p>정비사업 7단계 타임라인과 시장 상황 × 사업유형 전략 매트릭스.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch8"><div class="n">Ⅷ</div><h4>방법론 — 출처·가정·한계</h4><p>7개 기관 10종 데이터셋 출처, 모델 가정, 검증 체계와 한계의 투명한 고지.</p><span class="go">상세보기 →</span></a>
   </div>
@@ -125,7 +125,7 @@
     <figure class="viz">
       <div class="viz-head"><div class="viz-title">시도별 아파트 매매가격지수 — 최근 10년</div><div class="viz-unit">지수 (2026.01=100) · 우측 수치는 최근 1년 변동률 · 클릭하여 선택</div></div>
       <div id="sm-sale"></div>
-      <figcaption>한국부동산원 전국주택가격동향조사. 음영은 지수 수준, 점은 최근월.</figcaption>
+      <figcaption>한국부동산원 전국주택가격동향조사. 색이 진할수록 지수가 높고, 점은 최신 월을 뜻한다.</figcaption>
     </figure>
 
     <figure class="viz" id="fig-sub" hidden>
@@ -149,7 +149,7 @@
       <figure class="viz">
         <div class="viz-head"><div class="viz-title">금리 환경</div><div class="viz-unit">연 %</div></div>
         <div id="chart-rates"></div>
-        <figcaption>한국은행 ECOS. 기업대출 금리는 PF 조달비용의 하한 대리지표.</figcaption>
+        <figcaption>한국은행 ECOS. 기업대출 금리는 PF(부동산 개발금융) 조달비용을 가늠하는 낮은 기준값이다.</figcaption>
       </figure>
     </div>
 
@@ -168,15 +168,15 @@
     </figure>
 
     <figure class="viz reveal">
-      <div class="viz-head"><div class="viz-title">분양가 vs 공사비 — 개발 마진의 여유</div><div class="viz-unit">동일 시점=100 지수화</div></div>
+      <div class="viz-head"><div class="viz-title">분양가와 공사비 — 개발이익 여력</div><div class="viz-unit">동일 시점=100 지수화</div></div>
       <div id="chart-squeeze"></div>
       <figcaption>분양가(HUG 민간아파트 ㎡당 분양가, 전국) vs 건설공사비지수(KICT). 두 선의 간격이 개발 마진의 거시적 여유다.</figcaption>
     </figure>
 
-    <h3 class="reveal">숫자의 구조 — 탐색적 데이터 분석</h3>
+    <h3 class="reveal">숫자의 구조 — 데이터로 먼저 본 시장</h3>
     <div class="col-read reveal" style="padding-inline:0">
       <p>예측에 앞서, 수집한 시계열 2만4천 포인트와 실거래 20만여 건이 그리는 구조를
-      통계적으로 확인했다. 결론부터: <b>매매가의 최강 선행지표는 미분양</b>이고, 금리는 3개월
+      통계로 먼저 확인했다. 결론부터: <b>집값을 가장 앞서 예고하는 지표는 미분양</b>이고, 금리는 3개월
       선행에서 가장 강하게 작용하며, 계절성은 추세 앞에서 무시할 수 있는 수준이다.
       전 분석은 <code>src/analysis/eda.py</code> 한 번의 실행으로 재현된다. 상관은 인과가 아니다 —
       각 그림의 해석 단서를 함께 읽어야 한다.</p>
@@ -189,11 +189,11 @@
     <figure class="viz reveal">
       <div class="viz-head"><div class="viz-title">같은 금리, 다른 민감도 — 시도별 동시상관</div><div class="viz-unit">각 시도 매매지수 YoY 기준 · 셀에 마우스를 올리면 값</div></div>
       <div id="eda-corr-sido"></div>
-      <figcaption>열마다 진한 시도가 그 지표에 민감한 시장이다 — 공사비 정상관(주황)은 서울(r=+0.16)보다 부산(+0.72)·충청·강원에서 짙어,
-      공통 물가추세와의 동조가 비서울 시장에서 강하다. "자체 미분양"은 전국이 아닌 해당 시도의 미분양 YoY와의 상관. 동시상관(시차 0) 기준.</figcaption>
+      <figcaption>열마다 진한 시도가 그 지표에 민감한 시장이다 — 공사비와 집값이 함께 오르내리는 정도(주황)는 서울(+0.16)보다 부산(+0.72)·충청·강원에서 크다.
+      공사비 상승이 집값에 그대로 옮겨붙는 경향이 서울 밖에서 더 강한 셈이다. "자체 미분양"은 전국이 아닌 해당 시도의 미분양 YoY와의 상관. 동시상관(시차 0) 기준.</figcaption>
     </figure>
     <figure class="viz reveal">
-      <div class="viz-head"><div class="viz-title">시장 동조화 — 시도 간 상승률 격차 추이</div><div class="viz-unit">17개 시도 상승률의 표준편차(%p) · 낮을수록 전국이 같이 움직임</div></div>
+      <div class="viz-head"><div class="viz-title">지역별 집값은 얼마나 함께 움직이나 — 상승률 차이 추이</div><div class="viz-unit">17개 시도 상승률의 표준편차(%p) · 낮을수록 전국이 같이 움직임</div></div>
       <div id="eda-sync"></div>
       <figcaption id="eda-ins-sync"></figcaption>
     </figure>
@@ -213,9 +213,9 @@
 
     <h3 class="reveal">그리고, 12개월 뒤</h3>
     <div class="col-read reveal" style="padding-inline:0">
-      <p>6개 예측 모델 — 나이브 베이스라인부터 SARIMA, LightGBM, 딥러닝(LSTM),
-      시계열 파운데이션 모델(Chronos-Bolt 제로샷)까지 여섯 모델을 — 동일 조건의
-      롤링 백테스트로 비교했다. 120개월 소표본에서는 <b>전통 통계 모델 SARIMA가 1위</b>였고, 사전학습만으로 답한
+      <p>단순 기준모델부터 통계모델(SARIMA), 머신러닝(LightGBM), 딥러닝(LSTM),
+      그리고 시계열 전용 사전학습 모델(Chronos-Bolt)까지 여섯 모델을 같은 조건으로
+      12개월 예측력을 겨루게 했다. 120개월 소표본에서는 <b>전통 통계 모델 SARIMA가 1위</b>였고, 사전학습만으로 답한
       Chronos-Bolt가 근소한 2위였다. 딥러닝(LSTM)은 표본이 부족하면 열세였다 — 이 결과 자체가
       본 연구의 방법론적 입장이다.</p>
     </div>
@@ -231,7 +231,7 @@
           <thead><tr><th>#</th><th style="text-align:left">모델</th><th>MAE</th><th>sMAPE</th></tr></thead>
           <tbody id="bench-body"></tbody>
         </table></div>
-        <figcaption>오리진 3회(−24·−18·−12개월) × 12개월 예측, 17개 시도 평균. 행을 클릭하면 왼쪽 예측 차트가 해당 모델로 전환된다.</figcaption>
+        <figcaption>예측 시작 시점 3개(−24·−18·−12개월)에서 각각 12개월을 내다본 결과, 17개 시도 평균. 행을 클릭하면 왼쪽 예측 차트가 해당 모델로 전환된다.</figcaption>
       </figure>
     </div>
   </div>
@@ -262,7 +262,7 @@
     최근 3년 공사비지수 급등이 사업성 악화의 주범) ③ 간접비(설계·감리·각종 부담금)
     ④ 판매비(분양수입의 3~4%) ⑤ 금융비(브릿지·PF 이자와 수수료 — 금리 1%p가 수십억을 움직인다)
     ⑥ 예비비. 정비사업이라면 철거·명도비, 이주비 이자, 현금청산이 더해진다.</p>
-    <p><b>정비사업의 고유 문법.</b> 재건축·재개발의 성적표는 <b>비례율</b> =
+    <p><b>정비사업에서 따로 봐야 할 지표.</b> 재건축·재개발의 성적표는 <b>비례율</b> =
     (총수입 − 총사업비) ÷ 종전자산평가액이다. 비례율이 100%를 넘으면 조합원의 자산 가치가
     커지고, 조합원 분담금 = 조합원분양가 − 권리가액(종전자산 × 비례율). 재개발은 임대주택
     의무비율만큼 일반분양 수입이 줄고, 현금청산자가 늘수록 사업비가 는다.</p>
@@ -325,7 +325,7 @@
     </div>
     <p class="caption" style="margin-top:var(--sp-2)">단위: 억원·평당 만원(1평=3.3058㎡). 취득세 4.6%, PF 인출률·기간 등 세부 가정은 Ⅷ장 참조.
     입력을 바꾸면 즉시 재계산되며, "A로 저장" 후 입력을 바꾸면 시나리오 비교가 표시된다.
-    자산 유형에서 오피스·상업시설을 고르면 임대료·공실률·cap rate 기반 수익형 모델(NOI → 매각가치)로 전환된다.</p>
+    자산 유형에서 오피스·상업시설을 고르면 임대료·공실률·환원율(cap rate)로 순영업소득(NOI)과 매각가치를 계산하는 수익형 모델로 전환된다.</p>
   </div>
 </section>
 
@@ -376,7 +376,7 @@
   </header>
 
   <div class="col-read reveal">
-    <p class="lede">주거 개발의 저층부, 근생의 성패는 상권이 정한다. 전국 상가업소
+    <p class="lede">주거 개발의 저층부, 즉 근린생활시설(근생)이 잘될지는 상권이 좌우한다. 전국 상가업소
     272만 개와 공단이 지정한 주요상권 1,227곳의 분포는, 근생 비율을 얼마로 가져갈지
     — Ⅲ장 계산기의 "근생 비율" 슬라이더 — 에 대한 실증적 근거다.</p>
   </div>
@@ -394,14 +394,14 @@
     <figure class="viz reveal">
       <div class="viz-head"><div class="viz-title">시도별 주요상권 수</div><div class="viz-unit">공단 지정 · 상위 12</div></div>
       <div id="chart-zones"></div>
-      <figcaption>주요상권이 많다는 것은 검증된 집객 동선이 많다는 뜻 — 근생 분양가 프리미엄의 근거가 된다.</figcaption>
+      <figcaption>주요상권이 많다는 것은 사람이 모이는 길목이 많다는 뜻 — 근생 분양가를 높게 볼 근거가 된다.</figcaption>
     </figure>
 
     <h3 class="reveal">상업용 부동산 — 오피스의 온도</h3>
     <div class="col-read reveal" style="padding-inline:0">
-      <p>수익형 개발(Ⅲ장 계산기의 오피스·상업 모드)의 가정은 여기서 실측과 만난다.
+      <p>Ⅲ장 계산기의 오피스·상업 모드에 넣는 가정을, 여기서 실제 임대시장 자료와 맞대어 본다.
       한국부동산원 상업용부동산 임대동향조사의 분기 시계열 — 임대가격지수, 공실률, 그리고
-      투자수익률(소득+자본)이다. <b>소득수익률의 연환산이 곧 cap rate의 실측 근거</b>다.
+      투자수익률(소득+자본)이다. <b>소득수익률을 1년치로 환산하면 곧 환원율(cap rate)의 실측 근거</b>가 된다.
       위 시도 목록을 클릭하면 함께 전환된다.</p>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:var(--sp-3)">
@@ -437,7 +437,7 @@
   <div class="col-read reveal">
     <p class="lede">실제 시장 데이터에서 산출한 파라미터로 네 개의 표준 사업을 구성했다.
     분양가는 그 지역의 최근 실제 분양가, 공사비는 공사비지수 반영값, 금리는 현재
-    기준금리에 실무 스프레드를 얹었다. 카드를 선택하면 수지 구조가 펼쳐진다.</p>
+    기준금리에 실무에서 쓰는 가산금리를 얹었다. 카드를 선택하면 수지 구조가 펼쳐진다.</p>
   </div>
   <div class="col-wide reveal">
     <div class="case-grid" id="case-grid"></div>
@@ -486,17 +486,17 @@
         <tr><th>회복기<br><span class="caption">재고↓ 가격 보합</span></th>
           <td><b>토지 선점기.</b> 지가가 분양가 회복을 아직 반영하지 못한 구간 — 매입 경쟁 전에 움직인다.</td>
           <td>동의율 작업과 조합 설립을 진행할 적기. 관리처분은 확장기에 맞춘다.</td>
-          <td>분담금 수용성이 낮은 시기 — 추진위 단계에 머무르며 준비.</td></tr>
+          <td>조합원이 분담금을 받아들이기 어려운 시기 — 추진위 단계에 머무르며 준비.</td></tr>
         <tr><th>확장기<br><span class="caption">재고↓ 가격↑</span></th>
           <td><b>분양 극대화.</b> 분양가 상한을 시험하되, 공사비 물가연동 조항을 경계.</td>
           <td><b>일반분양 타이밍의 정점.</b> 비례율이 가장 잘 나오는 구간 — 관리처분·착공을 밀어붙인다.</td>
           <td>수직증축 인허가와 일반분양 소량이 성립 — 추진 적기.</td></tr>
         <tr><th>둔화기<br><span class="caption">재고↑ 가격 보합</span></th>
-          <td>분양률 가정을 보수화(85%↓)하고 중도금 무이자 등 판촉비를 수지에 선반영.</td>
+          <td>분양률을 낮게(85% 이하) 잡고, 중도금 무이자 같은 판촉비를 수지표에 미리 반영.</td>
           <td>공사비 증액 협상이 몰리는 구간 — 도급계약 물가조항 재점검.</td>
           <td>분담금 저항 시작 — 사업비 다이어트로 대응.</td></tr>
         <tr><th>침체기<br><span class="caption">재고↑ 가격↓</span></th>
-          <td><b>신규 착수 금지선.</b> 진행 중인 사업은 브릿지 연장보다 손절 조건을 먼저 계산한다.</td>
+          <td><b>신규 착수 금지선.</b> 진행 중인 사업은 초기 대출(브릿지) 연장보다 사업 정리 조건을 먼저 계산한다.</td>
           <td>속도 조절 — 이주 개시를 미뤄 금융비 누적을 차단. 현금청산 증가 대비.</td>
           <td>사실상 동결 — 장기수선계획으로 회귀.</td></tr>
       </tbody>
@@ -542,7 +542,7 @@
 
     <h4>수지모델 핵심 가정</h4>
     <ul style="max-width:none">
-      <li>단위: 원·㎡ 내부 통일(표시만 억원·평). 취득세율 4.6%, 예비비는 직접비 대비 요율.</li>
+      <li>단위: 계산은 원·㎡ 기준, 화면 표시만 억원·평 기준. 취득세율 4.6%, 예비비는 직접비 대비 요율.</li>
       <li>금융비 = 브릿지 원금×금리×기간 + PF 한도×평균인출률×금리×기간 + 취급수수료. 이자 스케줄은 균등 근사.</li>
       <li>분양수입 스케줄: 계약금 10% / 중도금 60% 균등 / 잔금 30% 준공 시. 분기 현금흐름으로 NPV(기본 할인율 8%)·IRR(이분법) 산출.</li>
       <li>정비사업: 비례율 = (총수입−총사업비)/종전자산평가액, 분담금 = 조합원분양가 − 권리가액. 재개발 임대의무는 일반분양 수입 차감으로 반영(기본 15% — 서울 최저는 10%로 보수적).</li>
@@ -560,14 +560,14 @@
 
     <h4>예측 방법론</h4>
     <ul style="max-width:none">
-      <li>대상: 시도별 아파트 매매가격지수(120개월). 외생 피처는 시차(lag) 1·3·6·12개월만 사용 — 미래 정보 누출 차단.</li>
+      <li>대상: 시도별 아파트 매매가격지수(120개월). 금리·미분양 같은 외부 지표는 1·3·6·12개월 전 값만 사용해 미래 정보가 새어드는 것을 막았다.</li>
       <li>벤치마크: Naive·계절 Naive·SARIMA·LightGBM(분위수)·LSTM(시도 풀링)·Chronos-Bolt(제로샷) — 롤링 오리진 3회 × 12개월, MAE·sMAPE.</li>
       <li>결과: SARIMA 우승(시도평균 MAE 0.68), Chronos 2위. <b>소표본에서 딥러닝의 열위는 예상된 결과이며 그대로 보고한다.</b></li>
     </ul>
 
     <h4>한계 고지</h4>
     <ul style="max-width:none">
-      <li>본 도구의 산출은 선별(스크리닝) 목적의 추정이며 감정평가·회계·세무 자문을 대체하지 않는다. 법인세·부가세 등 세무 효과는 단순화되어 있다.</li>
+      <li>본 도구의 산출은 초기 검토용 추정이며 감정평가·회계·세무 자문을 대체하지 않는다. 법인세·부가세 등 세무 효과는 단순화되어 있다.</li>
       <li>실거래 표본은 시도별 대표 시군구 기준으로, ㎡당 200만원 미만 저가 거래를 제외한 중위값이라 지방 시도는 상향 편향이 있을 수 있다.</li>
       <li>예측구간(80%)은 모델 불확실성의 하한이다 — 정책·금리 충격 같은 구조 변화는 담지 못한다.</li>
     </ul>

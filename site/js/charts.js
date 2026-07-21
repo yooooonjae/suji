@@ -123,7 +123,7 @@
       bar.appendChild(seg);
     }
     const hint = document.createElement("span");
-    hint.className = "zoom-hint"; hint.textContent = "드래그: 구간 확대 · 더블클릭: 전체";
+    hint.className = "zoom-hint"; hint.textContent = "드래그로 구간 확대 · 더블클릭으로 전체 보기";
     bar.appendChild(hint);
     const resetBtn = document.createElement("button");
     resetBtn.type = "button"; resetBtn.className = "zoom-reset"; resetBtn.hidden = true;
@@ -404,7 +404,7 @@
       el("text", { x: xr + 6, y: cy + 4, "font-size": 11.5, fill: css("--ink-3"), "font-family": "var(--font-num)" }, svg).textContent = fmt.eok(it.high);
       [neg, pos].forEach(r2 => {
         r2.addEventListener("mousemove", ev => tipShow(
-          `<div class="t-title">${it.name}</div>악화 <b class="num">${fmt.eok(it.low)}</b> · 기준 <b class="num">${fmt.eok(base)}</b> · 개선 <b class="num">${fmt.eok(it.high)}</b>`, ev.clientX, ev.clientY));
+          `<div class="t-title">${it.name}</div>나빠질 때 <b class="num">${fmt.eok(it.low)}</b> · 현재 기준 <b class="num">${fmt.eok(base)}</b> · 좋아질 때 <b class="num">${fmt.eok(it.high)}</b>`, ev.clientX, ev.clientY));
         r2.addEventListener("mouseleave", tipHide);
       });
     });
@@ -576,7 +576,7 @@
       // 실적/예측 경계 수직선
       if (za <= h0 && zb > h0) {
         el("line", { x1: x(h0), x2: x(h0), y1: M.t, y2: H - M.b, stroke: css("--axis"), "stroke-width": 1, "stroke-dasharray": "3 3" }, svg);
-        el("text", { x: x(h0) - 5, y: M.t + 10, "text-anchor": "end", "font-size": 11.5, fill: css("--ink-3") }, svg).textContent = "실적←";
+        el("text", { x: x(h0) - 5, y: M.t + 10, "text-anchor": "end", "font-size": 11.5, fill: css("--ink-3") }, svg).textContent = "← 실적";
       }
       // x 라벨
       [za, za <= h0 && zb > h0 ? h0 : Math.round((za + zb) / 2), zb].forEach(gi => {
@@ -678,7 +678,7 @@
     const W = opts.width || 1160, H = 470;
     const M = { t: 28, r: 96, b: 44, l: 56 };
     root.innerHTML = "";
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "시장 국면 맵" }, root);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "시장 상황 지도" }, root);
     const xe = extent(pts.map(p => p.x)), ye = extent(pts.map(p => p.y));
     const xm = Math.max(Math.abs(xe[0]), Math.abs(xe[1])) * 1.15 || 1;
     const ym2 = Math.max(Math.abs(ye[0]), Math.abs(ye[1])) * 1.15 || 1;
