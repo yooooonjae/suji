@@ -678,7 +678,7 @@
     const W = opts.width || 1160, H = 470;
     const M = { t: 28, r: 96, b: 44, l: 56 };
     root.innerHTML = "";
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "시장 상황 지도" }, root);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "시장 온도 진단" }, root);
     const xe = extent(pts.map(p => p.x)), ye = extent(pts.map(p => p.y));
     const xm = Math.max(Math.abs(xe[0]), Math.abs(xe[1])) * 1.15 || 1;
     const ym2 = Math.max(Math.abs(ye[0]), Math.abs(ye[1])) * 1.15 || 1;

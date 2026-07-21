@@ -28,7 +28,7 @@ DATA_MAP = {
     "DATA_ARCHUB": ("archub", ROOT / "data" / "archub.json"),
 }
 CSS_FILES = ["tokens.css", "base.css", "components.css", "flourish.css"]
-JS_FILES = ["feasibility.js", "zoning.js", "charts.js", "calc-ui.js", "app.js"]
+JS_FILES = ["guard.js", "feasibility.js", "zoning.js", "charts.js", "calc-ui.js", "app.js"]
 STATIC = SITE / "static"  # robots.txt, og.png 등 → web/ 루트로 복사
 
 

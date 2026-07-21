@@ -154,7 +154,7 @@ def main():
             npx = Path("/opt/homebrew/bin/npx")
             if npx.exists():
                 res = run_step("deploy", [str(npx), "--yes", "wrangler", "pages", "deploy", "web",
-                                          "--project-name", "yooooonjae", "--branch", "main",
+                                          "--project-name", "yoonjae", "--branch", "main",
                                           "--commit-dirty=true"], 900, log)
                 status["stages"]["deploy"] = res
                 if not res["ok"]:

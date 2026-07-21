@@ -122,21 +122,21 @@
       { name: "미분양", color: "--s6", emph: true, points: mk(seriesOf(M.unsold, selSido)) },
       { name: "준공후", color: "--s3", points: mk(seriesOf(M.unsold_completed, selSido) || []) },
     ], { aria: selSido + " 미분양", yFmt: v => fmt.num(v, 0), width: 560, height: 330, rightPad: 64 });
-    // 주택 인허가 맥박 — 대표 시군구 공급 선행 신호 (건축HUB)
+    // 주택 인허가 추이 — 대표 시군구 공급 선행 신호 (건축HUB)
     const AH = window.__DATA_ARCHUB;
     if (AH && $("#chart-permits")) {
       const ser = seriesOf(AH.permits_monthly, selSido);
       const meta = (AH.sido_meta || {})[selSido] || {};
-      $("#permit-title").textContent = "주택 인허가 맥박 — " + selSido + (meta.sigungu ? " " + meta.sigungu : " 대표 시군구");
+      $("#permit-title").textContent = "주택 인허가 추이 — " + selSido + (meta.sigungu ? " " + meta.sigungu : " 대표 시군구");
       if (ser.length) {
         C.line($("#chart-permits"), [
           { name: "인허가 세대", color: "--s4", emph: true, points: ser.map((p, i) => ({ x: i, label: fmt.ym(p.ym), y: p.units })) },
         ], { aria: selSido + " 주택 인허가 세대", yFmt: v => fmt.num(v, 0), rightPad: 64 });
         $("#permit-cap").innerHTML = "국토교통부 건축HUB(" + (meta.sigungu || "대표 시군구") +
-          " 동 단위 표본). 미분양(재고)이 수요라면 인허가는 <b>공급 파이프라인</b>의 선행 신호다. " +
-          "시도 전체가 아닌 대표 시군구의 표본 맥박이므로 절대량이 아닌 흐름으로 읽는다. 0건 월은 미표시.";
+          " 동 단위 표본). 미분양이 이미 지어진 공급의 재고라면, 인허가는 <b>앞으로 지어질 공급</b>의 선행 신호다. " +
+          "시도 전체가 아닌 대표 시군구의 표본이므로 절대량보다 흐름으로 읽는다. 0건 월은 표시하지 않는다.";
       } else {
-        $("#chart-permits").innerHTML = '<p class="caption" style="padding:12px 0">' + selSido + " 대표 시군구는 표본 기간 내 공동주택 신축·증축 인허가가 희소하다.</p>";
+        $("#chart-permits").innerHTML = '<p class="caption" style="padding:12px 0">' + selSido + " 대표 시군구는 표본 기간 내 공동주택 신축·증축 인허가가 드물다.</p>";
       }
     }
     // 시장 온도 진단 — 점 클릭 시 해당 시도로 전환 (유기적 연결, 상세 차트로 스크롤)
