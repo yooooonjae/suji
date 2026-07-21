@@ -234,6 +234,42 @@
     // 주요상권 시도별 — 파랑 계열
     const zones = Object.entries(SB.zones.by_sido).map(([k, v]) => ({ name: k, value: v })).sort((a, b) => b.value - a.value).slice(0, 12);
     C.hbars($("#chart-zones"), zones, { aria: "시도별 주요상권 수", color: "--s2", fmt: v => v + "곳", labelW: 60 });
+    renderOffice();
+  }
+
+  // 상업용 부동산 (R-ONE 임대동향, 분기) — 상권 시도 선택과 연동
+  function renderOffice() {
+    const CM = window.__DATA_COMMERCIAL;
+    if (!CM || !$("#chart-office-vac")) return;
+    const sido = selCommerceSido;
+    const mkq = s => s.map((p, i) => ({ x: i, label: p.yq.replace("Q", " Q"), y: p.value }));
+    const vac = CM.office_vacancy[sido], rent = CM.office_rent_index[sido], yld = CM.office_yield[sido];
+    const vt = $("#office-vac-title"), yt = $("#office-yield-title");
+    if (!vac || !rent || !yld) { // 세종: 오피스 임대동향 조사 대상 아님
+      vt.textContent = sido + " — 오피스 조사 대상 아님";
+      yt.textContent = sido + " — 오피스 조사 대상 아님";
+      $("#chart-office-vac").innerHTML = $("#chart-office-rent").innerHTML = $("#chart-office-yield").innerHTML =
+        `<p class="caption" style="padding:var(--sp-3) 0">${sido}은(는) 한국부동산원 오피스 임대동향조사 대상 지역이 아니다. 다른 시도를 선택해 보라.</p>`;
+      $("#office-yield-cap").textContent = "";
+      return;
+    }
+    vt.textContent = sido + " — 오피스 공실률·임대가격지수";
+    yt.textContent = sido + " — 오피스 투자수익률 분해";
+    C.line($("#chart-office-vac"), [
+      { name: "공실률", color: "--s2", emph: true, points: mkq(vac) },
+    ], { aria: sido + " 오피스 공실률", yFmt: v => v.toFixed(1) + "%", height: 220, rightPad: 56 });
+    C.line($("#chart-office-rent"), [
+      { name: "임대지수", color: "--s1", emph: true, points: mkq(rent) },
+    ], { aria: sido + " 오피스 임대가격지수", height: 200, rightPad: 64 });
+    C.line($("#chart-office-yield"), [
+      { name: "투자", color: "--s1", emph: true, points: yld.map((p, i) => ({ x: i, label: p.yq.replace("Q", " Q"), y: p.total })) },
+      { name: "소득", color: "--s2", points: yld.map((p, i) => ({ x: i, label: p.yq.replace("Q", " Q"), y: p.income })) },
+      { name: "자본", color: "--s3", points: yld.map((p, i) => ({ x: i, label: p.yq.replace("Q", " Q"), y: p.capital })) },
+    ], { aria: sido + " 오피스 투자수익률", yFmt: v => v.toFixed(1) + "%", height: 444, rightPad: 60 });
+    const lastY = yld[yld.length - 1];
+    $("#office-yield-cap").textContent =
+      `최근 분기(${lastY.yq}) 소득수익률 ${lastY.income.toFixed(2)}% — 연환산 약 ${(lastY.income * 4).toFixed(1)}%. ` +
+      "이 값이 Ⅲ장 수익형 계산기 cap rate 가정의 실측 근거다 (자본수익률은 가격 변동분).";
   }
 
   /* ---------- Ⅵ. 사례 ---------- */

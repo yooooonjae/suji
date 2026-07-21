@@ -80,7 +80,7 @@
   <div class="hero-stats stagger">
     <div class="hero-stat"><div class="v num-hero"><span data-count="216804">0</span><small>건</small></div><div class="k">아파트 실거래 수집</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="77">0</span><small>계열</small></div><div class="k">시장 시계열 (10년)</div></div>
-    <div class="hero-stat"><div class="v num-hero"><span data-count="8">0</span><small>종</small></div><div class="k">공공 데이터셋 연동</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="9">0</span><small>종</small></div><div class="k">공공 데이터셋 연동</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="6">0</span><small>모델</small></div><div class="k">예측 벤치마크</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="152">0</span><small>개</small></div><div class="k">자동화 검증 테스트</div></div>
   </div>
@@ -97,7 +97,7 @@
     <a class="ch-card" href="#/ch5"><div class="n">Ⅴ</div><h4>상권 — 272만 업소의 지도</h4><p>시도 × 업종 매트릭스와 주요상권 1,227곳 — 근생 비율의 실증적 근거.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch6"><div class="n">Ⅵ</div><h4>사례 — 네 개의 표준 사업</h4><p>실데이터 파라미터로 계산한 신축 3건 + 재건축 1건의 수지 구조.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch7"><div class="n">Ⅶ</div><h4>컨설팅 — 절차·리스크·전략</h4><p>정비사업 7단계 타임라인과 시장 상황 × 사업유형 전략 매트릭스.</p><span class="go">상세보기 →</span></a>
-    <a class="ch-card" href="#/ch8"><div class="n">Ⅷ</div><h4>방법론 — 출처·가정·한계</h4><p>6개 기관 8종 데이터셋 출처, 모델 가정, 검증 체계와 한계의 투명한 고지.</p><span class="go">상세보기 →</span></a>
+    <a class="ch-card" href="#/ch8"><div class="n">Ⅷ</div><h4>방법론 — 출처·가정·한계</h4><p>6개 기관 9종 데이터셋 출처, 모델 가정, 검증 체계와 한계의 투명한 고지.</p><span class="go">상세보기 →</span></a>
   </div>
 </section>
 
@@ -383,6 +383,27 @@
       <div id="chart-zones"></div>
       <figcaption>주요상권이 많다는 것은 검증된 집객 동선이 많다는 뜻 — 근생 분양가 프리미엄의 근거가 된다.</figcaption>
     </figure>
+
+    <h3 class="reveal">상업용 부동산 — 오피스의 온도</h3>
+    <div class="col-read reveal" style="padding-inline:0">
+      <p>수익형 개발(Ⅲ장 계산기의 오피스·상업 모드)의 가정은 여기서 실측과 만난다.
+      한국부동산원 상업용부동산 임대동향조사의 분기 시계열 — 임대가격지수, 공실률, 그리고
+      투자수익률(소득+자본)이다. <b>소득수익률의 연환산이 곧 cap rate의 실측 근거</b>다.
+      위 시도 목록을 클릭하면 함께 전환된다.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:var(--sp-3)">
+      <figure class="viz reveal" style="margin:0">
+        <div class="viz-head"><div class="viz-title" id="office-vac-title">서울 — 오피스 공실률·임대가격지수</div><div class="viz-unit">분기 · 2016Q3~</div></div>
+        <div id="chart-office-vac"></div>
+        <div id="chart-office-rent" style="margin-top:var(--sp-2)"></div>
+        <figcaption>공실률(%)과 임대가격지수(2024.2Q=100)는 단위가 달라 별도 축으로 나란히 둔다. 세종은 오피스 조사 대상이 아니다.</figcaption>
+      </figure>
+      <figure class="viz reveal" style="margin:0">
+        <div class="viz-head"><div class="viz-title" id="office-yield-title">서울 — 오피스 투자수익률 분해</div><div class="viz-unit">분기 % · 투자 = 소득 + 자본</div></div>
+        <div id="chart-office-yield"></div>
+        <figcaption id="office-yield-cap"></figcaption>
+      </figure>
+    </div>
   </div>
 </section>
 
@@ -493,7 +514,7 @@
     <table class="sources">
       <thead><tr><th>출처</th><th>내용</th><th>비고</th></tr></thead>
       <tbody>
-        <tr><td>한국부동산원 R-ONE</td><td>아파트 매매·전세가격지수, ㎡당 평균 분양가격 (시도별 월간 10년)</td><td>OpenAPI</td></tr>
+        <tr><td>한국부동산원 R-ONE</td><td>아파트 매매·전세가격지수, ㎡당 평균 분양가격 (시도별 월간 10년) + 상업용부동산 임대동향 — 오피스·중대형상가 임대지수·공실률·투자수익률 (시도별 분기 10년)</td><td>OpenAPI</td></tr>
         <tr><td>국토교통부 실거래가(RTMS)</td><td>아파트 매매 201,738건·분양권 15,066건 — 시도별 대표 시군구 표본</td><td>광주·전남은 조회기간 내 원천 데이터 공백(전 시군구 0건)을 확인</td></tr>
         <tr><td>KOSIS(국토부·KICT)</td><td>미분양·준공후 미분양·착공·준공(월간)·인허가(연간)·건설공사비지수</td><td>OpenAPI</td></tr>
         <tr><td>한국은행 ECOS</td><td>기준금리(일별→월말)·주택담보/기업대출 가중평균금리</td><td>OpenAPI</td></tr>
@@ -502,7 +523,7 @@
       </tbody>
     </table>
     </div>
-    <p class="footnote">표는 기관 기준 6행. 데이터셋 기준으로는 RTMS 2종(매매·분양권)과 상권 2종(상가업소·주요상권)을 포함해 8종이다.
+    <p class="footnote">표는 기관 기준 6행. 데이터셋 기준으로는 RTMS 2종(매매·분양권), 상권 2종(상가업소·주요상권), R-ONE 2종(주택가격동향·상업용 임대동향)을 포함해 9종이다.
     상가업소 DB는 소매·음식·서비스업 중심으로, 건설업·제조업 등 비상가 업종은 집계에 사실상 포함되지 않는다.</p>
 
     <h4>수지모델 핵심 가정</h4>
@@ -541,7 +562,7 @@
 
 <footer class="colophon">
   <div style="font-weight:800;color:var(--ink-2);margin-bottom:6px">수지(收支) — 대한민국 부동산 개발의 손익 구조</div>
-  개인 연구 포트폴리오 · 데이터 기준일 {{BUILT_AT}} · 공공 데이터셋 8종 수집(6개 기관 API) · 모델 152 테스트 검증<br>
+  개인 연구 포트폴리오 · 데이터 기준일 {{BUILT_AT}} · 공공 데이터셋 9종 수집(6개 기관 API) · 모델 152 테스트 검증<br>
   본 페이지는 로컬 정적 사이트로 빌드되었고, 모든 데이터가 로컬에 내장되어 외부 네트워크 요청이 없다.
 </footer>
 
@@ -553,6 +574,7 @@ window.__DATA_FORECAST = {{DATA_FORECAST}};
 window.__DATA_CASES = {{DATA_CASES}};
 window.__DATA_SBIZ = {{DATA_SBIZ}};
 window.__DATA_EDA = {{DATA_EDA}};
+window.__DATA_COMMERCIAL = {{DATA_COMMERCIAL}};
 </script>
 <script>
 {{JS:feasibility.js}}
