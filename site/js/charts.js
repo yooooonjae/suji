@@ -406,7 +406,7 @@
     el("line", { x1: x(0), x2: x(0), y1: M.t, y2: H - M.b, stroke: css("--axis"), "stroke-width": 1.2 }, svg);
     el("text", { x: W - 8, y: y(0) - 6, "text-anchor": "end", "font-size": 11.5, fill: css("--ink-3") }, svg).textContent = "미분양 증가 →";
     el("text", { x: x(0) + 6, y: M.t + 10, "font-size": 11.5, fill: css("--ink-3") }, svg).textContent = "↑ 가격 상승";
-    const quad = [["확장", M.l + 8, M.t + 16], ["과열·공급과잉", W - M.r - 8, M.t + 16], ["회복", M.l + 8, H - M.b - 8], ["침체", W - M.r - 8, H - M.b - 8]];
+    const quad = [["확장기", M.l + 8, M.t + 16], ["둔화기", W - M.r - 8, M.t + 16], ["회복기", M.l + 8, H - M.b - 8], ["침체기", W - M.r - 8, H - M.b - 8]];
     quad.forEach(([t2, tx, ty], i) => el("text", { x: tx, y: ty, "text-anchor": i % 2 ? "end" : "start", "font-size": 12, "font-weight": 800, fill: css("--ink-3"), opacity: .75 }, svg).textContent = t2);
     // 점 라벨 충돌 회피: 점·기배치 라벨을 장애물 삼아 8방향 후보 중 빈 자리, 없으면 최소겹침 자리
     const placed = pts.map(p => ({ x1: x(p.x) - 7, x2: x(p.x) + 7, y1: y(p.y) - 7, y2: y(p.y) + 7 }));

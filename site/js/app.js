@@ -142,7 +142,7 @@
     if (tb && !tb.dataset.done) {
       tb.dataset.done = "1";
       const names = { sarima: "SARIMA", chronos: "Chronos-Bolt (제로샷)", naive: "Naive", lightgbm: "LightGBM",
-                      seasonal_naive: "계절 Naive", lstm: "LSTM (풀링)" };
+                      seasonal_naive: "계절 Naive", lstm: "LSTM (시도 풀링)" };
       FC.benchmark.slice().sort((a, b) => a.mae - b.mae).forEach((r, i) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `<td>${i + 1}</td><td>${names[r.model] || r.model}</td>
