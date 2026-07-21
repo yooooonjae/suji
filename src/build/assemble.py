@@ -41,6 +41,14 @@ def _minify_json(path: Path) -> str:
              .replace(" ", "\\u2028").replace(" ", "\\u2029"))
 
 
+def _robots_tag() -> str:
+    """검색 노출 정책. 기본=차단(noindex). --index 플래그 시 개방(링크드인 등록용).
+    월간 자동 갱신은 플래그 없이 실행되므로 항상 차단 상태로 유지된다."""
+    if "--index" in sys.argv:
+        return '<meta name="robots" content="index, follow">'
+    return '<meta name="robots" content="noindex, nofollow, noarchive">'
+
+
 def build_dist() -> Path:
     """web/ 멀티파일 산출 — index.html은 링크 참조, 데이터는 JS 래핑."""
     tpl = (SITE / "index.template.html").read_text()
@@ -54,6 +62,7 @@ def build_dist() -> Path:
     tpl = re.sub(r"<script>\s*window\.__DATA_MARKET[\s\S]*?</script>", data_tags, tpl)
     tpl = re.sub(r"<script>\s*(?:\{\{JS:[\w.\-]+\}\}\s*)+</script>", js_tags, tpl)
     tpl = tpl.replace("{{BUILT_AT}}", datetime.date.today().isoformat())
+    tpl = tpl.replace("{{ROBOTS}}", _robots_tag())
 
     leftover = re.findall(r"\{\{[A-Z_:.\w\-]+\}\}", tpl)
     if leftover:
@@ -127,6 +136,7 @@ def build_single() -> Path:
     for key, (name, path) in DATA_MAP.items():
         html = html.replace("{{" + key + "}}", _minify_json(path))
     html = html.replace("{{BUILT_AT}}", datetime.date.today().isoformat())
+    html = html.replace("{{ROBOTS}}", _robots_tag())
     OUT.mkdir(exist_ok=True)
     out_path = OUT / "site.html"
     out_path.write_text(html)
