@@ -21,15 +21,22 @@ def load_config() -> dict:
     return json.load(open(ROOT / "config.json"))
 
 
-def api_get(url: str, params: dict, timeout: int = 15, retries: int = 1):
-    """GET 호출. (status_code, text) 반환 — 예외도 상태로 환원해 호출자가 반드시 보게 한다."""
+def api_get(url: str, params: dict, timeout: int = 15, retries: int = 1, headers: dict = None):
+    """GET 호출. (status_code, text) 반환 — 예외도 상태로 환원해 호출자가 반드시 보게 한다.
+
+    headers: 기본 User-Agent에 병합할 추가 헤더. 건축HUB(ArchPmsHubService)는 Accept 헤더가
+    없으면 HTTP 200 + 빈 바디를 돌려주므로 {"Accept": "*/*"} 를 반드시 넘겨야 한다(2026-07-21 실측).
+    """
     qs = urllib.parse.urlencode(params, safe="%")
     # 빈 쿼리에 '?'를 붙이면 일부 게이트웨이(ECOS 등)가 경로 파싱에 실패한다
     full = f"{url}?{qs}" if qs else url
+    hdrs = {"User-Agent": "dev-research/0.1"}
+    if headers:
+        hdrs.update(headers)
     last_err = None
     for attempt in range(retries + 1):
         try:
-            req = urllib.request.Request(full, headers={"User-Agent": "dev-research/0.1"})
+            req = urllib.request.Request(full, headers=hdrs)
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return r.status, r.read().decode("utf-8", errors="replace")
         except urllib.error.HTTPError as e:

@@ -54,7 +54,8 @@ def main():
     for name, url, params in PROBES:
         p = dict(params)
         p["serviceKey"] = key
-        status, text = api_get(url, p)
+        # Accept 헤더 필수: 건축HUB는 Accept 없으면 200+빈 바디(2026-07-21 실측). 타 API엔 무해.
+        status, text = api_get(url, p, timeout=55, headers={"Accept": "*/*"})
         verdict = classify(status, text)
         results.append((name, status, verdict))
         print(f"{name:<34} [{status}] {verdict}")

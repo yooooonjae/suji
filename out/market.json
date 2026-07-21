@@ -85260,7 +85260,7 @@
       "sale_yoy": 2.841608962192778,
       "unsold_last": 65239.0,
       "presale_m2_last": 6225537.707741491,
-      "trade_median_last": 6226480.659297276
+      "trade_median_last": 5880422.498984428
     },
     "서울": {
       "sale_yoy": 10.726884634065287,
@@ -85296,7 +85296,7 @@
       "sale_yoy": -1.8909681729169632,
       "unsold_last": 1259.0,
       "presale_m2_last": 5851926.7996615,
-      "trade_median_last": null
+      "trade_median_last": 3667230.0
     },
     "대전": {
       "sale_yoy": -1.0509412804266665,
@@ -85344,7 +85344,7 @@
       "sale_yoy": 0.23828744370858052,
       "unsold_last": 2798.0,
       "presale_m2_last": 3810977.6621908294,
-      "trade_median_last": null
+      "trade_median_last": 4287328.0
     },
     "경북": {
       "sale_yoy": -0.47740321403577535,
@@ -85382,10 +85382,7 @@
       "주택도시보증공사(HUG) 민간아파트 분양가격 동향",
       "국토교통부 RTMS 아파트 실거래가(매매·분양권)"
     ],
-    "missing_rtms_sido": [
-      "광주",
-      "전남"
-    ],
+    "missing_rtms_sido": [],
     "index_base_ym": "201607",
     "built_at": "2026-07-21"
   }

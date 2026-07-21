@@ -78,7 +78,7 @@
     사업성 검토에 바로 쓸 수 있는 도구로 만들었다.
   </p>
   <div class="hero-stats stagger">
-    <div class="hero-stat"><div class="v num-hero"><span data-count="216804">0</span><small>건</small></div><div class="k">아파트 실거래 수집</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="236388">0</span><small>건</small></div><div class="k">아파트 실거래 수집</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="77">0</span><small>계열</small></div><div class="k">시장 시계열 (10년)</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="9">0</span><small>종</small></div><div class="k">공공 데이터셋 연동</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="6">0</span><small>모델</small></div><div class="k">예측 벤치마크</div></div>
@@ -192,7 +192,7 @@
     </figure>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:var(--sp-3)">
       <figure class="viz reveal" style="margin:0">
-        <div class="viz-head"><div class="viz-title">시도별 ㎡당 매매가 — 중위값</div><div class="viz-unit">만원/㎡ · 실거래 201,738건</div></div>
+        <div class="viz-head"><div class="viz-title">시도별 ㎡당 매매가 — 중위값</div><div class="viz-unit">만원/㎡ · 실거래 220,465건 · 17개 시도</div></div>
         <div id="eda-dist"></div>
         <figcaption id="eda-ins-dist"></figcaption>
       </figure>
@@ -521,7 +521,7 @@
       <thead><tr><th>출처</th><th>내용</th><th>비고</th></tr></thead>
       <tbody>
         <tr><td>한국부동산원 R-ONE</td><td>아파트 매매·전세가격지수, ㎡당 평균 분양가격 (시도별 월간 10년) + 상업용부동산 임대동향 — 오피스·중대형상가 임대지수·공실률·투자수익률 (시도별 분기 10년)</td><td>OpenAPI</td></tr>
-        <tr><td>국토교통부 실거래가(RTMS)</td><td>아파트 매매 201,738건·분양권 15,066건 — 시도별 대표 시군구 표본</td><td>광주·전남은 조회기간 내 원천 데이터 공백(전 시군구 0건)을 확인</td></tr>
+        <tr><td>국토교통부 실거래가(RTMS)</td><td>아파트 매매 220,465건·분양권 15,923건 — 시도별 대표 시군구 표본</td><td>광주·전남은 2026-07 행정구역 통폐합(전남광주통합특별시)으로 신 법정동코드 재수집</td></tr>
         <tr><td>KOSIS(국토부·KICT)</td><td>미분양·준공후 미분양·착공·준공(월간)·인허가(연간)·건설공사비지수</td><td>OpenAPI</td></tr>
         <tr><td>한국은행 ECOS</td><td>기준금리(일별→월말)·주택담보/기업대출 가중평균금리</td><td>OpenAPI</td></tr>
         <tr><td>주택도시보증공사(HUG)</td><td>민간아파트 지역별 ㎡당 분양가격 (17개 시도 월간)</td><td>결측월(분양실적 없음)은 보간 없이 결측 처리</td></tr>
@@ -546,7 +546,7 @@
     <h4>탐색적 분석(EDA) 방법론</h4>
     <ul style="max-width:none">
       <li>시차 상관: 전국 매매지수 YoY 대 각 지표(0·3·6·12개월 선행), 피어슨 r, n=104~108개월. 상관은 인과가 아니며 공통 추세에 의한 동조 가능성을 각 그림에 명시.</li>
-      <li>금리 국면: 기준금리의 직전 변경 방향으로 상승/동결/하강기를 구분(상승 35·동결 49·하강 29개월). 실거래 분포는 ㎡당 200만~5,000만원 범위의 유효 201,738건(원자료 217,961건) 기준.</li>
+      <li>금리 국면: 기준금리의 직전 변경 방향으로 상승/동결/하강기를 구분(상승 35·동결 49·하강 29개월). 실거래 분포는 ㎡당 200만~5,000만원 범위의 유효 220,465건(원자료 242,381건) 기준.</li>
       <li>재현: <code>python3 src/analysis/eda.py</code> — 표준 라이브러리만으로 전 수치 재산출, 결측 처리 방식은 out/eda.json의 notes에 기록.</li>
     </ul>
 
