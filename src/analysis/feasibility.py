@@ -3,7 +3,7 @@
 단위: 금액=원, 면적=㎡, 이율=소수(연이율). 이후 JS(site/js/feasibility.js)로
 1:1 이식되므로 구조를 단순하게 유지하고, 각 계산 단계를 순수 함수로 분리한다.
 
-수식 요약(스펙 고정):
+수식 요약(신축분양 · 스펙 고정):
   분양수입   = Σ(count × supply_m2 × price_per_m2) × sell_through + other_income
   토지비     = purchase × (1 + acq_tax_rate + misc_rate)
   공사비     = gfa_m2 × unit_cost_per_m2
@@ -20,9 +20,26 @@
   roe               = 이익 / equity   (equity 0 → None)
   NPV = Σ cf_q / (1 + r_q)^q,   r_q = (1 + discount_rate)^(1/4) − 1
   IRR(연율) = (1 + irr_q)^4 − 1,  irr_q 는 분기 현금흐름의 이분법 해
+
+정비사업 모드(inputs["mode"] ∈ {"재개발","재건축","리모델링"}):
+  inputs["redevelopment"] 블록을 추가로 읽어 조합원분양·비례율·분담금을 산출한다.
+  유효조합원수  = member_count × (1 − cash_settlement_ratio)
+  조합원분양수입 = 유효조합원수 × member_supply_m2 × member_price_per_m2
+  일반분양수입   = Σ(general_units)×sell_through, 재개발이면 ×(1 − rental_ratio)
+  총수입        = 조합원분양 + 일반분양 + other_income
+  추가 사업비    = demolition_cost + 이주비이자(amount×rate×months/12)
+                 + 현금청산비(prior_asset_value × cash_settlement_ratio)
+  비례율         = (총수입 − 총사업비) / prior_asset_value   (소수 표기, 예 1.05)
+  권리가액(평균) = (prior_asset_value / member_count) × 비례율
+  세대당분담금   = (member_supply_m2 × member_price_per_m2) − 권리가액
+  신축분양 모드에서는 proportion_rate·rights_value·member_contribution 이 None.
+  (리모델링은 재건축과 동일 산식 — 증축분 general_units 만 소량, 별도 특례 없음)
 """
 
 import math
+
+# 정비사업 모드(비-신축). rental_ratio 는 재개발에만 적용된다.
+_REDEV_MODES = ("재개발", "재건축", "리모델링")
 
 
 # --------------------------------------------------------------------------- #
@@ -112,11 +129,17 @@ def compute_cashflow(sales: float, other_income: float, cost: dict, months_total
 
     유출:
       토지비               → q0
+      현금청산비            → q0 (정비사업, 키 없으면 0)
       공사비+간접비+예비비  → 전 분기 균등
+      철거비+이주비이자     → 전 분기 균등 (정비사업, 키 없으면 0)
       판매비               → 분양수입 유입 분기에 비례
       금융비               → 전 분기 균등
 
-    설계상 Σ유입 = sales + other = 총수입, Σ유출 = 총지출 이 성립하므로
+    정비사업 가정: 조합원분양수입도 일반분양과 동일한 10/60/30 스케줄로 본다
+    (sales 인자에 조합원분양+일반분양을 합산해 전달). 철거비·이주비이자는 전 분기
+    균등, 현금청산비는 착공 시점(q0) 일시 유출로 가정한다.
+
+    설계상 Σ유입 = sales + other = 총수입, Σ유출 = 총사업비 이 성립하므로
     Σcf = 이익(부동소수 오차 제외)이 보장된다.
     """
     quarters = max(1, math.ceil(months_total / 3))
@@ -138,8 +161,11 @@ def compute_cashflow(sales: float, other_income: float, cost: dict, months_total
     inflow[last] += other_income                    # 기타수입
 
     # --- 유출 ---
+    # 정비사업 전용 항목은 .get 으로 읽어 신축분양(키 부재)에선 0 → 결과 불변.
     outflow[0] += cost["land"]                      # 토지비 q0
-    even_direct = (cost["construction"] + cost["indirect"] + cost["contingency"]) / quarters
+    outflow[0] += cost.get("cash_settlement", 0)    # 현금청산비 q0(정비사업)
+    even_direct = (cost["construction"] + cost["indirect"] + cost["contingency"]
+                   + cost.get("demolition", 0) + cost.get("relocation_interest", 0)) / quarters
     even_finance = cost["finance"] / quarters
     for q in range(quarters):
         outflow[q] += even_direct + even_finance
@@ -198,6 +224,44 @@ def compute_irr_annual(cashflows: list):
 
 
 # --------------------------------------------------------------------------- #
+# 정비사업(재개발·재건축·리모델링)
+# --------------------------------------------------------------------------- #
+def compute_relocation_interest(loan: dict) -> float:
+    """이주비 대여 이자 = amount × rate × months / 12 (원금은 사업비 아님, 이자만)."""
+    if not loan:
+        return 0.0
+    return loan.get("amount", 0) * loan.get("rate", 0) * loan.get("months", 0) / 12
+
+
+def compute_redevelopment_revenue(redev: dict, revenue: dict, mode: str) -> dict:
+    """정비사업 수입 계산. 반환: {"member", "general", "other", "sales", "total"}.
+
+      유효조합원수  = member_count × (1 − cash_settlement_ratio)
+      member(조합원분양) = 유효조합원수 × member_supply_m2 × member_price_per_m2
+      general(일반분양)  = Σ(general_units)×sell_through, 재개발이면 ×(1 − rental_ratio)
+      sales = member + general (현금흐름 10/60/30 대상), other = other_income
+      total = member + general + other
+    rental_ratio 는 재개발 모드에서만 반영한다(재건축·리모델링은 무시).
+    """
+    cash_ratio = redev.get("cash_settlement_ratio", 0) or 0
+    eff_members = redev["member_count"] * (1 - cash_ratio)
+    member_unit_price = redev["member_supply_m2"] * redev["member_price_per_m2"]
+    member = eff_members * member_unit_price
+
+    general_rev = compute_revenue(
+        {"units": redev.get("general_units", []),
+         "sell_through": revenue.get("sell_through", 1.0)}
+    )
+    rental_ratio = (redev.get("rental_ratio", 0) or 0) if mode == "재개발" else 0.0
+    general = general_rev["sales"] * (1 - rental_ratio)
+
+    other = revenue.get("other_income", 0) or 0
+    sales = member + general
+    return {"member": member, "general": general, "other": other,
+            "sales": sales, "total": sales + other}
+
+
+# --------------------------------------------------------------------------- #
 # 진입점
 # --------------------------------------------------------------------------- #
 def _safe_div(num: float, den: float):
@@ -208,24 +272,62 @@ def _safe_div(num: float, den: float):
 def run_feasibility(inputs: dict) -> dict:
     """수지분석 실행. 입력·출력 스키마는 스펙에 고정(JS 이식 의존).
 
-    출력 키:
-      revenue_total, cost{land,construction,indirect,marketing,finance,contingency},
-      cost_total, profit, margin_on_revenue, margin_on_cost, roe,
-      cashflow_quarterly(list), npv, irr_annual
-    """
-    rev = compute_revenue(inputs["revenue"])
-    revenue_total = rev["total"]
+    inputs["mode"] 로 신축분양(기본)·재개발·재건축·리모델링을 선택한다.
 
+    출력 키:
+      revenue_total, cost{...}, cost_total, profit,
+      margin_on_revenue, margin_on_cost, roe, cashflow_quarterly(list), npv, irr_annual,
+      proportion_rate, rights_value, member_contribution
+    정비사업 모드에서 cost 에 demolition·relocation_interest·cash_settlement 키가
+    추가되며, 신축분양 모드에서는 마지막 3개 지표가 None 이다.
+    """
+    mode = inputs.get("mode", "신축분양")
+    is_redev = mode in _REDEV_MODES
+    revenue = inputs.get("revenue", {})
+
+    # --- 수입 ---
+    if is_redev:
+        redev = inputs["redevelopment"]
+        rev = compute_redevelopment_revenue(redev, revenue, mode)
+        sales, other = rev["sales"], rev["other"]
+        revenue_total = rev["total"]
+    else:
+        rev = compute_revenue(revenue)
+        sales, other = rev["sales"], rev["other"]
+        revenue_total = rev["total"]
+
+    # --- 지출 ---
     cost = compute_costs(inputs["cost"], inputs["finance"], revenue_total)
+    if is_redev:
+        redev = inputs["redevelopment"]
+        cash_ratio = redev.get("cash_settlement_ratio", 0) or 0
+        cost["demolition"] = redev.get("demolition_cost", 0) or 0
+        cost["relocation_interest"] = compute_relocation_interest(redev.get("relocation_loan"))
+        cost["cash_settlement"] = redev["prior_asset_value"] * cash_ratio
     cost_total = sum(cost.values())
 
     profit = revenue_total - cost_total
+
+    # --- 정비사업 지표(비례율·권리가액·분담금) ---
+    if is_redev:
+        redev = inputs["redevelopment"]
+        prior = redev["prior_asset_value"]
+        proportion_rate = _safe_div(profit, prior)
+        base_rights = _safe_div(prior, redev["member_count"])
+        rights_value = (None if proportion_rate is None or base_rights is None
+                        else base_rights * proportion_rate)
+        member_unit_price = redev["member_supply_m2"] * redev["member_price_per_m2"]
+        member_contribution = None if rights_value is None else member_unit_price - rights_value
+    else:
+        proportion_rate = None
+        rights_value = None
+        member_contribution = None
 
     equity = inputs["finance"].get("equity", 0)
     months_total = inputs["schedule"]["months_total"]
     discount_rate = inputs.get("discount_rate", 0.08)
 
-    cashflows = compute_cashflow(rev["sales"], rev["other"], cost, months_total)
+    cashflows = compute_cashflow(sales, other, cost, months_total)
 
     return {
         "revenue_total": revenue_total,
@@ -238,4 +340,7 @@ def run_feasibility(inputs: dict) -> dict:
         "cashflow_quarterly": cashflows,
         "npv": compute_npv(cashflows, discount_rate),
         "irr_annual": compute_irr_annual(cashflows),
+        "proportion_rate": proportion_rate,
+        "rights_value": rights_value,
+        "member_contribution": member_contribution,
     }
