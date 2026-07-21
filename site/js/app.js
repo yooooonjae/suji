@@ -113,12 +113,18 @@
       { name: "미분양", color: "--s6", emph: true, points: mk(seriesOf(M.unsold, selSido)) },
       { name: "준공후", color: "--s3", points: mk(seriesOf(M.unsold_completed, selSido) || []) },
     ], { aria: selSido + " 미분양", yFmt: v => fmt.num(v, 0), width: 560, height: 330, rightPad: 64 });
-    // 국면 맵
-    C.phase($("#chart-phase"), M.phase_points, {});
-    // 마진 스퀴즈: 분양가지수 vs 공사비지수 (전국)
+    // 시장 온도 진단 — 점 클릭 시 해당 시도로 전환 (유기적 연결)
+    C.phase($("#chart-phase"), M.phase_points, {
+      selected: selSido,
+      onSelect: n => {
+        if (!M.sale_index[n]) return;
+        selSido = n; selSub = null; renderMarket(); renderForecast();
+      },
+    });
+    // 마진 스퀴즈: 분양가지수 vs 공사비지수 (전국) — 주황 vs 파랑 대비
     C.line($("#chart-squeeze"), [
       { name: "분양가", color: "--s1", emph: true, points: mk(M.presale_indexed) },
-      { name: "공사비", color: "--s5", points: mk(M.cci_indexed) },
+      { name: "공사비", color: "--s2", points: mk(M.cci_indexed) },
     ], { aria: "분양가 vs 공사비 지수화 추이" });
     // 금리
     C.line($("#chart-rates"), [
@@ -129,43 +135,58 @@
   }
 
   /* ---------- 예측 ---------- */
+  let selModel = "sarima"; // 벤치마크 표 행 클릭으로 전환
+  const MODEL_NAMES = { sarima: "SARIMA", chronos: "Chronos-Bolt (제로샷)", naive: "Naive", lightgbm: "LightGBM",
+                        seasonal_naive: "계절 Naive", lstm: "LSTM (시도 풀링)" };
   function renderForecast() {
     const f = FC.forecasts[selSido] || FC.forecasts["전국"];
-    const best = "sarima";
-    const model = f.models[best] || Object.values(f.models)[0];
+    const model = f.models[selModel] || Object.values(f.models)[0];
     const hist = seriesOf(M.sale_index, selSido).slice(-36).map(p => ({ label: fmt.ym(p.ym), y: p.value }));
     const labels = model.median.map((_, i) => "+" + (i + 1) + "M");
     C.fan($("#chart-fan"), hist, { median: model.median, q10: model.q10, q90: model.q90, labels }, { aria: selSido + " 12개월 예측" });
-    $("#fan-title").textContent = selSido + " — 매매가격지수 12개월 예측 (SARIMA · 80% 구간)";
-    // 벤치마크 표
+    $("#fan-title").textContent = selSido + " — 매매가격지수 12개월 예측 (" + (MODEL_NAMES[selModel] || selModel) + " · 80% 구간)";
+    // 벤치마크 표 — 행 클릭 시 위 예측 차트가 그 모델로 전환
     const tb = $("#bench-body");
     if (tb && !tb.dataset.done) {
       tb.dataset.done = "1";
-      const names = { sarima: "SARIMA", chronos: "Chronos-Bolt (제로샷)", naive: "Naive", lightgbm: "LightGBM",
-                      seasonal_naive: "계절 Naive", lstm: "LSTM (시도 풀링)" };
       FC.benchmark.slice().sort((a, b) => a.mae - b.mae).forEach((r, i) => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${i + 1}</td><td>${names[r.model] || r.model}</td>
+        tr.dataset.model = r.model;
+        tr.setAttribute("role", "button"); tr.tabIndex = 0;
+        tr.style.cursor = "pointer";
+        tr.innerHTML = `<td>${i + 1}</td><td>${MODEL_NAMES[r.model] || r.model}</td>
           <td class="num">${r.mae.toFixed(3)}</td><td class="num">${r.smape.toFixed(3)}%</td>`;
         if (i === 0) tr.style.fontWeight = "800";
+        const pick = () => { selModel = r.model; renderForecast(); };
+        tr.addEventListener("click", pick);
+        tr.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
         tb.appendChild(tr);
       });
     }
+    if (tb) tb.querySelectorAll("tr").forEach(tr =>
+      tr.classList.toggle("sel", tr.dataset.model === selModel));
   }
 
   /* ---------- Ⅴ. 상권 ---------- */
+  let selCommerceSido = "서울"; // 시도 바 클릭 → 업종 구성 전환
   function renderCommerce() {
     const counts = SB.counts;
     const totals = Object.entries(counts).map(([sido, m]) => ({ name: sido, value: Object.values(m).reduce((a, b) => a + b, 0) }))
       .sort((a, b) => b.value - a.value);
-    C.hbars($("#chart-sbiz-sido"), totals, { aria: "시도별 상가업소 수", fmt: v => fmt.num(v, 0), labelW: 60 });
-    // 서울 업종 구성
-    const seoul = Object.entries(counts["서울"] || {}).map(([k, v]) => ({ name: k, value: v }))
+    C.hbars($("#chart-sbiz-sido"), totals, {
+      aria: "시도별 상가업소 수", color: "--s2", fmt: v => fmt.num(v, 0), labelW: 60,
+      selected: selCommerceSido,
+      onSelect: n => { selCommerceSido = n; renderCommerce(); },
+    });
+    // 선택 시도 업종 구성 (시도 바를 클릭하면 전환)
+    const upjong = Object.entries(counts[selCommerceSido] || {}).map(([k, v]) => ({ name: k, value: v }))
       .sort((a, b) => b.value - a.value).slice(0, 10);
-    C.hbars($("#chart-sbiz-upjong"), seoul, { aria: "서울 업종 구성", color: "--s2", fmt: v => fmt.num(v, 0), labelW: 130 });
-    // 주요상권 시도별
+    const ut = $("#upjong-title");
+    if (ut) ut.textContent = selCommerceSido + " 업종 구성 (상위 10)";
+    C.hbars($("#chart-sbiz-upjong"), upjong, { aria: selCommerceSido + " 업종 구성", color: "--s2", fmt: v => fmt.num(v, 0), labelW: 130 });
+    // 주요상권 시도별 — 파랑 계열
     const zones = Object.entries(SB.zones.by_sido).map(([k, v]) => ({ name: k, value: v })).sort((a, b) => b.value - a.value).slice(0, 12);
-    C.hbars($("#chart-zones"), zones, { aria: "시도별 주요상권 수", color: "--s5", fmt: v => v + "곳", labelW: 60 });
+    C.hbars($("#chart-zones"), zones, { aria: "시도별 주요상권 수", color: "--s2", fmt: v => v + "곳", labelW: 60 });
   }
 
   /* ---------- Ⅵ. 사례 ---------- */
@@ -204,6 +225,16 @@
     ];
     C.waterfall($("#case-wf"), items, { height: 260 });
     $("#case-notes").innerHTML = c.notes.map(n => `<li>${n}</li>`).join("");
+    // 유기적 연결: 이 사례를 Ⅲ장 계산기 프리셋으로 열기 (검증된 프리셋 버튼 경로 재사용)
+    const open = $("#case-open-calc");
+    if (open) {
+      open.hidden = !c.preset;
+      open.onclick = () => {
+        location.hash = "#/ch3";
+        const btn = document.querySelector(`[data-preset="${c.preset}"]`);
+        if (btn) btn.click();
+      };
+    }
   }
 
   /* ---------- 테마 토글 (히어로·앱바 공용) ---------- */
@@ -254,6 +285,53 @@
     }, 700);
   }
 
+  // ?selftest=chart — 차트 드래그 확대·시간 단위·유기 연결 실이벤트 검증
+  function chartTest() {
+    if (!location.search.includes("selftest=chart")) return;
+    location.hash = "#/ch1";
+    setTimeout(() => {
+      const out = [];
+      const root = $("#chart-detail");
+      const svg = root.querySelector("svg");
+      const hot = svg.querySelector('rect[fill="transparent"]');
+      const r = svg.getBoundingClientRect();
+      const pv = (type, fx) => hot.dispatchEvent(new PointerEvent(type, {
+        bubbles: true, pointerId: 1, button: 0,
+        clientX: r.left + r.width * fx, clientY: r.top + r.height / 2,
+      }));
+      const segCount = () => (root.querySelector("svg path").getAttribute("d").match(/L/g) || []).length;
+      const before = segCount();
+      // ① 드래그 확대
+      pv("pointerdown", 0.3); pv("pointermove", 0.7); pv("pointerup", 0.7);
+      const afterZoom = segCount();
+      const resetVisible = !root.querySelector(".zoom-reset").hidden;
+      out.push(`zoom:${afterZoom < before && resetVisible ? "PASS" : "FAIL"}(${before}→${afterZoom},reset=${resetVisible})`);
+      // ② 단위 전환 (연) — 확대 유지된 채 포인트 축소
+      const yearBtn = [...root.querySelectorAll(".unit-seg button")].find(b => b.textContent === "연");
+      yearBtn.click();
+      const afterYear = segCount();
+      out.push(`unit연:${afterYear < afterZoom ? "PASS" : "FAIL"}(${afterYear})`);
+      // ③ 더블클릭 리셋 + 월 복귀
+      [...root.querySelectorAll(".unit-seg button")].find(b => b.textContent === "월").click();
+      root.querySelector(".zoom-reset").click();
+      out.push(`reset:${segCount() === before ? "PASS" : "FAIL"}`);
+      // ④ 온도 진단 점 클릭 → 시도 전환
+      const dots = [...document.querySelectorAll("#chart-phase circle")];
+      const busan = dots.find(d => d.style.cursor === "pointer");
+      if (busan) busan.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      out.push(`phase클릭:${busan ? "PASS" : "FAIL"}(fan=${$("#fan-title").textContent.slice(0, 6)})`);
+      // ⑤ 벤치마크 행 클릭 → 모델 전환
+      const row = [...document.querySelectorAll("#bench-body tr")].find(t => t.dataset.model === "chronos");
+      row.click();
+      out.push(`bench클릭:${$("#fan-title").textContent.includes("Chronos") ? "PASS" : "FAIL"}`);
+      const badge = document.createElement("div");
+      badge.id = "selftest-result";
+      badge.textContent = "CHARTTEST " + out.join(" | ");
+      badge.style.cssText = "position:fixed;top:60px;right:8px;z-index:99;background:#000;color:#0f0;padding:6px 10px;font-size:12px;font-family:monospace";
+      document.body.appendChild(badge);
+    }, 900);
+  }
+
   function renderAll() {
     renderMarket(); renderForecast(); renderCommerce(); renderCases();
   }
@@ -265,6 +343,6 @@
     window.CalcUI.init(CS.presets || {});
     addEventListener("hashchange", route);
     route();
-    selfTest(); probe();
+    selfTest(); probe(); chartTest();
   });
 })();

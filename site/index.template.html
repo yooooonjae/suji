@@ -156,7 +156,8 @@
     <figure class="viz reveal">
       <div class="viz-head"><div class="viz-title">시장 온도 진단 — 가격 흐름과 미분양 재고</div><div class="viz-unit">최근 1년 변동 기준</div></div>
       <div id="chart-phase"></div>
-      <figcaption>세로: 매매지수 1년 변동률 · 가로: 미분양 1년 증감률. 좌상(재고 감소·가격 상승)이 진입 적기, 우하가 침체.</figcaption>
+      <figcaption>세로: 매매지수 1년 변동률 · 가로: 미분양 1년 증감률. 좌상(재고 감소·가격 상승)이 진입 적기, 우하가 침체.
+      점을 클릭하면 위 상세 차트와 예측이 해당 시도로 전환된다.</figcaption>
     </figure>
 
     <figure class="viz reveal">
@@ -185,7 +186,7 @@
           <thead><tr><th>#</th><th style="text-align:left">모델</th><th>MAE</th><th>sMAPE</th></tr></thead>
           <tbody id="bench-body"></tbody>
         </table></div>
-        <figcaption>오리진 3회(−24·−18·−12개월) × 12개월 예측, 17개 시도 평균.</figcaption>
+        <figcaption>오리진 3회(−24·−18·−12개월) × 12개월 예측, 17개 시도 평균. 행을 클릭하면 왼쪽 예측 차트가 해당 모델로 전환된다.</figcaption>
       </figure>
     </div>
   </div>
@@ -337,11 +338,11 @@
   <div class="col-wide reveal">
     <div style="display:grid;gap:var(--sp-3)">
       <figure class="viz" style="margin:0">
-        <div class="viz-head"><div class="viz-title">시도별 상가업소 수</div><div class="viz-unit">개</div></div>
+        <div class="viz-head"><div class="viz-title">시도별 상가업소 수</div><div class="viz-unit">개 · 시도를 클릭하면 아래 업종 구성이 전환</div></div>
         <div id="chart-sbiz-sido"></div>
       </figure>
       <figure class="viz" style="margin:0">
-        <div class="viz-head"><div class="viz-title">서울 업종 구성 (상위 10)</div><div class="viz-unit">개</div></div>
+        <div class="viz-head"><div class="viz-title" id="upjong-title">서울 업종 구성 (상위 10)</div><div class="viz-unit">개</div></div>
         <div id="chart-sbiz-upjong"></div>
       </figure>
     </div>
@@ -375,7 +376,8 @@
   <div class="col-wide reveal">
     <div class="case-grid" id="case-grid"></div>
     <figure class="viz">
-      <div class="viz-head"><div class="viz-title" id="case-detail-title"></div><div class="viz-unit">억원</div></div>
+      <div class="viz-head"><div class="viz-title" id="case-detail-title"></div>
+        <button id="case-open-calc" class="case-open" type="button">이 사업을 계산기에서 열기 →</button></div>
       <div id="case-wf"></div>
       <figcaption><ul id="case-notes" style="margin:0 0 0 1.1em"></ul></figcaption>
     </figure>

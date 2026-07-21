@@ -382,3 +382,38 @@ section.chapter::after {
 
 .out-side svg { display: block; width: 100%; height: auto; }
 .kpi .v { white-space: nowrap; }
+
+/* ---------- 차트 툴바 — 시간 단위·구간 확대 (트레이딩뷰식) ---------- */
+.chart-tools {
+  display: flex; align-items: center; gap: var(--sp-2);
+  margin-bottom: 6px; min-height: 26px;
+}
+.chart-tools .unit-seg {
+  display: inline-flex; border: 1px solid var(--hairline-2);
+  border-radius: var(--radius); overflow: hidden;
+}
+.chart-tools .unit-seg button {
+  font: inherit; font-size: 11.5px; font-weight: 700; color: var(--ink-2);
+  background: var(--surface); border: 0; padding: 3px 11px; cursor: pointer;
+}
+.chart-tools .unit-seg button + button { border-left: 1px solid var(--hairline); }
+.chart-tools .unit-seg button[aria-pressed="true"] { background: var(--blueprint); color: #fff; }
+.chart-tools .zoom-hint { font-size: 11px; color: var(--ink-3); margin-left: auto; }
+.chart-tools .zoom-reset {
+  font: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer;
+  border: 1px solid var(--hairline-2); background: var(--surface); color: var(--blueprint);
+  padding: 3px 11px; border-radius: var(--radius);
+}
+.chart-tools .zoom-reset:hover { background: var(--blueprint-wash); }
+@media (max-width: 640px) { .chart-tools .zoom-hint { display: none; } }
+
+/* ---------- 유기적 연결 — 벤치마크 표 선택·사례→계산기 ---------- */
+#bench-body tr:hover td { background: var(--blueprint-wash); }
+#bench-body tr.sel td { background: var(--blueprint-wash); color: var(--blueprint); }
+#bench-body tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--blueprint); }
+.case-open {
+  font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;
+  border: 1px solid var(--blueprint); background: var(--surface); color: var(--blueprint);
+  padding: 5px 12px; border-radius: var(--radius); white-space: nowrap;
+}
+.case-open:hover { background: var(--blueprint-wash); }

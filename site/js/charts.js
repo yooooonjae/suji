@@ -64,71 +64,194 @@
     return ticks;
   }
 
-  /* ---------- 라인 차트 (다중 계열 + 크로스헤어) ---------- */
+  /* ---------- 차트 인터랙션 공통 (트레이딩뷰식) ---------- */
+  // 라벨 → 연 단위 시간값. "2016.07"→2016.54, "2016 Q3"→2016.63, "2016"→2016.5
+  function timeOf(label) {
+    if (/^\d{4}\.\d{2}$/.test(label)) return +label.slice(0, 4) + (+label.slice(5) - 0.5) / 12;
+    const q = /^(\d{4}) Q(\d)$/.exec(label);
+    if (q) return +q[1] + (+q[2] * 3 - 1.5) / 12;
+    if (/^\d{4}$/.test(label)) return +label + 0.5;
+    return null;
+  }
+  // 툴바: [단위 세그먼트] … 힌트 · [↺ 전체 보기]
+  function makeTools(root, units, onUnit, onReset, curUnit) {
+    const bar = document.createElement("div");
+    bar.className = "chart-tools";
+    const unitBtns = {};
+    if (units) {
+      const seg = document.createElement("div");
+      seg.className = "unit-seg"; seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "시간 단위");
+      units.forEach(u => {
+        const b = document.createElement("button");
+        b.type = "button"; b.textContent = u;
+        b.setAttribute("aria-pressed", String(u === curUnit));
+        b.addEventListener("click", () => {
+          for (const k in unitBtns) unitBtns[k].setAttribute("aria-pressed", String(k === u));
+          onUnit(u);
+        });
+        seg.appendChild(b); unitBtns[u] = b;
+      });
+      bar.appendChild(seg);
+    }
+    const hint = document.createElement("span");
+    hint.className = "zoom-hint"; hint.textContent = "드래그: 구간 확대 · 더블클릭: 전체";
+    bar.appendChild(hint);
+    const resetBtn = document.createElement("button");
+    resetBtn.type = "button"; resetBtn.className = "zoom-reset"; resetBtn.hidden = true;
+    resetBtn.textContent = "↺ 전체 보기";
+    resetBtn.addEventListener("click", onReset);
+    bar.appendChild(resetBtn);
+    root.appendChild(bar);
+    return resetBtn;
+  }
+
+  /* ---------- 라인 차트 (다중 계열 + 크로스헤어 + 드래그 확대 + 시간 단위) ---------- */
   // series: [{name, color(css var명 "--s1"), points:[{x(index), label, y}]}]
+  // 원천이 월간 통계라 최소 단위는 월 — 분기·연은 기간 평균 집계.
+  // 줌·단위 상태는 root._chartState 에 보존 (테마 전환·시도 전환 재렌더에도 유지).
   function line(root, series, opts) {
     opts = opts || {};
-    const W = opts.width || 760, H = opts.height || 300;
+    const W = opts.width || 960, H = opts.height || 320;
     const M = { t: 14, r: opts.rightPad || 74, b: 26, l: 46 };
     root.innerHTML = "";
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.aria || "" }, root);
-    const n = Math.max(...series.map(s => s.points.length));
-    const ys = series.flatMap(s => s.points.map(p => p.y));
-    let [lo, hi] = opts.yDomain || extent(ys);
-    const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
-    const x = i => M.l + (i / Math.max(1, n - 1)) * (W - M.l - M.r);
-    const y = v => M.t + (1 - (v - lo) / (hi - lo)) * (H - M.t - M.b);
 
-    // 그리드(수평만, 헤어라인) + y라벨
-    for (const tv of niceTicks(lo, hi, 4)) {
-      el("line", { x1: M.l, x2: W - M.r, y1: y(tv), y2: y(tv), stroke: css("--grid"), "stroke-width": 1 }, svg);
-      el("text", { x: M.l - 7, y: y(tv) + 4, "text-anchor": "end", "font-size": 11.5, fill: css("--ink-3"), "font-family": "var(--font-num)" }, svg)
-        .textContent = opts.yFmt ? opts.yFmt(tv) : fmt.num(tv, 0);
+    const isYm = series[0].points.length > 0 &&
+      series.every(s => s.points.every(p => /^\d{4}\.\d{2}$/.test(p.label || "")));
+    const interactive = opts.interactive !== false;
+    const st = root._chartState || (root._chartState = { unit: "월", view: null });
+    if (!isYm) st.unit = "월";
+
+    // 시간값: 시간형 라벨이 아니면 전역 인덱스로 대체 (줌만 지원)
+    const tval = (p, gi) => { const t = timeOf(p.label || ""); return t == null ? gi : t; };
+
+    function aggregate() {
+      if (!isYm || st.unit === "월") return series;
+      return series.map(s => {
+        const order = [], byKey = new Map();
+        s.points.forEach(p => {
+          const yr = p.label.slice(0, 4), mo = +p.label.slice(5);
+          const key = st.unit === "연" ? yr : yr + " Q" + (Math.floor((mo - 1) / 3) + 1);
+          if (!byKey.has(key)) { byKey.set(key, []); order.push(key); }
+          byKey.get(key).push(p.y);
+        });
+        return { ...s, points: order.map((k, i) => ({ x: i, label: k, y: byKey.get(k).reduce((a, b) => a + b, 0) / byKey.get(k).length })) };
+      });
     }
-    // x라벨 (양끝 + 중앙)
-    const lp = series[0].points;
-    [0, Math.floor((n - 1) / 2), n - 1].forEach(i => {
-      if (!lp[i]) return;
-      el("text", { x: x(i), y: H - 8, "text-anchor": i === 0 ? "start" : i === n - 1 ? "end" : "middle", "font-size": 11.5, fill: css("--ink-3") }, svg)
-        .textContent = lp[i].label;
-    });
 
-    // 계열
-    const ends = [];
-    series.forEach(s => {
-      const col = css(s.color || "--s1");
-      const d = s.points.map((p, i) => (i ? "L" : "M") + x(p.x != null ? p.x : i).toFixed(1) + " " + y(p.y).toFixed(1)).join("");
-      el("path", { d, fill: "none", stroke: col, "stroke-width": s.emph ? 2.6 : 2, "stroke-linejoin": "round", opacity: s.dim ? 0.35 : 1 }, svg);
-      const last = s.points[s.points.length - 1];
-      ends.push({ name: s.name, col, ty: y(last.y) + 4 });
-    });
-    // 직접 라벨 — 세로 충돌 회피(위→아래 정렬 후 최소 15px 간격 보장)
-    ends.sort((a, b) => a.ty - b.ty);
-    for (let i = 1; i < ends.length; i++) {
-      if (ends[i].ty - ends[i - 1].ty < 15) ends[i].ty = ends[i - 1].ty + 15;
+    let resetBtn = null;
+    if (interactive) {
+      resetBtn = makeTools(root, isYm ? ["월", "분기", "연"] : null,
+        u => { st.unit = u; draw(); }, () => { st.view = null; draw(); }, st.unit);
     }
-    ends.forEach(e2 => {
-      el("text", { x: W - M.r + 6, y: Math.min(H - M.b - 2, Math.max(M.t + 8, e2.ty)), "font-size": 12, "font-weight": 700, fill: e2.col }, svg)
-        .textContent = e2.name;
-    });
+    const box = document.createElement("div");
+    root.appendChild(box);
 
-    // 크로스헤어 + 툴팁
-    const cross = el("line", { y1: M.t, y2: H - M.b, stroke: css("--axis"), "stroke-width": 1, "stroke-dasharray": "3 3", opacity: 0 }, svg);
-    const hot = el("rect", { x: M.l, y: M.t, width: W - M.l - M.r, height: H - M.t - M.b, fill: "transparent" }, svg);
-    hot.addEventListener("mousemove", ev => {
-      const r = svg.getBoundingClientRect();
-      const px = (ev.clientX - r.left) * (W / r.width);
-      const i = Math.round(((px - M.l) / (W - M.l - M.r)) * (n - 1));
-      if (i < 0 || i >= n) return;
-      cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.setAttribute("opacity", 1);
-      const rows = series.map(s => {
-        const p = s.points[i]; if (!p) return "";
-        return `<div><span style="color:${css(s.color || "--s1")}">●</span> ${s.name} <b class="num">${opts.yFmt ? opts.yFmt(p.y) : fmt.num(p.y)}</b></div>`;
-      }).join("");
-      tipShow(`<div class="t-title">${lp[i] ? lp[i].label : ""}</div>${rows}`, ev.clientX, ev.clientY);
-    });
-    hot.addEventListener("mouseleave", () => { cross.setAttribute("opacity", 0); tipHide(); });
-    return svg;
+    let lastSvg = null;
+    function draw() {
+      const S = aggregate();
+      const base = S[0].points;
+      let i0 = 0, i1 = base.length - 1;
+      if (st.view) {
+        let a = base.findIndex((p, i) => tval(p, i) >= st.view[0]);
+        let b = -1;
+        for (let i = base.length - 1; i >= 0; i--) if (tval(base[i], i) <= st.view[1]) { b = i; break; }
+        if (a >= 0 && b >= 0 && b - a >= 2) { i0 = a; i1 = b; } else st.view = null;
+      }
+      if (resetBtn) resetBtn.hidden = !st.view;
+      const V = S.map(s => ({ ...s, points: s.points.slice(i0, i1 + 1) }));
+
+      box.innerHTML = "";
+      const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.aria || "" }, box);
+      lastSvg = svg;
+      const n = Math.max(...V.map(s => s.points.length));
+      const ys = V.flatMap(s => s.points.map(p => p.y));
+      let [lo, hi] = opts.yDomain || extent(ys); // 보이는 구간 기준 y 자동 스케일
+      const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+      const x = i => M.l + (i / Math.max(1, n - 1)) * (W - M.l - M.r);
+      const y = v => M.t + (1 - (v - lo) / (hi - lo)) * (H - M.t - M.b);
+
+      // 그리드(수평만, 헤어라인) + y라벨
+      for (const tv of niceTicks(lo, hi, 4)) {
+        el("line", { x1: M.l, x2: W - M.r, y1: y(tv), y2: y(tv), stroke: css("--grid"), "stroke-width": 1 }, svg);
+        el("text", { x: M.l - 7, y: y(tv) + 4, "text-anchor": "end", "font-size": 11.5, fill: css("--ink-3"), "font-family": "var(--font-num)" }, svg)
+          .textContent = opts.yFmt ? opts.yFmt(tv) : fmt.num(tv, 0);
+      }
+      // x라벨 (양끝 + 중앙)
+      const lp = V[0].points;
+      [0, Math.floor((n - 1) / 2), n - 1].forEach(i => {
+        if (!lp[i]) return;
+        el("text", { x: x(i), y: H - 8, "text-anchor": i === 0 ? "start" : i === n - 1 ? "end" : "middle", "font-size": 11.5, fill: css("--ink-3") }, svg)
+          .textContent = lp[i].label;
+      });
+
+      // 계열
+      const ends = [];
+      V.forEach(s => {
+        if (!s.points.length) return;
+        const col = css(s.color || "--s1");
+        const d = s.points.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(p.y).toFixed(1)).join("");
+        el("path", { d, fill: "none", stroke: col, "stroke-width": s.emph ? 2.6 : 2, "stroke-linejoin": "round", opacity: s.dim ? 0.35 : 1 }, svg);
+        const last = s.points[s.points.length - 1];
+        ends.push({ name: s.name, col, ty: y(last.y) + 4 });
+      });
+      // 직접 라벨 — 세로 충돌 회피(위→아래 정렬 후 최소 15px 간격 보장)
+      ends.sort((a, b) => a.ty - b.ty);
+      for (let i = 1; i < ends.length; i++) {
+        if (ends[i].ty - ends[i - 1].ty < 15) ends[i].ty = ends[i - 1].ty + 15;
+      }
+      ends.forEach(e2 => {
+        el("text", { x: W - M.r + 6, y: Math.min(H - M.b - 2, Math.max(M.t + 8, e2.ty)), "font-size": 12, "font-weight": 700, fill: e2.col }, svg)
+          .textContent = e2.name;
+      });
+
+      // 크로스헤어 + 선택 영역 + 툴팁
+      const cross = el("line", { y1: M.t, y2: H - M.b, stroke: css("--axis"), "stroke-width": 1, "stroke-dasharray": "3 3", opacity: 0 }, svg);
+      const selRect = el("rect", { x: 0, y: M.t, width: 0, height: H - M.t - M.b, fill: css("--blueprint"), opacity: 0, "pointer-events": "none" }, svg);
+      const hot = el("rect", { x: M.l, y: M.t, width: W - M.l - M.r, height: H - M.t - M.b, fill: "transparent" }, svg);
+      hot.style.touchAction = "pan-y";          // 모바일 세로 스크롤 보존
+      if (interactive) hot.style.cursor = "crosshair";
+      const pxOf = ev => { const r = svg.getBoundingClientRect(); return (ev.clientX - r.left) * (W / r.width); };
+      const idxOf = px => Math.round(((px - M.l) / (W - M.l - M.r)) * (n - 1));
+      let dragFrom = null;
+
+      hot.addEventListener("pointerdown", ev => {
+        if (!interactive || ev.button > 0) return;
+        dragFrom = pxOf(ev);
+        try { hot.setPointerCapture(ev.pointerId); } catch (e) { /* 합성 이벤트 */ }
+      });
+      hot.addEventListener("pointermove", ev => {
+        const px = pxOf(ev);
+        if (dragFrom != null) {
+          tipHide(); cross.setAttribute("opacity", 0);
+          const a = Math.max(M.l, Math.min(dragFrom, px)), b = Math.min(W - M.r, Math.max(dragFrom, px));
+          selRect.setAttribute("x", a); selRect.setAttribute("width", Math.max(0, b - a));
+          selRect.setAttribute("opacity", 0.16);
+          return;
+        }
+        const i = idxOf(px);
+        if (i < 0 || i >= n) return;
+        cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.setAttribute("opacity", 1);
+        const rows = V.map(s => {
+          const p = s.points[i]; if (!p) return "";
+          return `<div><span style="color:${css(s.color || "--s1")}">●</span> ${s.name} <b class="num">${opts.yFmt ? opts.yFmt(p.y) : fmt.num(p.y)}</b></div>`;
+        }).join("");
+        const unitTag = st.unit === "월" ? "" : ` <span style="opacity:.7">(${st.unit}평균)</span>`;
+        tipShow(`<div class="t-title">${lp[i] ? lp[i].label : ""}${unitTag}</div>${rows}`, ev.clientX, ev.clientY);
+      });
+      const endDrag = ev => {
+        if (dragFrom == null) return;
+        const a = Math.min(dragFrom, pxOf(ev)), b = Math.max(dragFrom, pxOf(ev));
+        dragFrom = null; selRect.setAttribute("opacity", 0);
+        const ia = Math.max(0, idxOf(a)), ib = Math.min(n - 1, idxOf(b));
+        if (ib - ia >= 2) { st.view = [tval(lp[ia], i0 + ia), tval(lp[ib], i0 + ib)]; draw(); }
+      };
+      hot.addEventListener("pointerup", endDrag);
+      hot.addEventListener("pointercancel", () => { dragFrom = null; selRect.setAttribute("opacity", 0); });
+      hot.addEventListener("mouseleave", () => { cross.setAttribute("opacity", 0); tipHide(); });
+      hot.addEventListener("dblclick", () => { st.view = null; draw(); });
+    }
+    draw();
+    return lastSvg;
   }
 
   /* ---------- 스몰 멀티플 (시도별 스파크라인) ---------- */
@@ -302,64 +425,134 @@
     return svg;
   }
 
-  /* ---------- 팬차트 (예측) ---------- */
+  /* ---------- 팬차트 (예측 + 드래그 확대) ---------- */
   // hist: [{label, y}], fc: {median:[], q10:[], q90:[], labels:[]}
+  // 줌 상태는 root._chartState.view = [za, zb] (전역 인덱스) — 재렌더에도 유지.
   function fan(root, hist, fc, opts) {
     opts = opts || {};
-    const W = opts.width || 760, H = opts.height || 300;
+    const W = opts.width || 960, H = opts.height || 320;
     const M = { t: 14, r: 60, b: 26, l: 46 };
     root.innerHTML = "";
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.aria || "12개월 예측 그래프" }, root);
-    const n = hist.length + fc.median.length;
-    const all = hist.map(p => p.y).concat(fc.q10, fc.q90);
-    let [lo, hi] = extent(all); const pad = (hi - lo) * 0.1; lo -= pad; hi += pad;
-    const x = i => M.l + (i / (n - 1)) * (W - M.l - M.r);
-    const y = v => M.t + (1 - (v - lo) / (hi - lo)) * (H - M.t - M.b);
-    for (const tv of niceTicks(lo, hi, 4)) {
-      el("line", { x1: M.l, x2: W - M.r, y1: y(tv), y2: y(tv), stroke: css("--grid"), "stroke-width": 1 }, svg);
-      el("text", { x: M.l - 7, y: y(tv) + 4, "text-anchor": "end", "font-size": 11.5, fill: css("--ink-3"), "font-family": "var(--font-num)" }, svg).textContent = fmt.num(tv, 0);
-    }
-    const h0 = hist.length - 1;
-    // 80% 구간 밴드
-    let band = "M" + x(h0) + " " + y(hist[h0].y);
-    fc.q90.forEach((v, i) => band += "L" + x(h0 + 1 + i) + " " + y(v));
-    for (let i = fc.q10.length - 1; i >= 0; i--) band += "L" + x(h0 + 1 + i) + " " + y(fc.q10[i]);
-    band += "Z";
-    el("path", { d: band, fill: css("--blueprint-wash"), opacity: .9 }, svg);
-    // 실적선
-    const dh = hist.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(p.y).toFixed(1)).join("");
-    el("path", { d: dh, fill: "none", stroke: css("--ink-2"), "stroke-width": 2 }, svg);
-    // 중앙값 예측선 (점선)
-    let dm = "M" + x(h0) + " " + y(hist[h0].y);
-    fc.median.forEach((v, i) => dm += "L" + x(h0 + 1 + i) + " " + y(v));
-    el("path", { d: dm, fill: "none", stroke: css("--blueprint"), "stroke-width": 2.4, "stroke-dasharray": "5 4" }, svg);
-    // 경계 수직선
-    el("line", { x1: x(h0), x2: x(h0), y1: M.t, y2: H - M.b, stroke: css("--axis"), "stroke-width": 1, "stroke-dasharray": "3 3" }, svg);
-    // 직접 라벨
-    el("text", { x: W - M.r + 5, y: y(fc.median[fc.median.length - 1]) + 4, "font-size": 12, "font-weight": 700, fill: css("--blueprint") }, svg).textContent = "예측";
-    el("text", { x: x(h0) - 5, y: M.t + 10, "text-anchor": "end", "font-size": 11.5, fill: css("--ink-3") }, svg).textContent = "실적←";
-    // x 라벨
+    const N = hist.length + fc.median.length;
     const labels = hist.map(p => p.label).concat(fc.labels || []);
-    [0, h0, n - 1].forEach(i => {
-      el("text", { x: x(i), y: H - 8, "text-anchor": i === 0 ? "start" : i === n - 1 ? "end" : "middle", "font-size": 11.5, fill: css("--ink-3") }, svg).textContent = labels[i] || "";
-    });
-    // 호버
-    const hot = el("rect", { x: M.l, y: M.t, width: W - M.l - M.r, height: H - M.t - M.b, fill: "transparent" }, svg);
-    hot.addEventListener("mousemove", ev => {
-      const r = svg.getBoundingClientRect();
-      const px = (ev.clientX - r.left) * (W / r.width);
-      const i = Math.round(((px - M.l) / (W - M.l - M.r)) * (n - 1));
-      if (i < 0 || i >= n) return;
-      let html;
-      if (i <= h0) html = `<div class="t-title">${labels[i]}</div>실적 <b class="num">${fmt.num(hist[i].y)}</b>`;
-      else {
-        const j = i - h0 - 1;
-        html = `<div class="t-title">${labels[i]} (예측)</div>중앙값 <b class="num">${fmt.num(fc.median[j])}</b><br>80% 구간 <span class="num">${fmt.num(fc.q10[j])} ~ ${fmt.num(fc.q90[j])}</span>`;
+    const interactive = opts.interactive !== false;
+    const st = root._chartState || (root._chartState = { view: null });
+    let resetBtn = null;
+    if (interactive) {
+      resetBtn = makeTools(root, null, null, () => { st.view = null; draw(); }, null);
+    }
+    const box = document.createElement("div");
+    root.appendChild(box);
+
+    let lastSvg = null;
+    function draw() {
+      let za = 0, zb = N - 1;
+      if (st.view) {
+        za = Math.max(0, st.view[0]); zb = Math.min(N - 1, st.view[1]);
+        if (zb - za < 2) { st.view = null; za = 0; zb = N - 1; }
       }
-      tipShow(html, ev.clientX, ev.clientY);
-    });
-    hot.addEventListener("mouseleave", tipHide);
-    return svg;
+      if (resetBtn) resetBtn.hidden = !st.view;
+      const n = zb - za + 1;
+      // 보이는 구간의 실적/예측 분할 (h0v = 실적 마지막의 로컬 인덱스, 없으면 -1)
+      const h0v = Math.min(hist.length - 1, zb) - za;      // <0 이면 예측만 보임
+      const fcFrom = Math.max(0, za - hist.length);        // 보이는 예측 시작 (fc 인덱스)
+      const fcTo = zb - hist.length;                       // 보이는 예측 끝 (<0 이면 실적만)
+
+      box.innerHTML = "";
+      const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.aria || "12개월 예측 그래프" }, box);
+      lastSvg = svg;
+      const vis = [];
+      for (let i = za; i <= zb; i++) {
+        if (i < hist.length) vis.push(hist[i].y);
+        else { const j = i - hist.length; vis.push(fc.q10[j], fc.q90[j], fc.median[j]); }
+      }
+      let [lo, hi] = extent(vis); const pad = (hi - lo) * 0.1 || 1; lo -= pad; hi += pad;
+      const x = gi => M.l + ((gi - za) / Math.max(1, n - 1)) * (W - M.l - M.r);
+      const y = v => M.t + (1 - (v - lo) / (hi - lo)) * (H - M.t - M.b);
+      for (const tv of niceTicks(lo, hi, 4)) {
+        el("line", { x1: M.l, x2: W - M.r, y1: y(tv), y2: y(tv), stroke: css("--grid"), "stroke-width": 1 }, svg);
+        el("text", { x: M.l - 7, y: y(tv) + 4, "text-anchor": "end", "font-size": 11.5, fill: css("--ink-3"), "font-family": "var(--font-num)" }, svg).textContent = fmt.num(tv, 0);
+      }
+      const h0 = hist.length - 1;
+      // 80% 구간 밴드 (보이는 예측 구간만; 실적 마지막이 보이면 그 점에서 시작)
+      if (fcTo >= 0) {
+        const anchor = h0v >= 0 && za <= h0;
+        let band = "";
+        if (anchor && fcFrom === 0) band = "M" + x(h0) + " " + y(hist[h0].y);
+        else band = "M" + x(hist.length + fcFrom) + " " + y(fc.q90[fcFrom]);
+        for (let j = fcFrom; j <= fcTo; j++) band += "L" + x(hist.length + j) + " " + y(fc.q90[j]);
+        for (let j = fcTo; j >= fcFrom; j--) band += "L" + x(hist.length + j) + " " + y(fc.q10[j]);
+        band += "Z";
+        el("path", { d: band, fill: css("--blueprint-wash"), opacity: .9 }, svg);
+      }
+      // 실적선
+      if (h0v >= 0) {
+        let dh = "";
+        for (let i = za; i <= Math.min(h0, zb); i++) dh += (dh ? "L" : "M") + x(i).toFixed(1) + " " + y(hist[i].y).toFixed(1);
+        el("path", { d: dh, fill: "none", stroke: css("--ink-2"), "stroke-width": 2 }, svg);
+      }
+      // 중앙값 예측선 (점선)
+      if (fcTo >= 0) {
+        let dm = (h0v >= 0 && za <= h0 && fcFrom === 0) ? "M" + x(h0) + " " + y(hist[h0].y) : "";
+        for (let j = fcFrom; j <= fcTo; j++) dm += (dm ? "L" : "M") + x(hist.length + j) + " " + y(fc.median[j]);
+        el("path", { d: dm, fill: "none", stroke: css("--blueprint"), "stroke-width": 2.4, "stroke-dasharray": "5 4" }, svg);
+        el("text", { x: W - M.r + 5, y: y(fc.median[fcTo]) + 4, "font-size": 12, "font-weight": 700, fill: css("--blueprint") }, svg).textContent = "예측";
+      }
+      // 실적/예측 경계 수직선
+      if (za <= h0 && zb > h0) {
+        el("line", { x1: x(h0), x2: x(h0), y1: M.t, y2: H - M.b, stroke: css("--axis"), "stroke-width": 1, "stroke-dasharray": "3 3" }, svg);
+        el("text", { x: x(h0) - 5, y: M.t + 10, "text-anchor": "end", "font-size": 11.5, fill: css("--ink-3") }, svg).textContent = "실적←";
+      }
+      // x 라벨
+      [za, za <= h0 && zb > h0 ? h0 : Math.round((za + zb) / 2), zb].forEach(gi => {
+        el("text", { x: x(gi), y: H - 8, "text-anchor": gi === za ? "start" : gi === zb ? "end" : "middle", "font-size": 11.5, fill: css("--ink-3") }, svg).textContent = labels[gi] || "";
+      });
+      // 호버 + 드래그 확대
+      const selRect = el("rect", { x: 0, y: M.t, width: 0, height: H - M.t - M.b, fill: css("--blueprint"), opacity: 0, "pointer-events": "none" }, svg);
+      const hot = el("rect", { x: M.l, y: M.t, width: W - M.l - M.r, height: H - M.t - M.b, fill: "transparent" }, svg);
+      hot.style.touchAction = "pan-y";
+      if (interactive) hot.style.cursor = "crosshair";
+      const pxOf = ev => { const r = svg.getBoundingClientRect(); return (ev.clientX - r.left) * (W / r.width); };
+      const giOf = px => za + Math.round(((px - M.l) / (W - M.l - M.r)) * (n - 1));
+      let dragFrom = null;
+      hot.addEventListener("pointerdown", ev => {
+        if (!interactive || ev.button > 0) return;
+        dragFrom = pxOf(ev);
+        try { hot.setPointerCapture(ev.pointerId); } catch (e) { /* 합성 이벤트 */ }
+      });
+      hot.addEventListener("pointermove", ev => {
+        const px = pxOf(ev);
+        if (dragFrom != null) {
+          tipHide();
+          const a = Math.max(M.l, Math.min(dragFrom, px)), b = Math.min(W - M.r, Math.max(dragFrom, px));
+          selRect.setAttribute("x", a); selRect.setAttribute("width", Math.max(0, b - a));
+          selRect.setAttribute("opacity", 0.16);
+          return;
+        }
+        const i = giOf(px);
+        if (i < za || i > zb) return;
+        let html;
+        if (i <= h0) html = `<div class="t-title">${labels[i]}</div>실적 <b class="num">${fmt.num(hist[i].y)}</b>`;
+        else {
+          const j = i - h0 - 1;
+          html = `<div class="t-title">${labels[i]} (예측)</div>중앙값 <b class="num">${fmt.num(fc.median[j])}</b><br>80% 구간 <span class="num">${fmt.num(fc.q10[j])} ~ ${fmt.num(fc.q90[j])}</span>`;
+        }
+        tipShow(html, ev.clientX, ev.clientY);
+      });
+      const endDrag = ev => {
+        if (dragFrom == null) return;
+        const a = Math.min(dragFrom, pxOf(ev)), b = Math.max(dragFrom, pxOf(ev));
+        dragFrom = null; selRect.setAttribute("opacity", 0);
+        const ia = Math.max(0, giOf(a)), ib = Math.min(N - 1, giOf(b));
+        if (ib - ia >= 2) { st.view = [ia, ib]; draw(); }
+      };
+      hot.addEventListener("pointerup", endDrag);
+      hot.addEventListener("pointercancel", () => { dragFrom = null; selRect.setAttribute("opacity", 0); });
+      hot.addEventListener("mouseleave", tipHide);
+      hot.addEventListener("dblclick", () => { st.view = null; draw(); });
+    }
+    draw();
+    return lastSvg;
   }
 
   /* ---------- 수평 바 (업종 구성 등) ---------- */
@@ -375,12 +568,20 @@
     items.forEach((d, i) => {
       const cy = M.t + i * rowH;
       const w2 = ((W - M.l - M.r) * d.value) / hi;
-      el("text", { x: M.l - 11, y: cy + rowH / 2 + 5, "text-anchor": "end", "font-size": 13.5, fill: css("--ink-2"), "font-weight": 700 }, svg).textContent = d.name;
-      const bar = el("rect", { x: M.l, y: cy + 8, width: Math.max(2, w2), height: rowH - 16, fill: css(opts.color || "--s1"), rx: 3, opacity: .92 }, svg);
+      const isSel = opts.selected === d.name;
+      const lab = el("text", { x: M.l - 11, y: cy + rowH / 2 + 5, "text-anchor": "end", "font-size": 13.5, fill: isSel ? css("--blueprint") : css("--ink-2"), "font-weight": isSel ? 800 : 700 }, svg);
+      lab.textContent = d.name;
+      const bar = el("rect", { x: M.l, y: cy + 8, width: Math.max(2, w2), height: rowH - 16, fill: css(isSel ? "--s1" : (opts.color || "--s1")), rx: 3, opacity: isSel ? 1 : .92 }, svg);
       el("text", { x: M.l + Math.max(2, w2) + 9, y: cy + rowH / 2 + 5, "font-size": 13, fill: css("--ink-2"), "font-family": "var(--font-num)", "font-weight": 700 }, svg)
         .textContent = opts.fmt ? opts.fmt(d.value) : fmt.num(d.value, 0);
-      bar.addEventListener("mousemove", ev => tipShow(`<div class="t-title">${d.name}</div><b class="num">${opts.fmt ? opts.fmt(d.value) : fmt.num(d.value, 0)}</b>`, ev.clientX, ev.clientY));
+      bar.addEventListener("mousemove", ev => tipShow(`<div class="t-title">${d.name}</div><b class="num">${opts.fmt ? opts.fmt(d.value) : fmt.num(d.value, 0)}</b>${opts.onSelect ? '<br><span style="opacity:.7">클릭: 상세 보기</span>' : ""}`, ev.clientX, ev.clientY));
       bar.addEventListener("mouseleave", tipHide);
+      if (opts.onSelect) {
+        [bar, lab].forEach(nd => {
+          nd.style.cursor = "pointer";
+          nd.addEventListener("click", () => opts.onSelect(d.name));
+        });
+      }
     });
     return svg;
   }
@@ -417,7 +618,13 @@
     }, 0);
     pts.forEach(p => {
       const cx0 = x(p.x), cy0 = y(p.y);
-      const c = el("circle", { cx: cx0, cy: cy0, r: p.name === "전국" ? 7 : 5.5, fill: p.name === "전국" ? css("--seal") : css("--s1"), stroke: css("--surface"), "stroke-width": 2 }, svg);
+      const isSel = opts.selected === p.name;
+      // 파랑 기조 + 전국·선택 시도만 주황 강조 (파랑 혼용 지시)
+      const c = el("circle", { cx: cx0, cy: cy0, r: p.name === "전국" ? 7 : isSel ? 7 : 5.5, fill: p.name === "전국" || isSel ? css("--s1") : css("--s2"), stroke: isSel ? css("--ink") : css("--surface"), "stroke-width": 2 }, svg);
+      if (opts.onSelect && p.name !== "전국") {
+        c.style.cursor = "pointer";
+        c.addEventListener("click", () => opts.onSelect(p.name));
+      }
       const tw = p.name.length * 11.6 + 4, th = 13;
       let cands = [
         { x: cx0 + 10, y: cy0 + 4, anchor: "start" },
