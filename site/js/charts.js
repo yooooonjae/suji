@@ -345,7 +345,7 @@
       const col = isSum ? (s.y1 >= 0 ? css("--pos") : css("--neg")) : s.kind === "in" ? css("--s1") : css("--ink-3");
       const top = Math.min(y(s.y0), y(s.y1)), h = Math.max(2, Math.abs(y(s.y0) - y(s.y1)));
       const r = el("rect", { x: cx + bw * 0.14, y: top, width: bw * 0.72, height: h,
-        fill: grad(svg, col, "v", 0.12, -0.14), rx: 2, opacity: isSum ? 1 : 0.9 }, svg);
+        fill: grad(svg, col, "v", 0.12, -0.14), rx: 5, opacity: isSum ? 1 : 0.9 }, svg);
       // 연결선
       if (i < steps.length - 1 && !isSum) {
         el("line", { x1: cx + bw * 0.86, x2: cx + bw + bw * 0.14, y1: y(s.y1), y2: y(s.y1), stroke: css("--axis"), "stroke-width": 1, "stroke-dasharray": "2 3" }, svg);
@@ -381,8 +381,8 @@
       const cy = M.t + i * 44 + 22;
       el("text", { x: M.l - 10, y: cy + 4, "text-anchor": "end", "font-size": 12, "font-weight": 700, fill: css("--ink-2") }, svg).textContent = it.name;
       const xl = x(Math.min(it.low, it.high)), xr = x(Math.max(it.low, it.high));
-      const neg = el("rect", { x: x(Math.min(it.low, base)), y: cy - 9, width: Math.abs(x(base) - x(Math.min(it.low, base))) || 1, height: 18, fill: css("--neg"), opacity: .78, rx: 2 }, svg);
-      const pos = el("rect", { x: x(base), y: cy - 9, width: Math.abs(x(Math.max(it.high, base)) - x(base)) || 1, height: 18, fill: css("--s1"), opacity: .85, rx: 2 }, svg);
+      const neg = el("rect", { x: x(Math.min(it.low, base)), y: cy - 9, width: Math.abs(x(base) - x(Math.min(it.low, base))) || 1, height: 18, fill: css("--neg"), opacity: .78, rx: 5 }, svg);
+      const pos = el("rect", { x: x(base), y: cy - 9, width: Math.abs(x(Math.max(it.high, base)) - x(base)) || 1, height: 18, fill: css("--s1"), opacity: .85, rx: 5 }, svg);
       el("text", { x: xl - 6, y: cy + 4, "text-anchor": "end", "font-size": 11.5, fill: css("--ink-3"), "font-family": "var(--font-num)" }, svg).textContent = fmt.eok(it.low);
       el("text", { x: xr + 6, y: cy + 4, "font-size": 11.5, fill: css("--ink-3"), "font-family": "var(--font-num)" }, svg).textContent = fmt.eok(it.high);
       [neg, pos].forEach(r2 => {
@@ -422,7 +422,7 @@
         else { fill = css(seq[Math.min(6, Math.floor((v / maxAbs) * 6.99))]); op = 1; }
         const rect = el("rect", {
           x: M.l + c * cw + 1, y: M.t + r * cellH + 1,
-          width: cw - 2, height: cellH - 2, fill, rx: 2, opacity: op,
+          width: cw - 2, height: cellH - 2, fill, rx: 5, opacity: op,
         }, svg);
         if (opts.cellText) {
           const strong = Math.abs(v) / maxAbs > 0.5; // 진한 배경에만 흰 글자 (연한 셀은 먹색 — 대비 확보)
@@ -630,7 +630,7 @@
       lab.textContent = d.name;
       const barCol = css(isSel ? "--s1" : (opts.color || "--s1"));
       const bar = el("rect", { x: M.l, y: cy + 8, width: Math.max(2, w2), height: rowH - 16,
-        fill: grad(svg, barCol, "h", -0.18, 0.16), rx: 3, opacity: isSel ? 1 : .95 }, svg);
+        fill: grad(svg, barCol, "h", -0.18, 0.16), rx: 6, opacity: isSel ? 1 : .95 }, svg);
       el("text", { x: M.l + Math.max(2, w2) + 9, y: cy + rowH / 2 + 5, "font-size": 13, fill: css("--ink-2"), "font-family": "var(--font-num)", "font-weight": 700 }, svg)
         .textContent = opts.fmt ? opts.fmt(d.value) : fmt.num(d.value, 0);
       bar.addEventListener("mousemove", ev => tipShow(`<div class="t-title">${d.name}</div><b class="num">${opts.fmt ? opts.fmt(d.value) : fmt.num(d.value, 0)}</b>${opts.onSelect ? '<br><span style="opacity:.7">클릭: 상세 보기</span>' : ""}`, ev.clientX, ev.clientY));

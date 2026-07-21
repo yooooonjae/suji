@@ -183,3 +183,13 @@ table.ledger thead th, table.sources thead th, table.matrix thead th {
 
 /* 선택 스몰멀티플 타일: 잉크 링 */
 .sm-cell.sel { box-shadow: 0 0 0 1.5px var(--blueprint), var(--shadow); }
+
+/* ---------- 애플 곡률 마감 (2026-07-21) ---------- */
+button:not(.theme-toggle):not(.theme-mini), select, input[type="number"] {
+  border-radius: var(--radius-sm);
+}
+.chart-tools .unit-seg { border-radius: var(--radius-sm); }
+.tblock-frame { border-radius: 14px; }
+.tblock-no { border-radius: 14px 0 0 14px; }
+.tblock-meta { border-radius: 0 14px 14px 0; }
+.ab-badge { border-radius: 99px; } /* 배지는 필 유지 */
