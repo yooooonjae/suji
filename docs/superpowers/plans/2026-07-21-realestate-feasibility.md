@@ -186,3 +186,16 @@ inputs = {
 - [ ] 사이트 Ⅱ장(구조)에 "대지에서 연면적까지" 단계 시각화(대지→법정한도→매스→세대) 추가
 - [ ] JS 이식 + 패리티 케이스 추가, 법령 출처 각주
 - [ ] (선택·키) 토지 실거래가 API "토지 매매 신고 자료" 활용신청 시 시도별 토지 ㎡당가 참고 계열 수집
+
+### Task 11: 예측 모델링 벤치마크 (2026-07-21 추가 지시 — 라이브러리 생태계·딥러닝)
+
+**Files:** Create `venv/`(전용, git 제외), `requirements.txt`, `src/forecast/{features.py,models.py,backtest.py,build.py}`, Test: `tests/test_backtest.py`
+**Interfaces:** `build.py` → `out/forecast.json`: 시도별 매매가격지수 12개월 예측(중앙값+80% 구간) + 모델 벤치마크 표
+
+- [ ] 전용 venv 구성: numpy·pandas·scikit-learn·statsmodels·lightgbm·torch(MPS)·chronos-forecasting(HuggingFace)
+- [ ] 대상: 시도별 아파트 매매가격지수(120개월) — 보조 피처: 미분양·인허가·금리·공사비지수·분양가
+- [ ] 모델 벤치마크(동일 홀드아웃): ①naive/계절naive ②SARIMA(statsmodels) ③LightGBM(라그·외생 피처)
+      ④PyTorch LSTM(시도 풀링 학습) ⑤HuggingFace Chronos-Bolt 제로샷 — 롤링 오리진 백테스트, MAE·sMAPE
+- [ ] 소데이터 한계 명시(120개월×17): 홀드아웃 12개월 고정, 구간 예측은 분위수
+- [ ] out/forecast.json 베이크 + 사이트 챕터 "예측" (팬차트+모델 비교표+방법론 각주)
+- [ ] 검증: 백테스트 지표 재현 테스트, 커밋
