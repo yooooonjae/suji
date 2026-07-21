@@ -381,8 +381,9 @@
     grid.ys.forEach((yv, r) => {
       grid.xs.forEach((xv, c) => {
         const v = grid.cells[r][c];
+        // 발산형 파랑↔주황: 음수 = 파랑(강도 비례), 양수 = 주황 램프 (한국 관행: 하락=파랑)
         let fill, op;
-        if (v < 0) { fill = css("--neg"); op = 0.25 + 0.65 * (Math.abs(v) / maxAbs); }
+        if (v < 0) { fill = css("--s2"); op = 0.22 + 0.68 * (Math.abs(v) / maxAbs); }
         else { fill = css(seq[Math.min(6, Math.floor((v / maxAbs) * 6.99))]); op = 1; }
         const rect = el("rect", {
           x: M.l + c * cw + 1, y: M.t + r * cellH + 1,
@@ -404,7 +405,7 @@
       el("text", { x: M.l + c * cw + cw / 2, y: H - M.b + 16, "text-anchor": "middle", "font-size": 11.5, fill: css("--ink-2"), "font-family": "var(--font-num)" }, svg).textContent = xv;
     });
     el("text", { x: M.l, y: 16, "font-size": 12, fill: css("--ink-3") }, svg)
-      .textContent = opts.legend != null ? opts.legend : (opts.yName || "") + " ↓ / " + (opts.xName || "") + " →   (적색 = 손실)";
+      .textContent = opts.legend != null ? opts.legend : (opts.yName || "") + " ↓ / " + (opts.xName || "") + " →   (파랑 = 손실, 주황 = 이익)";
     return svg;
   }
 
@@ -574,9 +575,17 @@
     const H = M.t + items.length * rowH + M.b;
     root.innerHTML = "";
     const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.aria || "" }, root);
-    const hi = Math.max(...items.map(d => d.value)) || 1;
+    // 결측(value가 유한수 아님)은 스케일에서 제외 — NaN 하나가 전체 폭을 오염시키지 않게
+    const finite = items.filter(d => Number.isFinite(d.value));
+    const hi = Math.max(...finite.map(d => d.value), 0) || 1;
     items.forEach((d, i) => {
       const cy = M.t + i * rowH;
+      if (!Number.isFinite(d.value)) { // 결측 행: 바 없이 사유 표기
+        el("text", { x: M.l - 11, y: cy + rowH / 2 + 5, "text-anchor": "end", "font-size": 13.5, fill: css("--ink-3"), "font-weight": 700 }, svg).textContent = d.name;
+        el("text", { x: M.l, y: cy + rowH / 2 + 5, "font-size": 12, fill: css("--ink-3"), "font-style": "italic" }, svg)
+          .textContent = d.note || "자료 없음";
+        return;
+      }
       const w2 = ((W - M.l - M.r) * d.value) / hi;
       const isSel = opts.selected === d.name;
       const lab = el("text", { x: M.l - 11, y: cy + rowH / 2 + 5, "text-anchor": "end", "font-size": 13.5, fill: isSel ? css("--blueprint") : css("--ink-2"), "font-weight": isSel ? 800 : 700 }, svg);
