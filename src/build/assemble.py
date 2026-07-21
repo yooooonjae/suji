@@ -29,7 +29,12 @@ DATA_MAP = {
 
 def _minify_json(path: Path) -> str:
     obj = json.loads(path.read_text())
-    return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
+    s = json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
+    # <script> 내 raw 삽입 안전화: 문자열 내 위험 문자를 JSON 유니코드 이스케이프로
+    # 치환(JSON 문법상 동등, script 조기종료·XSS 원천 차단 — codex 리뷰 반영)
+    return (s.replace("<", "\\u003c").replace(">", "\\u003e")
+             .replace("&", "\\u0026")
+             .replace(" ", "\\u2028").replace(" ", "\\u2029"))
 
 
 def assemble() -> Path:

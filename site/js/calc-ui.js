@@ -327,5 +327,6 @@
     C.heatmap($("#sens-heat"), breakevenGrid(), { xName: "분양가", yName: "공사비" });
   }
 
-  global.CalcUI = { init, get mode() { return mode; } };
+  // refresh: 테마 토글 등 토큰 색 변경 후 SVG 재렌더용 (codex 리뷰 반영)
+  global.CalcUI = { init, refresh() { recalc(); renderSensitivity(); }, get mode() { return mode; } };
 })(typeof window !== "undefined" ? window : globalThis);

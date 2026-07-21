@@ -175,6 +175,7 @@
       const cur = r.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
       r.dataset.theme = cur === "dark" ? "light" : "dark";
       renderAll(); // 차트 색 재계산
+      if (window.CalcUI && window.CalcUI.refresh) window.CalcUI.refresh(); // 계산기·민감도도 재렌더
     });
   }
 
