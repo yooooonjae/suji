@@ -51,11 +51,11 @@ EMPTY_RETRIES = 5                 # 200+빈 바디 재시도 횟수
 START_YM = "201501"              # 월 집계 시작(최근 ~10.5년)
 _CUR_YM = datetime.date.today().strftime("%Y%m")  # 상한(미래·오류연도 배제)
 
-# 호출량 절제(스크리닝): 상업밀집 동은 인허가 수천건 중 아파트 ~0 → 전수 페이징은 낭비.
-#  · totalCount ≤ FULL_CAP(작은/중간 동): 전수 페이징(누락 없음)
-#  · totalCount > FULL_CAP(대형 동): 1페이지(100건) 표본에 공동주택이 있을 때만 전수 페이징,
-#    없으면 중단(상업밀집동의 희소 아파트는 추세에 영향 미미). meta.screened_out에 기록.
-FULL_CAP = 500                   # 5페이지 이하는 무조건 전수
+# 호출량 절제(무편향): 동별 페이지 상한.
+#  아파트는 인허가의 소수%라 '표본 밀도' 스크리닝은 아파트多 주거동을 잘못 탈락시킨다(실측: 유성 undercount).
+#  대신 **초대형 상업핵동(>4000건)만** MAX_PAGES 상한을 둔다 — 주거동(<4000건)은 전수라 아파트 누락 없음.
+#  대형 상업동(역삼 9227 등)은 아파트가 희소하므로 상한 절단의 영향이 작다.
+MAX_PAGES = 40                   # 동당 최대 40페이지(=4000건). 초과분만 절단(capped 기록).
 
 # 공동주택(아파트) 판정: 주용도명 키워드(기본개요 레벨은 대부분 "공동주택"으로 통칭).
 APT_KEYWORDS = ("아파트", "공동주택", "연립주택", "다세대주택")
@@ -143,22 +143,18 @@ def _fetch_page(sgg: str, bj: str, page: int, key: str) -> str:
 
 
 def _fetch_dong(sgg: str, bj: str, key: str):
-    """한 (시군구,동)의 <item> 리스트와 스크리닝 여부. 반환 (items, screened_out).
+    """한 (시군구,동)의 <item> 리스트와 절단 여부. 반환 (items, capped).
 
-    screened_out=True 이면 대형 상업밀집동으로 1페이지만 받고 전수 페이징을 생략한 경우.
+    capped=True 이면 초대형 동(>MAX_PAGES 페이지)에서 상한만큼만 받은 경우.
     """
     text = _fetch_page(sgg, bj, 1, key)
     root = ET.fromstring(text)
     total = int(root.findtext("./body/totalCount") or "0")
     items = root.findall("./body/items/item")
-    # 대형 동은 1페이지(100건) 표본의 공동주택 밀도가 낮으면(≤1건) 상업밀집동으로 보고 스킵
-    if total > FULL_CAP:
-        apt_in_p1 = sum(_is_apt((it.findtext("mainPurpsCdNm") or "").strip(), _hhld(it))
-                        for it in items)
-        if apt_in_p1 <= 1:
-            return items, True
     page = 1
     while len(items) < total:
+        if page >= MAX_PAGES:
+            return items, True
         page += 1
         text = _fetch_page(sgg, bj, page, key)
         pg = ET.fromstring(text).findall("./body/items/item")
@@ -198,13 +194,13 @@ def collect() -> dict:
         dongs = _dong_codes(ldong, prefix)
         by_month = defaultdict(lambda: {"count": 0, "units": 0, "area": 0.0})
         scanned = apt_permits = 0
-        dong_ok = screened = 0
+        dong_ok = capped = 0
         for bj, dname in dongs:
-            items, was_screened = _fetch_dong(sgg, bj, key)
+            items, was_capped = _fetch_dong(sgg, bj, key)
             if items:
                 dong_ok += 1
-            if was_screened:
-                screened += 1
+            if was_capped:
+                capped += 1
             for it in items:
                 scanned += 1
                 purps = (it.findtext("mainPurpsCdNm") or "").strip()
@@ -234,10 +230,10 @@ def collect() -> dict:
         permits_monthly[sido] = series
         sido_meta[sido] = {"sigungu": name, "sigunguCd": sgg,
                            "dong_total": len(dongs), "dong_with_data": dong_ok,
-                           "dong_screened": screened,
+                           "dong_capped": capped,
                            "permits_scanned": scanned, "apt_permits": apt_permits,
                            "months": len(series)}
-        print(f"  {sido} {name}({sgg}): 동 {dong_ok}/{len(dongs)}(스크린 {screened}), "
+        print(f"  {sido} {name}({sgg}): 동 {dong_ok}/{len(dongs)}(절단 {capped}), "
               f"전체 {scanned} → 공동주택 {apt_permits}건, {len(series)}개월", flush=True)
 
     result = {
@@ -247,8 +243,8 @@ def collect() -> dict:
                         "공동주택 = 주용도명(아파트/공동주택/연립·다세대주택), 건축구분=신축·증축만(신규 공급) — "
                         "발코니구조변경·용도변경·대수선 등 기존단지 세대수 중복계상 제외. "
                         "월(ym)은 건축허가일(archPmsDay) 기준. "
-                        f"호출절제: 인허가 {FULL_CAP}건 이하 동은 전수, 초과 대형동은 1페이지(100건) 표본에 "
-                        "공동주택이 없으면 페이징 생략(상업밀집동의 희소 아파트는 추세 영향 미미; dong_screened로 기록). "
+                        f"호출절제(무편향): 주거동(<4000건)은 전수라 누락 없음; 초대형 상업핵동(>4000건)만 "
+                        f"{MAX_PAGES}페이지 상한(dong_capped 기록, 아파트 희소해 영향 작음). "
                         "시도 전체가 아닌 대표 시군구 pulse — 절대량이 아닌 추세·계절성 해석용."),
         "window": f"{START_YM}~",
         "endpoints_used": [BASE],

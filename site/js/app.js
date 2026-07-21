@@ -11,6 +11,15 @@
   const SIDO_ORDER = ["전국", "서울", "경기", "인천", "부산", "대구", "광주", "대전", "울산", "세종",
                       "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"];
 
+  /* ---------- 클릭 결과 노출 — 갱신된 상세가 화면 밖이면 부드럽게 스크롤 ---------- */
+  function revealEl(el) {
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    if (r.top < 64 || r.bottom > innerHeight) {
+      el.scrollIntoView({ behavior: "smooth", block: r.height > innerHeight - 140 ? "start" : "center" });
+    }
+  }
+
   /* ---------- 진행바·리빌 ---------- */
   function initChrome() {
     const bar = $("#progress");
@@ -113,12 +122,13 @@
       { name: "미분양", color: "--s6", emph: true, points: mk(seriesOf(M.unsold, selSido)) },
       { name: "준공후", color: "--s3", points: mk(seriesOf(M.unsold_completed, selSido) || []) },
     ], { aria: selSido + " 미분양", yFmt: v => fmt.num(v, 0), width: 560, height: 330, rightPad: 64 });
-    // 시장 온도 진단 — 점 클릭 시 해당 시도로 전환 (유기적 연결)
+    // 시장 온도 진단 — 점 클릭 시 해당 시도로 전환 (유기적 연결, 상세 차트로 스크롤)
     C.phase($("#chart-phase"), M.phase_points, {
       selected: selSido,
       onSelect: n => {
         if (!M.sale_index[n]) return;
         selSido = n; selSub = null; renderMarket(); renderForecast();
+        revealEl($("#chart-detail").closest("figure"));
       },
     });
     // 마진 스퀴즈: 분양가지수 vs 공사비지수 (전국) — 주황 vs 파랑 대비
@@ -240,7 +250,10 @@
     C.hbars($("#chart-sbiz-sido"), totals, {
       aria: "시도별 상가업소 수", color: "--s2", fmt: v => fmt.num(v, 0), labelW: 60, width: 1160, rowH: 30,
       selected: selCommerceSido,
-      onSelect: n => { selCommerceSido = n; renderCommerce(); },
+      onSelect: n => {
+        selCommerceSido = n; renderCommerce();
+        revealEl($("#chart-sbiz-upjong").closest("figure"));
+      },
     });
     // 선택 시도 업종 구성 (시도 바를 클릭하면 전환)
     const upjong = Object.entries(counts[selCommerceSido] || {}).map(([k, v]) => ({ name: k, value: v }))
@@ -302,14 +315,14 @@
         <dt>개발이익</dt><dd style="color:var(${c.result.profit >= 0 ? "--pos" : "--neg"})">${fmt.eok(c.result.profit)}</dd>
         <dt>마진율</dt><dd>${fmt.pct(c.result.margin_on_revenue || 0)}</dd>
         <dt>IRR</dt><dd>${c.result.irr_annual == null ? "―" : fmt.pct(c.result.irr_annual)}</dd></dl>`;
-      const pick = () => showCase(i);
+      const pick = () => showCase(i, true);
       el2.addEventListener("click", pick);
       el2.addEventListener("keydown", e => { if (e.key === "Enter") pick(); });
       grid.appendChild(el2);
     });
     showCase(0);
   }
-  function showCase(i) {
+  function showCase(i, scroll) {
     document.querySelectorAll(".case-card").forEach((n, j) => n.classList.toggle("sel", i === j));
     const c = CS.cases[i];
     $("#case-detail-title").textContent = c.name + " — 수지 구조";
@@ -325,6 +338,7 @@
     ];
     C.waterfall($("#case-wf"), items, { width: 1160, height: 280 });
     $("#case-notes").innerHTML = c.notes.map(n => `<li>${n}</li>`).join("");
+    if (scroll) revealEl($("#case-wf").closest("figure")); // 클릭 시에만 (첫 로드는 스크롤 금지)
     // 유기적 연결: 이 사례를 Ⅲ장 계산기 프리셋으로 열기 (검증된 프리셋 버튼 경로 재사용)
     const open = $("#case-open-calc");
     if (open) {
