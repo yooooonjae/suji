@@ -155,12 +155,15 @@ figure.viz figcaption {
 }
 .field input:focus, .field select:focus { outline: 2px solid var(--blueprint-2); outline-offset: -1px; }
 .field .hint { font-size: var(--t-caption); color: var(--ink-3); margin-top: 3px; }
-.preset-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: var(--sp-3); }
+/* 프리셋: 모드 탭과 동일한 균등 그리드 — 버튼 폭·정렬 통일 */
+.preset-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: var(--sp-3); }
 .preset-row button {
   font: inherit; font-size: var(--t-caption); font-weight: 700; cursor: pointer;
-  padding: 6px 10px; border-radius: 99px;
+  padding: 8px 6px; border-radius: var(--radius-sm); text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   border: 1px solid var(--hairline-2); background: var(--surface); color: var(--ink-2);
 }
+@media (max-width: 720px) { .preset-row { grid-template-columns: repeat(2, 1fr); } }
 .preset-row button:hover { border-color: var(--blueprint-2); color: var(--blueprint-2); }
 
 /* 출력 — 핵심 지표 타일 */
