@@ -260,7 +260,7 @@
       .sort((a, b) => b.value - a.value).slice(0, 10);
     const ut = $("#upjong-title");
     if (ut) ut.textContent = selCommerceSido + " 업종 구성 (상위 10)";
-    C.hbars($("#chart-sbiz-upjong"), upjong, { aria: selCommerceSido + " 업종 구성", color: "--s2", fmt: v => fmt.num(v, 0), labelW: 130 });
+    C.hbars($("#chart-sbiz-upjong"), upjong, { aria: selCommerceSido + " 업종 구성", color: "--s2", fmt: v => fmt.num(v, 0), labelW: 130, width: 1160, rowH: 30 });
     // 주요상권 시도별 — 파랑 계열
     const zones = Object.entries(SB.zones.by_sido).map(([k, v]) => ({ name: k, value: v })).sort((a, b) => b.value - a.value).slice(0, 12);
     C.hbars($("#chart-zones"), zones, { aria: "시도별 주요상권 수", color: "--s2", fmt: v => v + "곳", labelW: 60, width: 1160, rowH: 30 });
