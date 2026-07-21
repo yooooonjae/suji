@@ -256,10 +256,12 @@ def analyze_correlation(m):
 
     strongest = max(national.items(), key=lambda kv: abs(kv[1]["best_r"] or 0))
     sname, sinfo = strongest
+    r_cci = national["cci_yoy"]["by_lag"]["0"]["r"]
+    r_ps = national["presale_yoy"]["by_lag"]["0"]["r"]
     insight = (f"전국 매매지수 YoY는 {label(sname)}와 {sinfo['best_lag']}개월 시차에서 "
-               f"상관 r={sinfo['best_r']}로 가장 강하게 연동되며, 금리·미분양은 역(-)의, "
-               f"분양가는 정(+)의 방향성을 보인다. 상관은 인과가 아니며 공사비·분양가는 "
-               f"공통 추세(물가·시차 상승)에 의한 동조 가능성이 크다.")
+               f"상관 r={sinfo['best_r']}로 가장 강하게 연동되며(선행지표성), 기준금리·미분양은 역(-)의 "
+               f"관계가 뚜렷하다. 공사비 YoY는 정(+, r={r_cci})이나 이는 공통 물가추세에 의한 동조로 "
+               f"보이며, 분양가 YoY는 상관이 미약(r={r_ps})하다. 상관은 인과가 아님에 유의.")
     return {
         "title": "상관 구조 — 매매지수 YoY와 금리·미분양·공사비·분양가",
         "data": {
@@ -416,9 +418,9 @@ def analyze_rate_regime(m):
             "sale_mom_sd_pp": round(statistics.pstdev(vals), 3) if len(vals) > 1 else None,
         })
     d = {r["regime"]: r["sale_mom_avg_pct"] for r in rows}
-    insight = (f"기준금리 상승기 전국 매매지수 MoM 평균은 {d['상승기']}%, 동결기 {d['동결기']}%, "
-               f"하강기 {d['하강기']}%로, 완화 국면에서 상승 탄력이 뚜렷하다. 국면은 6개월 "
-               f"기준금리 변화(±{THR}%p)로 정의했고 시차·소표본 한계로 인과 해석은 유보한다.")
+    insight = (f"기준금리 상승(긴축) 국면 전국 매매지수 MoM 평균은 {d['상승기']}%로 유일하게 하락 전환하고, "
+               f"동결기 +{d['동결기']}%·하강기 +{d['하강기']}%로 반등해 긴축 종료 이후 회복 탄력이 확인된다. "
+               f"국면은 6개월 기준금리 변화(±{THR}%p)로 정의했으며 정책과 가격의 시차·소표본 한계로 인과 해석은 유보한다.")
     return {
         "title": "금리 국면별 수익률 — 상승/동결/하강 국면 전국 매매지수 월평균 변동률",
         "data": {"regimes": rows, "monthly": monthly,
@@ -435,7 +437,8 @@ def main():
     a1 = analyze_correlation(m)
     a2 = analyze_seasonality(m)
     a3 = analyze_sync(m)
-    a4 = analyze_distribution(prices, pstats)
+    missing_rtms = list(m["meta"].get("missing_rtms_sido", []))
+    a4 = analyze_distribution(prices, pstats, missing_rtms)
     a5 = analyze_rate_regime(m)
 
     notes = [
@@ -446,6 +449,7 @@ def main():
         f"RTMS 실거래 분포는 원자료 {pstats['total_items']:,}건 중 유효 {pstats['valid']:,}건 사용, "
         f"제외 {pstats['excluded']:,}건(빈값·면적<=0·㎡당 {PRICE_MIN:,}~{PRICE_MAX:,}원 범위밖).",
         "RTMS 표본은 시도별 대표 시군구 1~2개만 수집한 것으로 시도 전체 모집단을 대표하지 않음(선택편향).",
+        f"실거래 분포에서 {'·'.join(m['meta'].get('missing_rtms_sido', [])) or '없음'} 시도는 수집 시군구가 원천 무거래(totalCount=0)로 유효표본 0건 — 행은 유지하되 분위수 미산출.",
         "상관계수는 인과관계가 아니며, 추세를 공유하는 지표 간에는 공통추세로 인한 허위상관 가능성 존재.",
     ]
 
@@ -486,9 +490,11 @@ def main():
     # 시도 수 17 커버 (상관·동조화·분포 모두)
     assert len(a1["data"]["cross_sido"]) == 17, "상관 시도 17 미달"
     assert len({r["sido"] for r in a1["data"]["cross_sido"]}) == 17, "상관 시도 중복/누락"
-    assert len(a4["data"]["by_sido"]) == 17, "분포 시도 17 미달"
+    assert len(a4["data"]["by_sido"]) == 17, "분포 시도 17 미달(행 기준)"
     covered = {b["sido"] for b in a4["data"]["by_sido"] if b.get("n")}
-    assert covered == set(SIDO17), f"분포 미커버 시도: {set(SIDO17) - covered}"
+    # RTMS 원천 무거래 시도(광주·전남, meta.missing_rtms_sido)는 유효표본 0 — 문서화된 결측
+    assert covered == set(SIDO17) - set(missing_rtms), \
+        f"분포 커버 불일치: 미커버={set(SIDO17)-covered}, 예상결측={set(missing_rtms)}"
 
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
