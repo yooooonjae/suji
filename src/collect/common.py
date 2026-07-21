@@ -24,7 +24,8 @@ def load_config() -> dict:
 def api_get(url: str, params: dict, timeout: int = 15, retries: int = 1):
     """GET 호출. (status_code, text) 반환 — 예외도 상태로 환원해 호출자가 반드시 보게 한다."""
     qs = urllib.parse.urlencode(params, safe="%")
-    full = f"{url}?{qs}"
+    # 빈 쿼리에 '?'를 붙이면 일부 게이트웨이(ECOS 등)가 경로 파싱에 실패한다
+    full = f"{url}?{qs}" if qs else url
     last_err = None
     for attempt in range(retries + 1):
         try:
