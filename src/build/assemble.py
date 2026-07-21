@@ -58,12 +58,15 @@ def build_dist() -> Path:
     if leftover:
         raise RuntimeError(f"미치환 플레이스홀더: {leftover}")
 
-    # 배치
-    if WEB.exists():
-        shutil.rmtree(WEB)
-    (WEB / "css").mkdir(parents=True)
-    (WEB / "js").mkdir()
-    (WEB / "data").mkdir()
+    # 배치 — 임시 디렉토리에 전부 빌드 후 원자적 스왑
+    # (terser 등 후속 단계가 실패해도 기존 web/은 손대지 않는다 — codex 적대검증 치명 지적)
+    TMP = ROOT / "web.tmp"
+    if TMP.exists():
+        shutil.rmtree(TMP)
+    (TMP / "css").mkdir(parents=True)
+    (TMP / "js").mkdir()
+    (TMP / "data").mkdir()
+    WEB = TMP  # 이하 산출은 전부 임시 디렉토리로
     doc = "<!DOCTYPE html>\n<html lang=\"ko\">\n<head>\n" + \
           re.search(r'^([\s\S]*?)(?=<div id="progress")', tpl).group(1).strip() + \
           "\n</head>\n<body>\n" + tpl[tpl.index('<div id="progress"'):] + "\n</body>\n</html>\n"
@@ -96,6 +99,12 @@ def build_dist() -> Path:
             raise FileNotFoundError(f"{name}: {path} 없음")
         (WEB / "data" / f"{name}.js").write_text(
             f"window.__{key} = {_minify_json(path)};\n")
+    # 전 단계 성공 — 이제서야 기존 web/ 교체 (원자적 스왑)
+    FINAL = ROOT / "web"
+    if FINAL.exists():
+        shutil.rmtree(FINAL)
+    TMP.rename(FINAL)
+    WEB = FINAL
     total = sum(p.stat().st_size for p in WEB.rglob("*") if p.is_file())
     print(f"dist 빌드: {WEB} ({total/1024:.0f} KB, {len(list(WEB.rglob('*')))}개 파일)")
     return WEB

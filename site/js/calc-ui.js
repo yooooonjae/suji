@@ -100,7 +100,12 @@
       const g2 = isIncome() ? ["② 임대·매각", FIELDS.수익형] : ["② 분양", FIELDS.분양];
       return [["① 토지", FIELDS.공통토지], g2, ["③ 원가", FIELDS.원가], ["④ 금융", FIELDS.금융]];
     }
-    return [["① 정비 개요", FIELDS.정비], ["② 분양", FIELDS.분양], ["③ 원가", FIELDS.원가], ["④ 금융", FIELDS.금융]];
+    // 정비사업: 대지면적·용도지역을 노출(공사비 산정의 숨은 의존 제거 — codex 지적),
+    // 토지 매입비는 정비 모드에서 미사용이라 원가 그룹에서 제외(무효 입력 노출 방지)
+    const landFields = FIELDS.공통토지.filter(f => f[0] !== "asset");
+    const costFields = FIELDS.원가.filter(f => f[0] !== "land_eok");
+    return [["① 토지·정비 개요", [...landFields, ...FIELDS.정비]], ["② 분양", FIELDS.분양],
+            ["③ 원가", costFields], ["④ 금융", FIELDS.금융]];
   }
 
   function clearPresetActive() {

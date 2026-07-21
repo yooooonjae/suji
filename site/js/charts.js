@@ -79,7 +79,7 @@
 
   function extent(arr) {
     let lo = Infinity, hi = -Infinity;
-    for (const v of arr) { if (v == null) continue; if (v < lo) lo = v; if (v > hi) hi = v; }
+    for (const v of arr) { if (!Number.isFinite(v)) continue; if (v < lo) lo = v; if (v > hi) hi = v; }
     if (lo === Infinity) { lo = 0; hi = 1; }
     if (lo === hi) { lo -= 1; hi += 1; }
     return [lo, hi];
@@ -144,6 +144,11 @@
     const M = { t: 14, r: opts.rightPad || 74, b: 26, l: 46 };
     root.innerHTML = "";
 
+    series = series.filter(s => s.points && s.points.length); // 빈 계열 제거 (기준 계열 크래시 방지)
+    if (!series.length) {
+      root.innerHTML = '<p class="caption" style="padding:12px 0">표시할 자료가 없다.</p>';
+      return null;
+    }
     const isYm = series[0].points.length > 0 &&
       series.every(s => s.points.every(p => /^\d{4}\.\d{2}$/.test(p.label || "")));
     const interactive = opts.interactive !== false;
@@ -158,6 +163,7 @@
       return series.map(s => {
         const order = [], byKey = new Map();
         s.points.forEach(p => {
+          if (!Number.isFinite(p.y)) return; // 결측은 평균 분모에서 제외 (codex 지적)
           const yr = p.label.slice(0, 4), mo = +p.label.slice(5);
           const key = st.unit === "연" ? yr : yr + " Q" + (Math.floor((mo - 1) / 3) + 1);
           if (!byKey.has(key)) { byKey.set(key, []); order.push(key); }
@@ -184,7 +190,13 @@
         let a = base.findIndex((p, i) => tval(p, i) >= st.view[0]);
         let b = -1;
         for (let i = base.length - 1; i >= 0; i--) if (tval(base[i], i) <= st.view[1]) { b = i; break; }
-        if (a >= 0 && b >= 0 && b - a >= 2) { i0 = a; i1 = b; } else st.view = null;
+        if (a >= 0 && b >= 0) {
+          while (b - a < 2 && (a > 0 || b < base.length - 1)) { // 최소 3포인트 확보 (전환 시 줌 소실 방지)
+            if (a > 0) a--;
+            if (b - a < 2 && b < base.length - 1) b++;
+          }
+          if (b - a >= 2) { i0 = a; i1 = b; } else st.view = null;
+        } else st.view = null;
       }
       if (resetBtn) resetBtn.hidden = !st.view;
       const V = S.map(s => ({ ...s, points: s.points.slice(i0, i1 + 1) }));
@@ -218,7 +230,12 @@
       V.forEach(s => {
         if (!s.points.length) return;
         const col = css(s.color || "--s1");
-        const d = s.points.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(p.y).toFixed(1)).join("");
+        let d = "", pen = false; // 비유한 y는 갭 — 선을 끊는다 (codex 지적)
+        s.points.forEach((p, i) => {
+          if (!Number.isFinite(p.y)) { pen = false; return; }
+          d += (pen ? "L" : "M") + x(i).toFixed(1) + " " + y(p.y).toFixed(1);
+          pen = true;
+        });
         if (s.emph && !s.dim) {
           const base = H - M.b;
           const area = d + `L${x(s.points.length - 1).toFixed(1)} ${base}L${x(0).toFixed(1)} ${base}Z`;
@@ -409,13 +426,22 @@
     root.innerHTML = "";
     const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.aria || "손익분기 지도" }, root);
     const cw = (W - M.l - M.r) / grid.xs.length;
-    const vs = grid.cells.flat();
+    const vs = grid.cells.flat().filter(Number.isFinite);
     const maxAbs = Math.max(...vs.map(Math.abs)) || 1;
     const seq = ["--seq-100", "--seq-200", "--seq-300", "--seq-400", "--seq-500", "--seq-600", "--seq-700"];
     const vFmt = opts.vFmt || (v => fmt.eok(v) + "원");
     grid.ys.forEach((yv, r) => {
       grid.xs.forEach((xv, c) => {
         const v = grid.cells[r][c];
+        if (!Number.isFinite(v)) { // 결측 — 무상관(0)으로 위장하지 않고 빈 셀로 (codex 지적)
+          const miss = el("rect", { x: M.l + c * cw + 1, y: M.t + r * cellH + 1,
+            width: cw - 2, height: cellH - 2, fill: css("--surface-2"), rx: 5,
+            stroke: css("--hairline"), "stroke-dasharray": "3 3" }, svg);
+          miss.addEventListener("mousemove", ev => tipShow(
+            `<div class="t-title">${opts.xName || "X"} ${xv} · ${opts.yName || "Y"} ${yv}</div>자료 없음`, ev.clientX, ev.clientY));
+          miss.addEventListener("mouseleave", tipHide);
+          return;
+        }
         // 발산형 파랑↔주황: 음수 = 파랑(강도 비례), 양수 = 주황 램프 (한국 관행: 하락=파랑)
         let fill, op;
         if (v < 0) { fill = css("--s2"); op = 0.22 + 0.68 * (Math.abs(v) / maxAbs); }

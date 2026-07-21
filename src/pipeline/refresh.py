@@ -113,13 +113,19 @@ def main():
                 status["stages"][f"collect:{name}"] = res
                 if not res["ok"]:
                     status["failures"].append(f"collect:{name} ({res['detail']}) — 직전 데이터로 빌드됨")
-        # 2) 분석 — 실패 시 전체 중단 (직전 web/ 보존)
+        # 2) 분석 — 실패 시 전체 중단 + out/ 원상 복원 (부분 갱신 혼재 방지 — codex 지적)
+        out_dir = ROOT / "out"
+        backup = {}
+        for f in out_dir.glob("*.json"):
+            backup[f.name] = f.read_bytes()
         aborted = False
         for name, cmd, to in ANALYSIS:
             res = run_step(f"analysis:{name}", cmd, to, log)
             status["stages"][f"analysis:{name}"] = res
             if not res["ok"]:
-                status["failures"].append(f"analysis:{name} ({res['detail']}) — 빌드 중단, 직전 사이트 유지")
+                status["failures"].append(f"analysis:{name} ({res['detail']}) — 빌드 중단, out/ 복원·직전 사이트 유지")
+                for fname, data in backup.items():
+                    (out_dir / fname).write_bytes(data)
                 aborted = True
                 break
         # 3) 예측 (분기)

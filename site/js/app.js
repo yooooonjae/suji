@@ -203,7 +203,7 @@
       C.heatmap($("#eda-corr-sido"), {
         xs: cols.map(c => colLabels[c]),
         ys: rows.map(r => r.sido),
-        cells: rows.map(r => cols.map(c => r[c] == null ? 0 : r[c])),
+        cells: rows.map(r => cols.map(c => r[c])), // null은 heatmap이 "자료 없음" 셀로 표시
       }, { xName: "지표", yName: "시도", labelW: 62, cellH: 26, width: 1160,
            vFmt: v => "r = " + (v >= 0 ? "+" : "") + v.toFixed(2), vLabel: "동시상관",
            legend: "파랑 = 역상관, 주황 = 정상관 (진할수록 강함) · 각 시도 매매지수 YoY 기준",

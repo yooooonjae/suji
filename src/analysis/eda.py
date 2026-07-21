@@ -119,12 +119,12 @@ def aligned(a, b, lag=0):
 def corr_lagged(target, driver, lags):
     """target(피설명, 매매YoY) vs driver(설명변수) 시차상관. lag>0=driver 선행."""
     res = {}
-    best = {"lag": None, "r": 0.0}
+    best = {"lag": None, "r": None}  # 유효 상관이 하나도 없으면 None 유지 (0.0='무상관' 위장 방지)
     for k in lags:
         xs, ys = aligned(target, driver, lag=k)
         r, n = pearson(xs, ys)
         res[str(k)] = {"r": None if r is None else round(r, 3), "n": n}
-        if r is not None and abs(r) > abs(best["r"]):
+        if r is not None and (best["r"] is None or abs(r) > abs(best["r"])):
             best = {"lag": k, "r": round(r, 3)}
     return {"by_lag": res, "best_lag": best["lag"], "best_r": best["r"]}
 
@@ -331,17 +331,18 @@ def analyze_sync(m):
 
     hi_i = max(range(len(cross_sd)), key=lambda i: cross_sd[i])
     lo_i = min(range(len(cross_sd)), key=lambda i: cross_sd[i])
+    sj_txt = ("산출 불가(표본 부족)" if r_seoul_jibang is None
+              else f"r={round(r_seoul_jibang, 3)}(n={n_sj})로 동반 등락하나 진폭·시점 차가 상당하다")
     insight = (f"17개 시도 YoY의 횡단면 표준편차는 {ym_list[lo_i][:4]}-{ym_list[lo_i][4:]}"
                f"(σ={cross_sd[lo_i]}%p)에 가장 동조화되고 {ym_list[hi_i][:4]}-{ym_list[hi_i][4:]}"
-               f"(σ={cross_sd[hi_i]}%p)에 가장 분산됐다. 서울-지방 YoY 상관은 r={round(r_seoul_jibang,3)}"
-               f"(n={n_sj})로 동반 등락하나 진폭·시점 차가 상당하다.")
+               f"(σ={cross_sd[hi_i]}%p)에 가장 분산됐다. 서울-지방 YoY 상관은 {sj_txt}.")
     return {
         "title": "지역 동조화·분산 — 시도 YoY 횡단면 표준편차",
         "data": {
             "ym": ym_list,
             "cross_sd_pp": cross_sd,
             "cross_mean_pct": cross_mean,
-            "seoul_vs_jibang_r": round(r_seoul_jibang, 3),
+            "seoul_vs_jibang_r": None if r_seoul_jibang is None else round(r_seoul_jibang, 3),
             "seoul_vs_jibang_n": n_sj,
             "jibang_def": "지방=비수도권 14개 시도(서울·경기·인천 제외) 단순평균",
             "seoul_vs_each": seoul_each,

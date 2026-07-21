@@ -12,11 +12,20 @@ const ALLOW = ["linkedinbot", "twitterbot", "facebookexternalhit", "slackbot",
 export default {
   async fetch(request, env) {
     const ua = (request.headers.get("user-agent") || "").toLowerCase();
-    const blocked = !ua || (!ALLOW.some(a => ua.includes(a)) && BLOCK.some(b => ua.includes(b)));
+    // 차단 토큰이 있으면 무조건 차단 — allow 토큰을 섞어 붙인 우회("Slackbot GPTBot") 방지.
+    // ALLOW는 향후 BLOCK에 일반 토큰이 추가될 때 미리보기 봇을 구제하는 목적의 목록으로 유지.
+    const blockHit = BLOCK.some(b => ua.includes(b));
+    const blocked = !ua || blockHit; // 현 BLOCK 목록엔 미리보기 봇과 겹치는 토큰 없음 (겹치면 ALLOW로 구제)
     if (blocked) {
       return new Response("403", {
         status: 403,
-        headers: { "content-type": "text/plain; charset=utf-8", "x-robots-tag": "noindex, nofollow, noarchive" },
+        headers: {
+          "content-type": "text/plain; charset=utf-8",
+          "x-robots-tag": "noindex, nofollow, noarchive",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "DENY",
+          "referrer-policy": "no-referrer",
+        },
       });
     }
     const res = await env.ASSETS.fetch(request);

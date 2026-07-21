@@ -47,7 +47,9 @@ def main():
                     vals.append(v)
         vals.sort()
         if len(vals) >= 30:
-            q = lambda p: vals[min(len(vals) - 1, int(p * len(vals)))]
+            # nearest-rank 분위수: ceil(p·n)-1 (상방 한 칸 치우침 방지 — codex 지적)
+            import math
+            q = lambda p: vals[max(0, min(len(vals) - 1, math.ceil(p * len(vals)) - 1))]
             out[gu] = {"n": len(vals), "n_raw": n_raw,
                        "p10": round(q(.10)), "p25": round(q(.25)),
                        "median": round(statistics.median(vals)),

@@ -38,8 +38,7 @@ class Handler(SimpleHTTPRequestHandler):
         ua = (self.headers.get("User-Agent") or "").lower()
         if not ua:
             return True
-        if any(a in ua for a in ALLOW):
-            return False
+        # 차단 토큰 존재 시 무조건 차단 — allow 토큰 결합 우회 방지 (codex 지적)
         return any(b in ua for b in BLOCK)
 
     def do_GET(self):
