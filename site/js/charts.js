@@ -362,31 +362,40 @@
     return svg;
   }
 
-  /* ---------- 히트맵 (2변수 손익분기) ---------- */
-  // grid: {xs:[...], ys:[...], cells:[[v]]} v=이익
+  /* ---------- 히트맵 (2변수 손익분기 · 상관 등 범용) ---------- */
+  // grid: {xs:[...], ys:[...], cells:[[v]]}
+  // opts.vFmt: 값 포맷(기본 억원) · opts.vLabel: 값 명칭 · opts.legend: 상단 범례 문구
+  // opts.cellText: 셀 안에 값 직접 표기 · 음수는 |v| 강도에 비례한 적색
   function heatmap(root, grid, opts) {
     opts = opts || {};
-    const W = opts.width || 720, cellH = 30;
-    const M = { t: 30, r: 16, b: 44, l: 74 };
+    const W = opts.width || 720, cellH = opts.cellH || 30;
+    const M = { t: 30, r: 16, b: 44, l: opts.labelW || 74 };
     const H = M.t + grid.ys.length * cellH + M.b;
     root.innerHTML = "";
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "손익분기 지도" }, root);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.aria || "손익분기 지도" }, root);
     const cw = (W - M.l - M.r) / grid.xs.length;
     const vs = grid.cells.flat();
     const maxAbs = Math.max(...vs.map(Math.abs)) || 1;
     const seq = ["--seq-100", "--seq-200", "--seq-300", "--seq-400", "--seq-500", "--seq-600", "--seq-700"];
+    const vFmt = opts.vFmt || (v => fmt.eok(v) + "원");
     grid.ys.forEach((yv, r) => {
       grid.xs.forEach((xv, c) => {
         const v = grid.cells[r][c];
-        let fill;
-        if (v < 0) fill = css("--neg");
-        else fill = css(seq[Math.min(6, Math.floor((v / maxAbs) * 6.99))]);
+        let fill, op;
+        if (v < 0) { fill = css("--neg"); op = 0.25 + 0.65 * (Math.abs(v) / maxAbs); }
+        else { fill = css(seq[Math.min(6, Math.floor((v / maxAbs) * 6.99))]); op = 1; }
         const rect = el("rect", {
           x: M.l + c * cw + 1, y: M.t + r * cellH + 1,
-          width: cw - 2, height: cellH - 2, fill, rx: 2, opacity: v < 0 ? .8 : 1,
+          width: cw - 2, height: cellH - 2, fill, rx: 2, opacity: op,
         }, svg);
+        if (opts.cellText) {
+          const strong = Math.abs(v) / maxAbs > 0.5; // 진한 배경에만 흰 글자 (연한 셀은 먹색 — 대비 확보)
+          el("text", { x: M.l + c * cw + cw / 2, y: M.t + r * cellH + cellH / 2 + 4, "text-anchor": "middle",
+            "font-size": 11.5, "font-weight": 700, "font-family": "var(--font-num)", "pointer-events": "none",
+            fill: strong ? "#fff" : css("--ink-2") }, svg).textContent = vFmt(v);
+        }
         rect.addEventListener("mousemove", ev => tipShow(
-          `<div class="t-title">${opts.xName || "X"} ${xv} · ${opts.yName || "Y"} ${yv}</div>이익 <b class="num">${fmt.eok(v)}원</b>`, ev.clientX, ev.clientY));
+          `<div class="t-title">${opts.xName || "X"} ${xv} · ${opts.yName || "Y"} ${yv}</div>${opts.vLabel || "이익"} <b class="num">${vFmt(v)}</b>`, ev.clientX, ev.clientY));
         rect.addEventListener("mouseleave", tipHide);
       });
       el("text", { x: M.l - 8, y: M.t + r * cellH + cellH / 2 + 4, "text-anchor": "end", "font-size": 11.5, fill: css("--ink-2"), "font-family": "var(--font-num)" }, svg).textContent = yv;
@@ -394,7 +403,8 @@
     grid.xs.forEach((xv, c) => {
       el("text", { x: M.l + c * cw + cw / 2, y: H - M.b + 16, "text-anchor": "middle", "font-size": 11.5, fill: css("--ink-2"), "font-family": "var(--font-num)" }, svg).textContent = xv;
     });
-    el("text", { x: M.l, y: 16, "font-size": 12, fill: css("--ink-3") }, svg).textContent = (opts.yName || "") + " ↓ / " + (opts.xName || "") + " →   (적색 = 손실)";
+    el("text", { x: M.l, y: 16, "font-size": 12, fill: css("--ink-3") }, svg)
+      .textContent = opts.legend != null ? opts.legend : (opts.yName || "") + " ↓ / " + (opts.xName || "") + " →   (적색 = 손실)";
     return svg;
   }
 

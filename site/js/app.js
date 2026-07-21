@@ -167,6 +167,49 @@
       tr.classList.toggle("sel", tr.dataset.model === selModel));
   }
 
+  /* ---------- Ⅰ-보론. 탐색적 데이터 분석 (EDA) ---------- */
+  function renderEda() {
+    const E = window.__DATA_EDA;
+    if (!E || !$("#eda-corr")) return;
+    // ① 시차상관 히트맵 — 지표 × 선행 시차
+    const corr = E.correlation.data.national, labels = E.correlation.data.driver_labels;
+    const lagKeys = ["0", "3", "6", "12"];
+    const drivers = Object.keys(corr);
+    C.heatmap($("#eda-corr"), {
+      xs: ["동시", "3개월 선행", "6개월 선행", "12개월 선행"],
+      ys: drivers.map(k => labels[k] || k),
+      cells: drivers.map(k => lagKeys.map(l => (corr[k].by_lag[l] || { r: 0 }).r)),
+    }, { xName: "시차", yName: "지표", labelW: 150, cellH: 40, cellText: true,
+         vFmt: v => (v >= 0 ? "+" : "") + v.toFixed(2), vLabel: "상관계수 r",
+         legend: "값 = 전국 매매지수 YoY와의 상관계수 r · 적색 = 역상관 (진할수록 강함)", aria: "지표별 시차 상관" });
+    // ② 지역 동조화 — 횡단면 표준편차 (라인 재활용: 드래그 확대·단위 전환 지원)
+    const S = E.synchronization.data;
+    C.line($("#eda-sync"), [{
+      name: "σ", color: "--s2", emph: true,
+      points: S.ym.map((ym, i) => ({ x: i, label: fmt.ym(ym), y: S.cross_sd_pp[i] })),
+    }], { aria: "시도 간 상승률 격차", yFmt: v => v.toFixed(1) + "%p", rightPad: 40 });
+    // ③ 실거래 ㎡당가 분포 — 시도별 중위
+    const D = E.distribution.data.by_sido.slice().sort((a, b) => b.median - a.median);
+    C.hbars($("#eda-dist"), D.map(d => ({ name: d.sido, value: d.median / 1e4 })),
+      { color: "--s2", fmt: v => fmt.num(v, 0) + "만", labelW: 60, rowH: 34, aria: "시도별 ㎡당 매매가 중위" });
+    // ④ 계절성 스트립 (1×12)
+    const sea = E.seasonality.data;
+    C.heatmap($("#eda-season"), { xs: sea.months.map(m => m + "월"), ys: ["평균"], cells: [sea.mom_avg_pct] },
+      { xName: "월", yName: "MoM", labelW: 50, cellH: 40, vFmt: v => (v >= 0 ? "+" : "") + v.toFixed(2) + "%",
+        vLabel: "월평균 변동", legend: "전국 매매지수 월별 평균 MoM 변동률 · 적색 = 하락", aria: "계절성" });
+    // ⑤ 금리 국면 타일
+    const rr = E.rate_regime.data.regimes;
+    $("#eda-regime").innerHTML = rr.map(g =>
+      `<div class="kpi"><div class="v ${g.sale_mom_avg_pct >= 0 ? "pos" : "neg"}">${g.sale_mom_avg_pct >= 0 ? "+" : ""}${g.sale_mom_avg_pct.toFixed(2)}%</div>
+       <div class="k">${g.regime} 월평균 · ${g.months}개월</div></div>`).join("");
+    // 인사이트 문장 바인딩
+    [["correlation", "#eda-ins-corr"], ["synchronization", "#eda-ins-sync"],
+     ["distribution", "#eda-ins-dist"], ["rate_regime", "#eda-ins-regime"],
+     ["seasonality", "#eda-ins-season"]].forEach(([k, sel]) => {
+      const n = $(sel); if (n && E[k]) n.textContent = E[k].insight;
+    });
+  }
+
   /* ---------- Ⅴ. 상권 ---------- */
   let selCommerceSido = "서울"; // 시도 바 클릭 → 업종 구성 전환
   function renderCommerce() {
@@ -333,7 +376,7 @@
   }
 
   function renderAll() {
-    renderMarket(); renderForecast(); renderCommerce(); renderCases();
+    renderMarket(); renderForecast(); renderEda(); renderCommerce(); renderCases();
   }
 
   /* ---------- 부팅 ---------- */

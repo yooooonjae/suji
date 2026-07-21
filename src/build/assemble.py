@@ -23,6 +23,7 @@ DATA_MAP = {
     "DATA_CASES": ("cases", OUT / "cases.json"),
     "DATA_FORECAST": ("forecast", OUT / "forecast.json"),
     "DATA_SBIZ": ("sbiz", ROOT / "data" / "sbiz.json"),
+    "DATA_EDA": ("eda", OUT / "eda.json"),
 }
 CSS_FILES = ["tokens.css", "base.css", "components.css", "flourish.css"]
 JS_FILES = ["guard.js", "feasibility.js", "zoning.js", "charts.js", "calc-ui.js", "app.js"]

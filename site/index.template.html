@@ -90,7 +90,7 @@
 <section id="home-cards" class="col-wide" aria-label="챕터 바로가기">
   <div class="dim-rule" style="margin-top:0;padding-inline:0">여덟 개의 장</div>
   <div class="chapter-cards" style="margin-top:var(--sp-4)">
-    <a class="ch-card" href="#/ch1"><div class="n">Ⅰ</div><h4>시장 — 열일곱 개의 사이클</h4><p>시도별 매매·전세지수, 미분양, 금리, 시장 온도 진단, 그리고 6모델 12개월 예측.</p><span class="go">상세보기 →</span></a>
+    <a class="ch-card" href="#/ch1"><div class="n">Ⅰ</div><h4>시장 — 열일곱 개의 사이클</h4><p>시도별 매매·전세지수, 미분양, 금리, 시장 온도 진단, 탐색적 데이터 분석, 6모델 12개월 예측.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch2"><div class="n">Ⅱ</div><h4>구조 — 수지표의 해부학</h4><p>땅에서 세대수까지, 여섯 갈래 지출과 정비사업의 비례율 문법.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch3"><div class="n">Ⅲ</div><h4>계산기 — 30초 사업성 검토</h4><p>4개 사업유형 실시간 수지분석. 용도지역에서 세대수까지 자동 도출.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch4"><div class="n">Ⅳ</div><h4>민감도 — 사업성을 흔드는 변수들</h4><p>어떤 변수가 이익을 좌우하는지, 분양가 × 공사비 손익분기 지도까지. 계산기와 실시간 연동.</p><span class="go">상세보기 →</span></a>
@@ -165,6 +165,38 @@
       <div id="chart-squeeze"></div>
       <figcaption>분양가(HUG 민간아파트 ㎡당 분양가, 전국) vs 건설공사비지수(KICT). 두 선의 간격이 개발 마진의 거시적 여유다.</figcaption>
     </figure>
+
+    <h3 class="reveal">숫자의 구조 — 탐색적 데이터 분석</h3>
+    <div class="col-read reveal" style="padding-inline:0">
+      <p>예측에 앞서, 수집한 시계열 2만4천 포인트와 실거래 20만여 건이 그리는 구조를
+      통계적으로 확인했다. 결론부터: <b>매매가의 최강 선행지표는 미분양</b>이고, 금리는 3개월
+      선행에서 가장 강하게 작용하며, 계절성은 추세 앞에서 무시할 수 있는 수준이다.
+      전 분석은 <code>src/analysis/eda.py</code> 한 번의 실행으로 재현된다. 상관은 인과가 아니다 —
+      각 그림의 해석 단서를 함께 읽어야 한다.</p>
+    </div>
+    <figure class="viz reveal">
+      <div class="viz-head"><div class="viz-title">무엇이 집값을 이끄는가 — 지표별 시차 상관</div><div class="viz-unit">전국 매매지수 YoY 기준 · 108개월</div></div>
+      <div id="eda-corr"></div>
+      <figcaption id="eda-ins-corr"></figcaption>
+    </figure>
+    <figure class="viz reveal">
+      <div class="viz-head"><div class="viz-title">열일곱 시장은 함께 움직이는가 — 시도 간 상승률 격차</div><div class="viz-unit">17개 시도 YoY 횡단면 표준편차 (%p)</div></div>
+      <div id="eda-sync"></div>
+      <figcaption id="eda-ins-sync"></figcaption>
+    </figure>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:var(--sp-3)">
+      <figure class="viz reveal" style="margin:0">
+        <div class="viz-head"><div class="viz-title">시도별 ㎡당 매매가 — 중위값</div><div class="viz-unit">만원/㎡ · 실거래 201,738건</div></div>
+        <div id="eda-dist"></div>
+        <figcaption id="eda-ins-dist"></figcaption>
+      </figure>
+      <figure class="viz reveal" style="margin:0">
+        <div class="viz-head"><div class="viz-title">계절과 금리 국면</div><div class="viz-unit">전국 매매지수 MoM</div></div>
+        <div id="eda-season"></div>
+        <div class="kpi-row" id="eda-regime" style="margin-top:var(--sp-3)"></div>
+        <figcaption><span id="eda-ins-season"></span> <span id="eda-ins-regime"></span></figcaption>
+      </figure>
+    </div>
 
     <h3 class="reveal">그리고, 12개월 뒤</h3>
     <div class="col-read reveal" style="padding-inline:0">
@@ -483,6 +515,13 @@
       <li>Python 코어 ↔ 웹 JS: 무작위 70건 입력 전 출력 일치(|Δ|&lt;1e-6) 테스트 강제. 모델 전체 152개 단위테스트.</li>
     </ul>
 
+    <h4>탐색적 분석(EDA) 방법론</h4>
+    <ul style="max-width:none">
+      <li>시차 상관: 전국 매매지수 YoY 대 각 지표(0·3·6·12개월 선행), 피어슨 r, n=104~108개월. 상관은 인과가 아니며 공통 추세에 의한 동조 가능성을 각 그림에 명시.</li>
+      <li>금리 국면: 기준금리의 직전 변경 방향으로 상승/동결/하강기를 구분(상승 35·동결 49·하강 29개월). 실거래 분포는 ㎡당 200만~5,000만원 범위의 유효 201,738건(원자료 217,961건) 기준.</li>
+      <li>재현: <code>python3 src/analysis/eda.py</code> — 표준 라이브러리만으로 전 수치 재산출, 결측 처리 방식은 out/eda.json의 notes에 기록.</li>
+    </ul>
+
     <h4>예측 방법론</h4>
     <ul style="max-width:none">
       <li>대상: 시도별 아파트 매매가격지수(120개월). 외생 피처는 시차(lag) 1·3·6·12개월만 사용 — 미래 정보 누출 차단.</li>
@@ -512,6 +551,7 @@ window.__DATA_MARKET = {{DATA_MARKET}};
 window.__DATA_FORECAST = {{DATA_FORECAST}};
 window.__DATA_CASES = {{DATA_CASES}};
 window.__DATA_SBIZ = {{DATA_SBIZ}};
+window.__DATA_EDA = {{DATA_EDA}};
 </script>
 <script>
 {{JS:feasibility.js}}
