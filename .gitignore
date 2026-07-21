@@ -8,3 +8,4 @@ config.json
 venv/
 server.log
 web/
+logs/
