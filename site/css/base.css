@@ -14,6 +14,7 @@ body {
   color: var(--ink);
   background: var(--ground);
   word-break: keep-all;
+  overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
 }
 ::selection { background: var(--blueprint-wash); color: var(--blueprint); }
