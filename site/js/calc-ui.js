@@ -14,7 +14,9 @@
   let snapshotA = null;
   const st = { // 입력 상태 (UI 단위: 억원·평당만원 등 실무 단위, 계산 직전 원·㎡ 변환)
     land_area: 10000, zone: "R2", far_override: 0, nb_ratio: 0,      // 토지
+    asset: "apt",                                                     // 자산유형: apt·office·retail
     avg_supply: 84.9, price_py: 2400, sell_through: 95,               // 분양 (평당만원)
+    rent_py: 11, vacancy: 5, opex: 27, cap: 4.2, eff_ratio: 65,       // 수익형(오피스·상업)
     land_eok: 800, unit_cost_py: 780, months: 36,                     // 원가 (평당만원 공사비)
     indirect: 6, marketing: 3.5, contingency: 1,                      // 요율 %
     equity_eok: 300, bridge_eok: 600, bridge_rate: 8.5, bridge_mo: 10,
@@ -38,9 +40,17 @@
   /* ---------- 입력 구성 ---------- */
   const FIELDS = {
     공통토지: [
+      ["asset", "자산 유형", "select", [["apt", "공동주택 (분양)"], ["office", "오피스 (임대 후 매각)"], ["retail", "상업시설 (임대 후 매각)"]]],
       ["land_area", "대지면적", "㎡", 1000, 60000, 500],
       ["zone", "용도지역", "select", [["R1", "제1종일반주거"], ["R2", "제2종일반주거"], ["R3", "제3종일반주거"], ["RS", "준주거"], ["CG", "일반상업"], ["IS", "준공업"]]],
       ["nb_ratio", "근생 비율", "%", 0, 30, 1],
+    ],
+    수익형: [
+      ["eff_ratio", "전용률(임대면적/연면적)", "%", 45, 90, 1],
+      ["rent_py", "월 임대료(평당)", "만원", 3, 45, 0.5],
+      ["vacancy", "공실률", "%", 0, 30, 1],
+      ["opex", "운영경비율(임대수입 대비)", "%", 10, 45, 1],
+      ["cap", "매각 cap rate", "%", 3, 10, 0.1],
     ],
     분양: [
       ["avg_supply", "평균 공급면적", "㎡", 40, 160, 0.1],
@@ -79,37 +89,59 @@
       return `<div class="field"><label for="f-${key}">${name}</label><select id="f-${key}" data-k="${key}">${opts}</select></div>`;
     }
     return `<div class="field">
-      <label for="f-${key}">${name} <span class="fv"><span id="v-${key}"></span> <small>${unit}</small></span></label>
+      <label for="f-${key}">${name} <span class="fv"><input type="number" id="n-${key}" data-nk="${key}" min="${a}" max="${b}" step="${step}" inputmode="decimal" aria-label="${name} 직접 입력"> <small>${unit}</small></span></label>
       <input type="range" id="f-${key}" data-k="${key}" min="${a}" max="${b}" step="${step}">
     </div>`;
   }
 
+  const isIncome = () => mode === "신축분양" && st.asset !== "apt";
   function groupsForMode() {
-    if (mode === "신축분양") return [["① 토지", FIELDS.공통토지], ["② 분양", FIELDS.분양], ["③ 원가", FIELDS.원가], ["④ 금융", FIELDS.금융]];
+    if (mode === "신축분양") {
+      const g2 = isIncome() ? ["② 임대·매각", FIELDS.수익형] : ["② 분양", FIELDS.분양];
+      return [["① 토지", FIELDS.공통토지], g2, ["③ 원가", FIELDS.원가], ["④ 금융", FIELDS.금융]];
+    }
     return [["① 정비 개요", FIELDS.정비], ["② 분양", FIELDS.분양], ["③ 원가", FIELDS.원가], ["④ 금융", FIELDS.금융]];
+  }
+
+  function clearPresetActive() {
+    document.querySelectorAll("[data-preset]").forEach(x => x.removeAttribute("aria-pressed"));
   }
 
   function renderInputs() {
     const host = $("#calc-fields");
     host.innerHTML = groupsForMode().map(([title, fs]) =>
       `<div class="in-group"><div class="g-title">${title}</div>${fs.map(fieldHTML).join("")}</div>`).join("");
-    host.querySelectorAll("input,select").forEach(inp => {
+    host.querySelectorAll("input[type=range],select").forEach(inp => {
       inp.addEventListener("input", () => {
         const k = inp.dataset.k;
         st[k] = inp.tagName === "SELECT" ? inp.value : parseFloat(inp.value);
-        updateLabel(k); // 라벨 실시간 갱신 (버그 수정: 상태만 바꾸고 라벨을 안 건드렸음)
+        clearPresetActive();
+        if (k === "asset") { renderInputs(); recalc(); renderSensitivity(); return; } // 그룹 구조 전환
+        updateLabel(k); // 라벨 실시간 갱신
         scheduleRecalc();
       });
     });
+    // 숫자 직접 입력 — 슬라이더와 양방향 동기화
+    host.querySelectorAll("input[type=number]").forEach(inp => {
+      inp.addEventListener("input", () => {
+        const k = inp.dataset.nk, v = parseFloat(inp.value);
+        if (!isFinite(v)) return;
+        st[k] = Math.min(parseFloat(inp.max), Math.max(parseFloat(inp.min), v));
+        const r = document.getElementById("f-" + k);
+        if (r) r.value = st[k];
+        clearPresetActive();
+        scheduleRecalc();
+      });
+      inp.addEventListener("change", () => syncInputs()); // blur 시 범위 클램프 값 반영
+    });
     syncInputs();
   }
-  function fmtVal(v) { return fmt.num(v, 1).replace(/\.0$/, ""); }
   function updateLabel(k) {
-    const v = document.getElementById("v-" + k);
-    if (v && typeof st[k] === "number") v.textContent = fmtVal(st[k]);
+    const n = document.getElementById("n-" + k);
+    if (n && typeof st[k] === "number" && document.activeElement !== n) n.value = st[k];
   }
   function syncInputs() {
-    document.querySelectorAll("#calc-fields input,#calc-fields select").forEach(inp => {
+    document.querySelectorAll("#calc-fields input[type=range],#calc-fields select").forEach(inp => {
       const k = inp.dataset.k;
       if (st[k] == null) return;
       inp.value = st[k];
@@ -125,15 +157,25 @@
       avg_supply_m2: s.avg_supply,
     });
     const units = [];
+    let income = null; // 수익형 산출 (NOI·매각가치) — KPI·판정에 사용
     if (mode === "신축분양") {
-      units.push({ name: "주거", count: zi.units_est, supply_m2: s.avg_supply, price_per_m2: pyman_to_wonm2(s.price_py) });
-      if (zi.neighborhood_gfa_m2 > 0) {
-        units.push({ name: "근생", count: 1, supply_m2: zi.neighborhood_gfa_m2 * 0.6, price_per_m2: pyman_to_wonm2(s.price_py) * 1.15 });
+      if (s.asset !== "apt") {
+        // 수익형: NOI = 임대면적(평)×월임대료×12×(1−공실)×(1−경비율), 매각가치 = NOI ÷ cap rate
+        const nra_py = (zi.buildable_gfa_m2 * (s.eff_ratio / 100)) / PY;
+        const noi = nra_py * s.rent_py * 1e4 * 12 * (1 - s.vacancy / 100) * (1 - s.opex / 100);
+        const exit_value = s.cap > 0 ? noi / (s.cap / 100) : 0;
+        units.push({ name: s.asset === "office" ? "오피스" : "상업시설", count: 1, supply_m2: 1, price_per_m2: exit_value });
+        income = { noi, exit_value, nra_py };
+      } else {
+        units.push({ name: "주거", count: zi.units_est, supply_m2: s.avg_supply, price_per_m2: pyman_to_wonm2(s.price_py) });
+        if (zi.neighborhood_gfa_m2 > 0) {
+          units.push({ name: "근생", count: 1, supply_m2: zi.neighborhood_gfa_m2 * 0.6, price_per_m2: pyman_to_wonm2(s.price_py) * 1.15 });
+        }
       }
     }
     const inputs = {
       mode,
-      revenue: { units, sell_through: s.sell_through / 100, other_income: 0 },
+      revenue: { units, sell_through: income ? 1 : s.sell_through / 100, other_income: 0 },
       cost: {
         land: { purchase: mode === "신축분양" ? s.land_eok * EOK : 0, acq_tax_rate: 0.046, misc_rate: 0.01 },
         construction: { gfa_m2: zi.buildable_gfa_m2, unit_cost_per_m2: pyman_to_wonm2(s.unit_cost_py) },
@@ -162,23 +204,56 @@
         cash_settlement_ratio: s.cashout / 100,
       };
     }
-    return { inputs, zoning: zi };
+    return { inputs, zoning: zi, income };
   }
 
   /* ---------- 출력 렌더 ---------- */
+  let lastIncome = null;
   function kpiHTML(r) {
     const kpis = [
-      ["총수입", fmt.eok(r.revenue_total), ""],
-      ["총지출", fmt.eok(r.cost_total), ""],
-      ["개발이익", fmt.eok(r.profit), r.profit >= 0 ? "pos" : "neg"],
-      ["마진율(수입)", fmt.pct(r.margin_on_revenue || 0), (r.margin_on_revenue || 0) >= 0 ? "pos" : "neg"],
+      ["개발이익", fmt.eok(r.profit), r.profit >= 0 ? "pos" : "neg", "hero"],
+      ["마진율(수입 대비)", fmt.pct(r.margin_on_revenue || 0), (r.margin_on_revenue || 0) >= 0 ? "pos" : "neg"],
       ["IRR(연)", r.irr_annual == null ? "―" : fmt.pct(r.irr_annual), (r.irr_annual || 0) >= 0 ? "pos" : "neg"],
+      [lastIncome ? "매각가치(총수입)" : "총수입", fmt.eok(r.revenue_total), ""],
+      ["총지출", fmt.eok(r.cost_total), ""],
     ];
+    if (lastIncome) {
+      kpis.splice(3, 0, ["연 NOI", fmt.eok(lastIncome.noi), ""],
+        ["Yield on Cost", r.cost_total ? fmt.pct(lastIncome.noi / r.cost_total) : "―",
+         (lastIncome.noi / (r.cost_total || 1)) >= st.cap / 100 ? "pos" : "neg"]);
+    }
     if (mode !== "신축분양") {
       kpis.push(["비례율", r.proportion_rate == null ? "―" : fmt.pct(r.proportion_rate, 1), (r.proportion_rate || 0) >= 1 ? "pos" : "neg"]);
       kpis.push(["세대당 분담금", r.member_contribution == null ? "―" : fmt.eok(r.member_contribution), ""]);
     }
-    return kpis.map(([k, v, cls]) => `<div class="kpi"><div class="v ${cls}">${v}</div><div class="k">${k}</div></div>`).join("");
+    return kpis.map(([k, v, cls, hero]) =>
+      `<div class="kpi${hero ? " kpi-hero" : ""}"><div class="v ${cls}">${v}</div><div class="k">${k}</div></div>`).join("");
+  }
+
+  // 판정 문장 — 지표를 실무 기준선과 비교해 한 줄로 해석
+  function verdictHTML(r) {
+    let cls, txt;
+    if (lastIncome) {
+      const yoc = r.cost_total ? lastIncome.noi / r.cost_total : 0;
+      const spread = yoc - st.cap / 100;
+      const sp = (spread * 100).toFixed(2) + "%p";
+      if (spread >= 0.015) { cls = "good"; txt = `우량 — Yield on Cost ${fmt.pct(yoc)}가 cap rate를 ${sp} 상회. 개발 프리미엄이 충분하다`; }
+      else if (spread >= 0.0075) { cls = "good"; txt = `성립 — Yield on Cost ${fmt.pct(yoc)}, cap rate 대비 +${sp}. 통상 요구 스프레드(0.75~1.5%p) 안이다`; }
+      else if (spread >= 0) { cls = "warn"; txt = `경계 — Yield on Cost와 cap rate 차이가 ${sp}에 불과. 임대료·공실 가정을 점검해야 한다`; }
+      else { cls = "bad"; txt = `부적정 — Yield on Cost ${fmt.pct(yoc)}가 cap rate보다 낮다. 매각가치가 원가에 미달한다`; }
+    } else {
+      const m = r.margin_on_revenue || 0;
+      if (m >= 0.15) { cls = "good"; txt = `우량 — 마진율 ${fmt.pct(m)}, 통상 목표(10~15%)를 상회한다`; }
+      else if (m >= 0.10) { cls = "good"; txt = `성립 — 마진율 ${fmt.pct(m)}, 통상 목표 구간(10~15%) 안이다`; }
+      else if (m >= 0.05) { cls = "warn"; txt = `경계 — 마진율 ${fmt.pct(m)}, 분양가·공사비 민감도(Ⅳ장) 점검이 필요하다`; }
+      else if (m >= 0) { cls = "warn"; txt = `한계 — 마진율 ${fmt.pct(m)}, 원가 절감이나 분양가 재검토 없이는 착수가 어렵다`; }
+      else { cls = "bad"; txt = `부적정 — 손실 ${fmt.eok(-r.profit)}, 현재 구조로는 성립하지 않는다`; }
+      if (r.irr_annual != null) txt += ` · 연 IRR ${fmt.pct(r.irr_annual)}`;
+      if (mode !== "신축분양" && r.proportion_rate != null) {
+        txt += ` · 비례율 ${fmt.pct(r.proportion_rate, 1)}` + (r.proportion_rate >= 1 ? " (무상지분 여력)" : " (분담금 부담 증가)");
+      }
+    }
+    return `<div class="verdict ${cls}">${txt}</div>`;
   }
 
   function ledgerHTML(r) {
@@ -208,20 +283,27 @@
   function recalc() {
     let out;
     try {
-      const { inputs, zoning } = buildInputs();
+      const { inputs, zoning, income } = buildInputs();
+      lastIncome = income;
       out = F.run(inputs);
       // 토지 요약
       const zEl = $("#calc-zoning");
       if (zEl) {
-        zEl.innerHTML = mode === "신축분양"
-          ? `${zoning.zone_name} · 용적률 <b class="num">${fmt.pct(zoning.far_applied, 0)}</b> → 연면적 <b class="num">${fmt.num(zoning.buildable_gfa_m2, 0)}㎡</b> · 추정 <b class="num">${zoning.units_est}세대</b>`
-          : `정비사업 모드 — 연면적 <b class="num">${fmt.num(zoning.buildable_gfa_m2, 0)}㎡</b> 기준 공사비 산정`;
+        if (income) {
+          zEl.innerHTML = `${zoning.zone_name} · 용적률 <b class="num">${fmt.pct(zoning.far_applied, 0)}</b> → 연면적 <b class="num">${fmt.num(zoning.buildable_gfa_m2, 0)}㎡</b> · 임대면적 <b class="num">${fmt.num(income.nra_py, 0)}평</b> · cap <b class="num">${st.cap}%</b>`;
+        } else {
+          zEl.innerHTML = mode === "신축분양"
+            ? `${zoning.zone_name} · 용적률 <b class="num">${fmt.pct(zoning.far_applied, 0)}</b> → 연면적 <b class="num">${fmt.num(zoning.buildable_gfa_m2, 0)}㎡</b> · 추정 <b class="num">${zoning.units_est}세대</b>`
+            : `정비사업 모드 — 연면적 <b class="num">${fmt.num(zoning.buildable_gfa_m2, 0)}㎡</b> 기준 공사비 산정`;
+        }
       }
     } catch (e) {
       $("#calc-kpis").innerHTML = `<div class="kpi"><div class="v neg">입력 오류</div><div class="k">${String(e.message || e)}</div></div>`;
       return;
     }
     $("#calc-kpis").innerHTML = kpiHTML(out);
+    const vd = $("#calc-verdict");
+    if (vd) vd.innerHTML = verdictHTML(out);
     $("#calc-ledger").innerHTML = ledgerHTML(out);
     // 워터폴
     const items = [
@@ -259,7 +341,7 @@
       mut(c); return F.run(c).profit;
     };
     const items = [
-      { name: "분양가 ±10%", low: vary(c => scalePrice(c, 0.9)), high: vary(c => scalePrice(c, 1.1)) },
+      { name: (isIncome() ? "임대료·매각가치" : "분양가") + " ±10%", low: vary(c => scalePrice(c, 0.9)), high: vary(c => scalePrice(c, 1.1)) },
       { name: "공사비 ±10%", low: vary(c => { c.cost.construction.unit_cost_per_m2 *= 1.1; }), high: vary(c => { c.cost.construction.unit_cost_per_m2 *= 0.9; }) },
       { name: "분양률 ±10%p", low: vary(c => { c.revenue.sell_through = Math.max(0, c.revenue.sell_through - 0.1); }), high: vary(c => { c.revenue.sell_through = Math.min(1, c.revenue.sell_through + 0.1); }) },
       { name: "금리 ±2%p", low: vary(c => { c.finance.pf.rate += 0.02; c.finance.bridge.rate += 0.02; }), high: vary(c => { c.finance.pf.rate = Math.max(0, c.finance.pf.rate - 0.02); c.finance.bridge.rate = Math.max(0, c.finance.bridge.rate - 0.02); }) },
@@ -296,6 +378,13 @@
   /* ---------- 초기화 ---------- */
   function init(presetData) {
     presets = presetData || {};
+    // 수익형 예시 프리셋 (로컬 정의 — 서울 일반상업지 오피스 개발 가정)
+    presets["서울오피스"] = presets["서울오피스"] || {
+      __mode: "신축분양", asset: "office", land_area: 8000, zone: "CG", nb_ratio: 0,
+      eff_ratio: 65, rent_py: 13, vacancy: 5, opex: 27, cap: 4.0,
+      land_eok: 1500, unit_cost_py: 850, months: 42, indirect: 6, marketing: 1.5,
+      equity_eok: 800, bridge_eok: 1000, bridge_rate: 8.0, pf_eok: 4000, pf_rate: 6.0,
+    };
     // 모드 탭
     document.querySelectorAll(".mode-tabs button").forEach(b => {
       b.addEventListener("click", () => {
@@ -308,7 +397,12 @@
     document.querySelectorAll("[data-preset]").forEach(b => {
       b.addEventListener("click", () => {
         const p = presets[b.dataset.preset];
-        if (p) { mode = p.__mode || "신축분양"; syncModeTabs(); applyPreset(p); renderSensitivity(); }
+        if (p) {
+          mode = p.__mode || "신축분양"; syncModeTabs();
+          if (p.asset === undefined) st.asset = "apt"; // 주거 프리셋은 자산유형 복원
+          Object.assign(st, p); renderInputs(); recalc(); renderSensitivity();
+          document.querySelectorAll("[data-preset]").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+        }
       });
     });
     // A/B

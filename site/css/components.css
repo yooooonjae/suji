@@ -111,13 +111,12 @@ figure.viz figcaption {
   max-width: var(--col-wide); margin-inline: auto; padding-inline: var(--sp-4);
 }
 .calc-panel {
-  display: grid; grid-template-columns: minmax(310px, 380px) 1fr; gap: 1px;
-  background: var(--hairline-2); border: 1.5px solid var(--hairline-2);
-  box-shadow: var(--shadow);
+  display: grid; grid-template-columns: minmax(320px, 400px) 1fr; gap: var(--sp-3);
+  align-items: start;
 }
 @media (max-width: 900px) { .calc-panel { grid-template-columns: 1fr; } }
-.calc-in { background: var(--surface-2); padding: var(--sp-4); }
-.calc-out { background: var(--surface); padding: var(--sp-4); min-width: 0; }
+.calc-in { background: var(--surface-2); padding: var(--sp-4); border: 1px solid var(--hairline-2); border-radius: var(--radius); }
+.calc-out { background: var(--surface); padding: var(--sp-4); min-width: 0; border: 1px solid var(--hairline-2); border-radius: var(--radius); box-shadow: var(--shadow); }
 
 /* 모드 스위치 */
 .mode-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: var(--sp-4); }
@@ -133,14 +132,14 @@ figure.viz figcaption {
 }
 
 /* 입력 그룹 */
-.in-group { margin-bottom: var(--sp-4); }
+.in-group { margin-bottom: 30px; }
 .in-group > .g-title {
   display: flex; align-items: center; gap: 8px;
   font-size: var(--t-caption); font-weight: 800; letter-spacing: .1em;
   color: var(--ink-3); margin-bottom: var(--sp-2);
 }
 .in-group > .g-title::after { content: ""; flex: 1; height: 1px; background: var(--hairline-2); }
-.field { margin-bottom: var(--sp-2); }
+.field { margin-bottom: 18px; }
 .field label { display: flex; justify-content: space-between; font-size: var(--t-small); color: var(--ink-2); margin-bottom: 4px; }
 .field label .fv { font-family: var(--font-num); font-weight: 700; color: var(--ink); }
 .field input[type="range"] { width: 100%; accent-color: var(--blueprint); }
@@ -325,7 +324,7 @@ a.ch-card:hover .go { text-decoration: underline; text-underline-offset: 3px; }
 }
 .g-cap { font-size: var(--t-caption); font-weight: 800; letter-spacing: .08em; color: var(--ink-3); margin-bottom: 4px; }
 .out-side {
-  display: grid; gap: var(--sp-2); align-content: start; justify-items: center;
+  display: grid; gap: var(--sp-2); align-content: start; justify-items: stretch;
   border: 1px solid var(--hairline); border-radius: var(--radius);
   padding: var(--sp-2); background: var(--surface-2);
 }
@@ -338,3 +337,44 @@ a.ch-card:hover .go { text-decoration: underline; text-underline-offset: 3px; }
 .ab-col button:hover { filter: brightness(1.08); }
 table.ledger td, table.ledger th { white-space: nowrap; }
 table.ledger tbody tr:hover td { background: var(--blueprint-wash); }
+
+/* ---------- 계산기 개선: 직접입력·판정·KPI 계층 ---------- */
+.field label { align-items: center; }
+.field .fv input[type="number"] {
+  width: 108px; text-align: right; font: inherit; font-size: 15px;
+  font-family: var(--font-num); font-weight: 700; color: var(--ink);
+  padding: 6px 9px; background: var(--surface);
+  border: 1px solid var(--hairline-2); border-radius: var(--radius);
+}
+.field .fv input[type="number"]:focus { outline: 2px solid var(--blueprint-2); outline-offset: -1px; }
+.kpi.kpi-hero {
+  grid-column: 1 / -1; display: flex; align-items: baseline; gap: 14px;
+  background: var(--blueprint-wash); border-color: var(--blueprint-2);
+  padding: 16px 20px;
+}
+.kpi.kpi-hero .v { font-size: 38px; }
+.kpi.kpi-hero .k { font-size: var(--t-small); margin-top: 0; }
+#calc-verdict .verdict {
+  margin: var(--sp-2) 0 var(--sp-3); padding: 11px 14px;
+  border-left: 3px solid var(--blueprint); background: var(--surface-2);
+  font-size: var(--t-small); font-weight: 600;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+#calc-verdict .verdict.good { border-color: var(--pos); }
+#calc-verdict .verdict.warn { border-color: #d97706; }
+#calc-verdict .verdict.bad { border-color: var(--neg); }
+.preset-row button[aria-pressed="true"] {
+  background: var(--blueprint); border-color: var(--blueprint); color: #fff;
+}
+
+/* 장 꼬리표 — 도면 끝 표식 + 하단 여백 */
+section.chapter { padding-bottom: var(--sp-6); }
+section.chapter::after {
+  content: "— 도면 끝 · SHEET " attr(data-sheet) " / Ⅷ —";
+  display: block; text-align: center; margin-top: var(--sp-6);
+  font-size: var(--t-caption); font-weight: 700; letter-spacing: .22em;
+  color: var(--ink-3);
+}
+
+.out-side svg { display: block; width: 100%; height: auto; }
+.kpi .v { white-space: nowrap; }

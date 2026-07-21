@@ -85,8 +85,7 @@
       if (subData) {
         subFig.hidden = false;
         $("#sub-title").textContent = selSido + " — " + (selSido === "경기" ? "시·군별" : "구·군별") + " 매매가격지수";
-        const yoyOf = ser => ser.length > 13 ? ser[ser.length - 1].value / ser[ser.length - 13].value - 1 : 0;
-        const order = Object.keys(subData).sort((a, b) => yoyOf(subData[b]) - yoyOf(subData[a]));
+        const order = Object.keys(subData).sort((a, b) => a.localeCompare(b, "ko"));
         C.smallMultiples($("#sm-sub"), subData, {
           order, selected: selSub,
           onSelect: n => { selSub = selSub === n ? null : n; renderMarket(); },
@@ -112,19 +111,19 @@
     // 미분양
     C.line($("#chart-unsold"), [
       { name: "미분양", color: "--s6", emph: true, points: mk(seriesOf(M.unsold, selSido)) },
-      { name: "준공후", color: "--s8", points: mk(seriesOf(M.unsold_completed, selSido) || []) },
+      { name: "준공후", color: "--s3", points: mk(seriesOf(M.unsold_completed, selSido) || []) },
     ], { aria: selSido + " 미분양", yFmt: v => fmt.num(v, 0), width: 560, height: 330, rightPad: 64 });
     // 국면 맵
     C.phase($("#chart-phase"), M.phase_points, {});
     // 마진 스퀴즈: 분양가지수 vs 공사비지수 (전국)
     C.line($("#chart-squeeze"), [
       { name: "분양가", color: "--s1", emph: true, points: mk(M.presale_indexed) },
-      { name: "공사비", color: "--s3", points: mk(M.cci_indexed) },
+      { name: "공사비", color: "--s5", points: mk(M.cci_indexed) },
     ], { aria: "분양가 vs 공사비 지수화 추이" });
     // 금리
     C.line($("#chart-rates"), [
       { name: "기준금리", color: "--s1", emph: true, points: mk(M.base_rate) },
-      { name: "주담대", color: "--s5", points: mk(M.mortgage_rate) },
+      { name: "주담대", color: "--s4", points: mk(M.mortgage_rate) },
       { name: "기업대출", color: "--s2", points: mk(M.corp_loan_rate) },
     ], { aria: "금리 추이", yFmt: v => v.toFixed(1) + "%", width: 560, height: 330, rightPad: 72 });
   }
@@ -219,6 +218,19 @@
   }
 
   /* ---------- 셀프테스트 (?selftest=1) — 실제 이벤트 경로 검증 ---------- */
+
+  function probe() {
+    if (!location.search.includes("probe")) return;
+    setTimeout(() => {
+      const h = sel => { const n = document.querySelector(sel); return n ? Math.round(n.getBoundingClientRect().height) : -1; };
+      document.title = JSON.stringify({
+        kpirow: h("#calc-kpis"), hero: h(".kpi.hero"), kpi2: h("#calc-kpis .kpi:nth-child(2)"),
+        verdict: h("#calc-verdict"), outmain: h(".out-main"), ledger: h("#calc-ledger"),
+        calcout: h(".calc-out"), calcin: h(".calc-in"), panel: h(".calc-panel"),
+      });
+    }, 1200);
+  }
+
   function selfTest() {
     if (!location.search.includes("selftest")) return;
     location.hash = "#/ch3";
@@ -230,14 +242,14 @@
       slider.dispatchEvent(new Event("input", { bubbles: true }));
       setTimeout(() => {
         const after = kpi();
-        const label = document.getElementById("v-price_py").textContent;
+        const label = document.getElementById("n-price_py").value;
         const ok = before !== after && label !== "";
         const badge = document.createElement("div");
         badge.id = "selftest-result";
         badge.textContent = `SELFTEST ${ok ? "PASS" : "FAIL"} | before=${before} after=${after} label=${label}`;
         badge.style.cssText = "position:fixed;top:60px;right:8px;z-index:99;background:#000;color:#0f0;padding:6px 10px;font-size:12px;font-family:monospace";
         document.body.appendChild(badge);
-      }, 350);
+      }, 700);
     }, 700);
   }
 
@@ -252,6 +264,6 @@
     window.CalcUI.init(CS.presets || {});
     addEventListener("hashchange", route);
     route();
-    selfTest();
+    selfTest(); probe();
   });
 })();
