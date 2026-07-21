@@ -97,18 +97,23 @@
       inp.addEventListener("input", () => {
         const k = inp.dataset.k;
         st[k] = inp.tagName === "SELECT" ? inp.value : parseFloat(inp.value);
+        updateLabel(k); // 라벨 실시간 갱신 (버그 수정: 상태만 바꾸고 라벨을 안 건드렸음)
         scheduleRecalc();
       });
     });
     syncInputs();
+  }
+  function fmtVal(v) { return fmt.num(v, 1).replace(/\.0$/, ""); }
+  function updateLabel(k) {
+    const v = document.getElementById("v-" + k);
+    if (v && typeof st[k] === "number") v.textContent = fmtVal(st[k]);
   }
   function syncInputs() {
     document.querySelectorAll("#calc-fields input,#calc-fields select").forEach(inp => {
       const k = inp.dataset.k;
       if (st[k] == null) return;
       inp.value = st[k];
-      const v = document.getElementById("v-" + k);
-      if (v) v.textContent = typeof st[k] === "number" ? fmt.num(st[k], 1).replace(/\.0$/, "") : st[k];
+      updateLabel(k);
     });
   }
 

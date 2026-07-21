@@ -79,13 +79,13 @@ header.tblock {
 }
 .tblock-no {
   display: grid; place-items: center;
-  padding: var(--sp-3) var(--sp-4);
+  padding: var(--sp-4);
   border-right: 1.5px solid var(--hairline-2);
-  font-family: var(--font-num); font-size: 30px; font-weight: 700;
+  font-family: var(--font-num); font-size: 36px; font-weight: 700;
   color: var(--blueprint);
-  min-width: 92px;
+  min-width: 108px;
 }
-.tblock-main { padding: var(--sp-3) var(--sp-4); }
+.tblock-main { padding: var(--sp-4); }
 .tblock-eyebrow {
   font-size: var(--t-caption); font-weight: 700; letter-spacing: .14em;
   color: var(--ink-3); text-transform: uppercase; margin-bottom: 4px;
@@ -95,8 +95,8 @@ header.tblock {
   letter-spacing: -.015em; text-wrap: balance;
 }
 .tblock-meta {
-  display: grid; align-content: center; gap: 3px; text-align: right;
-  padding: var(--sp-3) var(--sp-4);
+  display: grid; align-content: center; gap: 4px; text-align: right;
+  padding: var(--sp-4);
   border-left: 1.5px solid var(--hairline-2);
   font-size: var(--t-caption); color: var(--ink-3);
   min-width: 128px;

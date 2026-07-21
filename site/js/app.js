@@ -11,29 +11,43 @@
   const SIDO_ORDER = ["전국", "서울", "경기", "인천", "부산", "대구", "광주", "대전", "울산", "세종",
                       "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"];
 
-  /* ---------- 진행바·레일 스파이·리빌 ---------- */
+  /* ---------- 진행바·리빌 ---------- */
   function initChrome() {
     const bar = $("#progress");
     addEventListener("scroll", () => {
       const h = document.documentElement;
-      bar.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + "%";
+      const denom = h.scrollHeight - h.clientHeight;
+      bar.style.width = (denom > 0 ? (h.scrollTop / denom) * 100 : 0) + "%";
     }, { passive: true });
-
-    const links = [...document.querySelectorAll("nav.rail a")];
-    const secs = links.map(a => document.querySelector(a.getAttribute("href")));
-    const spy = new IntersectionObserver(es => {
-      es.forEach(e => {
-        if (e.isIntersecting) {
-          links.forEach(a => a.classList.toggle("active", a.getAttribute("href") === "#" + e.target.id));
-        }
-      });
-    }, { rootMargin: "-30% 0px -60% 0px" });
-    secs.forEach(s => s && spy.observe(s));
 
     const rev = new IntersectionObserver(es => {
       es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); rev.unobserve(e.target); } });
     }, { threshold: 0.12 });
     document.querySelectorAll(".reveal").forEach(n => rev.observe(n));
+  }
+
+  /* ---------- 라우터 (홈 ↔ 챕터 상세 뷰) ---------- */
+  function route() {
+    const h = location.hash.replace(/^#\/?/, "");
+    const view = /^ch[1-8]$/.test(h) ? h : "home";
+    document.body.dataset.view = view;
+    // 전 섹션·구분선 숨김 후 대상만 표시
+    document.querySelectorAll("section.chapter, .wrap > .dim-rule").forEach(n => { n.style.display = "none"; });
+    const hero = document.querySelector(".hero");
+    const cards = $("#home-cards");
+    const foot = document.querySelector("footer.colophon");
+    const isHome = view === "home";
+    hero.style.display = isHome ? "" : "none";
+    cards.style.display = isHome ? "" : "none";
+    foot.style.display = isHome ? "" : "none";
+    if (!isHome) {
+      const sec = document.getElementById(view);
+      sec.style.display = "";
+      sec.querySelectorAll(".reveal").forEach(n => n.classList.add("in"));
+    }
+    document.querySelectorAll(".appbar .tabs a").forEach(a =>
+      a.classList.toggle("active", a.dataset.view === view));
+    scrollTo(0, 0);
   }
 
   /* ---------- 히어로 카운터 ---------- */
@@ -53,6 +67,7 @@
 
   /* ---------- Ⅰ. 시장 ---------- */
   let selSido = "서울";
+  let selSub = null; // 하위지역(구·시군) 선택 — 특별·광역시도 드릴다운
   function seriesOf(dict, name) { return (dict && dict[name]) || []; }
 
   function renderMarket() {
@@ -60,20 +75,45 @@
     C.smallMultiples($("#sm-sale"), M.sale_index, {
       order: SIDO_ORDER.filter(n => M.sale_index[n]),
       selected: selSido,
-      onSelect: n => { selSido = n; renderMarket(); renderForecast(); },
+      onSelect: n => { selSido = n; selSub = null; renderMarket(); renderForecast(); },
     });
-    // 선택 시도 상세: 매매 vs 전세
+    // 하위지역 드릴다운 (서울 25구 · 경기 28시군 · 광역시 구군)
+    const SUB = M.sub_index || {};
+    const subFig = $("#fig-sub");
+    const subData = SUB[selSido];
+    if (subFig) {
+      if (subData) {
+        subFig.hidden = false;
+        $("#sub-title").textContent = selSido + " — " + (selSido === "경기" ? "시·군별" : "구·군별") + " 매매가격지수";
+        const yoyOf = ser => ser.length > 13 ? ser[ser.length - 1].value / ser[ser.length - 13].value - 1 : 0;
+        const order = Object.keys(subData).sort((a, b) => yoyOf(subData[b]) - yoyOf(subData[a]));
+        C.smallMultiples($("#sm-sub"), subData, {
+          order, selected: selSub,
+          onSelect: n => { selSub = selSub === n ? null : n; renderMarket(); },
+        });
+      } else { subFig.hidden = true; }
+    }
+    // 선택 상세: 구·시군 선택 시 해당 지역 vs 시도 평균, 아니면 시도 매매 vs 전세
     const mk = s => s.map((p, i) => ({ x: i, label: fmt.ym(p.ym), y: p.value }));
-    C.line($("#chart-detail"), [
-      { name: "매매", color: "--s1", emph: true, points: mk(seriesOf(M.sale_index, selSido)) },
-      { name: "전세", color: "--s2", points: mk(seriesOf(M.jeonse_index, selSido)) },
-    ], { aria: selSido + " 매매·전세 지수" });
-    $("#detail-title").textContent = selSido + " — 매매·전세가격지수";
+    const subSer = subData && selSub ? subData[selSub] : null;
+    if (subSer) {
+      C.line($("#chart-detail"), [
+        { name: selSub, color: "--s1", emph: true, points: mk(subSer) },
+        { name: selSido + " 평균", color: "--s2", dim: true, points: mk(seriesOf(M.sale_index, selSido)) },
+      ], { aria: selSido + " " + selSub + " 매매지수" });
+      $("#detail-title").textContent = selSido + " " + selSub + " — 매매가격지수 (시도 평균 대비)";
+    } else {
+      C.line($("#chart-detail"), [
+        { name: "매매", color: "--s1", emph: true, points: mk(seriesOf(M.sale_index, selSido)) },
+        { name: "전세", color: "--s2", points: mk(seriesOf(M.jeonse_index, selSido)) },
+      ], { aria: selSido + " 매매·전세 지수" });
+      $("#detail-title").textContent = selSido + " — 매매·전세가격지수";
+    }
     // 미분양
     C.line($("#chart-unsold"), [
       { name: "미분양", color: "--s6", emph: true, points: mk(seriesOf(M.unsold, selSido)) },
       { name: "준공후", color: "--s8", points: mk(seriesOf(M.unsold_completed, selSido) || []) },
-    ], { aria: selSido + " 미분양", yFmt: v => fmt.num(v, 0) });
+    ], { aria: selSido + " 미분양", yFmt: v => fmt.num(v, 0), width: 560, height: 330, rightPad: 64 });
     // 국면 맵
     C.phase($("#chart-phase"), M.phase_points, {});
     // 마진 스퀴즈: 분양가지수 vs 공사비지수 (전국)
@@ -86,7 +126,7 @@
       { name: "기준금리", color: "--s1", emph: true, points: mk(M.base_rate) },
       { name: "주담대", color: "--s5", points: mk(M.mortgage_rate) },
       { name: "기업대출", color: "--s2", points: mk(M.corp_loan_rate) },
-    ], { aria: "금리 추이", yFmt: v => v.toFixed(1) + "%" });
+    ], { aria: "금리 추이", yFmt: v => v.toFixed(1) + "%", width: 560, height: 330, rightPad: 72 });
   }
 
   /* ---------- 예측 ---------- */
@@ -167,16 +207,38 @@
     $("#case-notes").innerHTML = c.notes.map(n => `<li>${n}</li>`).join("");
   }
 
-  /* ---------- 테마 토글 ---------- */
+  /* ---------- 테마 토글 (히어로·앱바 공용) ---------- */
   function initTheme() {
-    const btn = $("#theme-btn");
-    btn.addEventListener("click", () => {
+    document.querySelectorAll(".theme-toggle").forEach(btn => btn.addEventListener("click", () => {
       const r = document.documentElement;
       const cur = r.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
       r.dataset.theme = cur === "dark" ? "light" : "dark";
       renderAll(); // 차트 색 재계산
       if (window.CalcUI && window.CalcUI.refresh) window.CalcUI.refresh(); // 계산기·민감도도 재렌더
-    });
+    }));
+  }
+
+  /* ---------- 셀프테스트 (?selftest=1) — 실제 이벤트 경로 검증 ---------- */
+  function selfTest() {
+    if (!location.search.includes("selftest")) return;
+    location.hash = "#/ch3";
+    setTimeout(() => {
+      const kpi = () => document.querySelector("#calc-kpis .kpi .v").textContent;
+      const before = kpi();
+      const slider = document.querySelector('#calc-fields input[data-k="price_py"]');
+      slider.value = parseFloat(slider.value) + 400;
+      slider.dispatchEvent(new Event("input", { bubbles: true }));
+      setTimeout(() => {
+        const after = kpi();
+        const label = document.getElementById("v-price_py").textContent;
+        const ok = before !== after && label !== "";
+        const badge = document.createElement("div");
+        badge.id = "selftest-result";
+        badge.textContent = `SELFTEST ${ok ? "PASS" : "FAIL"} | before=${before} after=${after} label=${label}`;
+        badge.style.cssText = "position:fixed;top:60px;right:8px;z-index:99;background:#000;color:#0f0;padding:6px 10px;font-size:12px;font-family:monospace";
+        document.body.appendChild(badge);
+      }, 350);
+    }, 700);
   }
 
   function renderAll() {
@@ -188,5 +250,8 @@
     initChrome(); initTheme(); counters();
     renderAll();
     window.CalcUI.init(CS.presets || {});
+    addEventListener("hashchange", route);
+    route();
+    selfTest();
   });
 })();

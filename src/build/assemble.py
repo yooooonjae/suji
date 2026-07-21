@@ -25,7 +25,8 @@ DATA_MAP = {
     "DATA_SBIZ": ("sbiz", ROOT / "data" / "sbiz.json"),
 }
 CSS_FILES = ["tokens.css", "base.css", "components.css", "flourish.css"]
-JS_FILES = ["feasibility.js", "zoning.js", "charts.js", "calc-ui.js", "app.js"]
+JS_FILES = ["guard.js", "feasibility.js", "zoning.js", "charts.js", "calc-ui.js", "app.js"]
+STATIC = SITE / "static"  # robots.txt, og.png 등 → web/ 루트로 복사
 
 
 def _minify_json(path: Path) -> str:
@@ -65,10 +66,29 @@ def build_dist() -> Path:
           re.search(r'^([\s\S]*?)(?=<div id="progress")', tpl).group(1).strip() + \
           "\n</head>\n<body>\n" + tpl[tpl.index('<div id="progress"'):] + "\n</body>\n</html>\n"
     (WEB / "index.html").write_text(doc)
+    protect = "--no-protect" not in sys.argv
     for f in CSS_FILES:
-        shutil.copy(SITE / "css" / f, WEB / "css" / f)
+        src = (SITE / "css" / f).read_text()
+        if protect:  # 간이 CSS 최소화 (주석·불필요 공백 제거)
+            src = re.sub(r"/\*[\s\S]*?\*/", "", src)
+            src = re.sub(r"\s*([{}:;,>])\s*", r"\1", src)
+            src = re.sub(r";}", "}", src)
+        (WEB / "css" / f).write_text(src)
     for f in JS_FILES:
-        shutil.copy(SITE / "js" / f, WEB / "js" / f)
+        dst = WEB / "js" / f
+        if protect:  # terser 압축·난독 (실패 시 명시적 중단 — 침묵 폴백 금지)
+            import subprocess
+            r = subprocess.run(["npx", "--yes", "terser", str(SITE / "js" / f),
+                                "-c", "-m", "--comments", "false"],
+                               capture_output=True, text=True, timeout=120)
+            if r.returncode != 0:
+                raise RuntimeError(f"terser 실패 {f}: {r.stderr[:200]}")
+            dst.write_text(r.stdout)
+        else:
+            shutil.copy(SITE / "js" / f, dst)
+    if STATIC.exists():
+        for f in STATIC.iterdir():
+            shutil.copy(f, WEB / f.name)
     for key, (name, path) in DATA_MAP.items():
         if not path.exists():
             raise FileNotFoundError(f"{name}: {path} 없음")
