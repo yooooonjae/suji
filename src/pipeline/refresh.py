@@ -31,6 +31,7 @@ COLLECTORS = [
     ("ecos",     "src/collect/ecos.py",     900),
     ("rone",     "src/collect/rone.py",     1800),
     ("rone_sub", "src/collect/rone_sub.py", 3600),
+    ("rone_commercial", "src/collect/rone_commercial.py", 1800),
     ("kosis",    "src/collect/kosis.py",    1800),
     ("presale",  "src/collect/presale.py",  900),
     ("sbiz",     "src/collect/sbiz.py",     3600),
