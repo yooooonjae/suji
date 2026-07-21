@@ -140,3 +140,31 @@ inputs = {
 - 스펙 §4 전 소스가 Task 1·3에, §5 모델이 Task 2·5에, §6 콘텐츠가 Task 4에, §7 사이트가 Task 6에, §8 품질이 Task 5·6·7에 매핑됨 — 누락 없음
 - 수지모델 입력·출력 스키마를 Task 2에 고정해 Task 4·5·6이 동일 참조 — 시그니처 일관
 - API 가용성은 Task 1 프로브로 확정 후 Task 3 폴백 경로가 흡수 — 플레이스홀더성 불확실성은 프로브+폴백 구조로 명시 처리
+
+---
+
+## 확장 태스크 (2026-07-21 사용자 지시: 정비사업·상권·컨설팅)
+
+### Task 8: 정비사업 모델 확장 (재개발·재건축·리모델링)
+
+**Files:** Modify `src/analysis/feasibility.py`, `site/js/feasibility.js`, Test: `tests/test_redevelopment.py`, `tests/test_parity.py`(케이스 추가)
+
+**Interfaces:** `run_feasibility(inputs)` — `inputs["mode"] ∈ {"신축분양"(기본), "재개발", "재건축", "리모델링"}`.
+정비사업 추가 입력: `"redevelopment": {"prior_asset_value"(종전자산평가액), "member_count", "member_price_per_m2"(조합원분양가), "member_supply_m2", "general_units"[...신축과 동일 구조], "relocation_loan"{amount,rate,months}(이주비), "demolition_cost", "rental_ratio"(재개발 임대의무, 수입 제외 비율), "cash_settlement_ratio"}`
+추가 출력: `"proportion_rate"(비례율), "member_contribution"(세대당 분담금), "rights_value"(권리가액)`
+
+- [ ] 실패 테스트: 수기 검산 재건축 소형 사례(비례율·분담금 기대값) → 구현 → 통과
+- [ ] 리모델링: general_units 소량+분담금 중심 케이스 테스트
+- [ ] JS 이식 동기화 + 패리티 케이스 20조 추가(mode 혼합) → 통과 → 커밋
+
+### Task 9: 상권 데이터 수집·분석
+
+**Files:** Create `src/collect/sbiz.py`, Modify `src/analysis/market.py`
+
+- [ ] 소상공인시장진흥공단 상가(상권)정보 API(활용신청 후) — 시도별 업소수·업종 대분류 구성 집계 (전수 좌표 수집은 과도 — 집계 API/표본 사용, 쿼터 존중)
+- [ ] out/market.json에 `commerce` 블록 추가: 시도별 업종 구성·인구·주거 대비 밀도
+- [ ] 검증(합계 대조)·커밋
+
+### Task 6 갱신: 사이트 IA는 스펙 §7 개정판(Ⅰ~Ⅷ장, 계산기 4모드·상권·컨설팅 챕터)을 따른다
+
+컨설팅 챕터 콘텐츠(정적): 정비사업 절차(정비구역지정→조합설립→사업시행인가→관리처분→이주·철거→착공·분양→준공·이전고시), 단계별 핵심 리스크(비례율 하락·공사비 증액·분양경기·인허가 지연·조합 갈등), 시장 국면×사업유형 전략 매트릭스(확장기/둔화기/침체기/회복기 × 4유형)
