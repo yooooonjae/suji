@@ -278,7 +278,7 @@
   }
 
   let raf = 0;
-  function scheduleRecalc() { cancelAnimationFrame(raf); raf = requestAnimationFrame(recalc); }
+  function scheduleRecalc() { clearTimeout(raf); raf = setTimeout(recalc, 16); } // 타이머 디바운스 (rAF는 백그라운드 탭·헤드리스에서 굶는다)
 
   function recalc() {
     let out;

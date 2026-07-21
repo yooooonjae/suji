@@ -240,6 +240,7 @@
       const slider = document.querySelector('#calc-fields input[data-k="price_py"]');
       slider.value = parseFloat(slider.value) + 400;
       slider.dispatchEvent(new Event("input", { bubbles: true }));
+      // 재계산 디바운스(16ms) 이후 판정
       setTimeout(() => {
         const after = kpi();
         const label = document.getElementById("n-price_py").value;
@@ -249,7 +250,7 @@
         badge.textContent = `SELFTEST ${ok ? "PASS" : "FAIL"} | before=${before} after=${after} label=${label}`;
         badge.style.cssText = "position:fixed;top:60px;right:8px;z-index:99;background:#000;color:#0f0;padding:6px 10px;font-size:12px;font-family:monospace";
         document.body.appendChild(badge);
-      }, 700);
+      }, 200);
     }, 700);
   }
 
