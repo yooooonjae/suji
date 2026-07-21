@@ -1,43 +1,86 @@
-"""사이트 조립: site/ 소스 + out/·data/ JSON → 단일 HTML (out/site.html).
+"""사이트 빌드 — 멀티파일 dist (web/) 생성 + (옵션) 단일 HTML.
 
-플레이스홀더:
-  {{CSS:파일명}}  → site/css/파일명 내용 인라인
-  {{JS:파일명}}   → site/js/파일명 내용 인라인
-  {{DATA_MARKET}} {{DATA_CASES}} {{DATA_FORECAST}} {{DATA_SBIZ}} → JSON 임베드
-  {{BUILT_AT}}   → 조립일
+기본: web/ 에 index.html + css/ + js/ + data/(JS 래핑 JSON) 산출 → 로컬호스트 서빙용.
+옵션: --single 시 기존 방식의 단일 out/site.html 도 생성.
 
-실행: python3 src/build/assemble.py
+실행: python3 src/build/assemble.py [--single]
 """
 
 import datetime
 import json
 import re
+import shutil
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SITE = ROOT / "site"
 OUT = ROOT / "out"
+WEB = ROOT / "web"
 
 DATA_MAP = {
-    "DATA_MARKET": OUT / "market.json",
-    "DATA_CASES": OUT / "cases.json",
-    "DATA_FORECAST": OUT / "forecast.json",
-    "DATA_SBIZ": ROOT / "data" / "sbiz.json",
+    "DATA_MARKET": ("market", OUT / "market.json"),
+    "DATA_CASES": ("cases", OUT / "cases.json"),
+    "DATA_FORECAST": ("forecast", OUT / "forecast.json"),
+    "DATA_SBIZ": ("sbiz", ROOT / "data" / "sbiz.json"),
 }
+CSS_FILES = ["tokens.css", "base.css", "components.css", "flourish.css"]
+JS_FILES = ["feasibility.js", "zoning.js", "charts.js", "calc-ui.js", "app.js"]
 
 
 def _minify_json(path: Path) -> str:
     obj = json.loads(path.read_text())
     s = json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
-    # <script> 내 raw 삽입 안전화: 문자열 내 위험 문자를 JSON 유니코드 이스케이프로
-    # 치환(JSON 문법상 동등, script 조기종료·XSS 원천 차단 — codex 리뷰 반영)
+    # <script> 내 삽입 안전화 (JSON 유니코드 이스케이프 — 문법 동등)
     return (s.replace("<", "\\u003c").replace(">", "\\u003e")
              .replace("&", "\\u0026")
              .replace(" ", "\\u2028").replace(" ", "\\u2029"))
 
 
-def assemble() -> Path:
+def build_dist() -> Path:
+    """web/ 멀티파일 산출 — index.html은 링크 참조, 데이터는 JS 래핑."""
+    tpl = (SITE / "index.template.html").read_text()
+
+    # CSS/JS 인라인 플레이스홀더 → 링크/스크립트 태그
+    css_links = "\n".join(f'<link rel="stylesheet" href="css/{f}">' for f in CSS_FILES)
+    tpl = re.sub(r"<style>\s*(?:\{\{CSS:[\w.\-]+\}\}\s*)+</style>", css_links, tpl)
+
+    data_tags = "\n".join(f'<script src="data/{name}.js"></script>' for name, _ in DATA_MAP.values())
+    js_tags = "\n".join(f'<script src="js/{f}"></script>' for f in JS_FILES)
+    tpl = re.sub(r"<script>\s*window\.__DATA_MARKET[\s\S]*?</script>", data_tags, tpl)
+    tpl = re.sub(r"<script>\s*(?:\{\{JS:[\w.\-]+\}\}\s*)+</script>", js_tags, tpl)
+    tpl = tpl.replace("{{BUILT_AT}}", datetime.date.today().isoformat())
+
+    leftover = re.findall(r"\{\{[A-Z_:.\w\-]+\}\}", tpl)
+    if leftover:
+        raise RuntimeError(f"미치환 플레이스홀더: {leftover}")
+
+    # 배치
+    if WEB.exists():
+        shutil.rmtree(WEB)
+    (WEB / "css").mkdir(parents=True)
+    (WEB / "js").mkdir()
+    (WEB / "data").mkdir()
+    doc = "<!DOCTYPE html>\n<html lang=\"ko\">\n<head>\n" + \
+          re.search(r'^([\s\S]*?)(?=<div id="progress")', tpl).group(1).strip() + \
+          "\n</head>\n<body>\n" + tpl[tpl.index('<div id="progress"'):] + "\n</body>\n</html>\n"
+    (WEB / "index.html").write_text(doc)
+    for f in CSS_FILES:
+        shutil.copy(SITE / "css" / f, WEB / "css" / f)
+    for f in JS_FILES:
+        shutil.copy(SITE / "js" / f, WEB / "js" / f)
+    for key, (name, path) in DATA_MAP.items():
+        if not path.exists():
+            raise FileNotFoundError(f"{name}: {path} 없음")
+        (WEB / "data" / f"{name}.js").write_text(
+            f"window.__{key} = {_minify_json(path)};\n")
+    total = sum(p.stat().st_size for p in WEB.rglob("*") if p.is_file())
+    print(f"dist 빌드: {WEB} ({total/1024:.0f} KB, {len(list(WEB.rglob('*')))}개 파일)")
+    return WEB
+
+
+def build_single() -> Path:
+    """기존 단일 HTML (out/site.html) — 아카이브·오프라인 공유용."""
     tpl = (SITE / "index.template.html").read_text()
 
     def sub(m):
@@ -49,29 +92,17 @@ def assemble() -> Path:
         raise KeyError(m.group(0))
 
     html = re.sub(r"\{\{(CSS|JS):([\w.\-]+)\}\}", sub, tpl)
-
-    for key, path in DATA_MAP.items():
-        token = "{{" + key + "}}"
-        if token in html:
-            if not path.exists():
-                raise FileNotFoundError(f"{key}: {path} 없음 — 파이프라인 선행 실행 필요")
-            html = html.replace(token, _minify_json(path))
-
+    for key, (name, path) in DATA_MAP.items():
+        html = html.replace("{{" + key + "}}", _minify_json(path))
     html = html.replace("{{BUILT_AT}}", datetime.date.today().isoformat())
-
-    leftover = re.findall(r"\{\{[A-Z_]+\}\}", html)
-    if leftover:
-        raise RuntimeError(f"미치환 플레이스홀더: {leftover}")
-
     OUT.mkdir(exist_ok=True)
     out_path = OUT / "site.html"
     out_path.write_text(html)
-    size = out_path.stat().st_size
-    print(f"조립 완료: {out_path} ({size/1024:.0f} KB)")
-    if size > 4_500_000:
-        print("경고: 4.5MB 초과 — 데이터 다이어트 필요")
+    print(f"단일 빌드: {out_path} ({out_path.stat().st_size/1024:.0f} KB)")
     return out_path
 
 
 if __name__ == "__main__":
-    assemble()
+    build_dist()
+    if "--single" in sys.argv:
+        build_single()

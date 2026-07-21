@@ -5,6 +5,7 @@
 {{CSS:tokens.css}}
 {{CSS:base.css}}
 {{CSS:components.css}}
+{{CSS:flourish.css}}
 </style>
 
 <div id="progress"></div>
@@ -24,17 +25,50 @@
 
 <!-- ============ 서장: 표지 ============ -->
 <header class="hero" id="top">
-  <div class="hero-eyebrow">
+  <div class="hero-art" aria-hidden="true">
+    <svg viewBox="0 0 420 520">
+      <!-- 청사진 건물 매싱: 타워 2동 + 저층 근생 + 크레인 + 치수선 -->
+      <rect class="slow" x="70" y="120" width="110" height="330"/>
+      <rect class="slow" x="210" y="180" width="90" height="270"/>
+      <rect class="fast" x="300" y="370" width="80" height="80"/>
+      <line class="fast" x1="70" y1="180" x2="180" y2="180"/>
+      <line class="fast" x1="70" y1="240" x2="180" y2="240"/>
+      <line class="fast" x1="70" y1="300" x2="180" y2="300"/>
+      <line class="fast" x1="70" y1="360" x2="180" y2="360"/>
+      <line class="fast" x1="70" y1="420" x2="180" y2="420"/>
+      <line class="fast" x1="210" y1="240" x2="300" y2="240"/>
+      <line class="fast" x1="210" y1="300" x2="300" y2="300"/>
+      <line class="fast" x1="210" y1="360" x2="300" y2="360"/>
+      <line class="fast" x1="210" y1="420" x2="300" y2="420"/>
+      <!-- 크레인 -->
+      <line class="fast" x1="125" y1="120" x2="125" y2="46"/>
+      <line class="fast" x1="60" y1="46" x2="250" y2="46"/>
+      <line class="fast" x1="125" y1="46" x2="60" y2="70"/>
+      <line class="fast" x1="238" y1="46" x2="238" y2="86"/>
+      <rect class="fast" x="230" y="86" width="16" height="14"/>
+      <!-- 지반선 -->
+      <line class="slow" x1="30" y1="450" x2="400" y2="450"/>
+      <!-- 치수선 (dimension) -->
+      <line class="dim2" x1="40" y1="120" x2="40" y2="450"/>
+      <line class="dim2" x1="34" y1="120" x2="46" y2="120"/>
+      <line class="dim2" x1="34" y1="450" x2="46" y2="450"/>
+      <line class="dim2" x1="70" y1="480" x2="300" y2="480"/>
+      <line class="dim2" x1="70" y1="474" x2="70" y2="486"/>
+      <line class="dim2" x1="300" y1="474" x2="300" y2="486"/>
+      <circle class="seal-dot" cx="125" cy="46" r="5"/>
+    </svg>
+  </div>
+  <div class="hero-eyebrow stagger">
     부동산 개발 수지분석 연구 · {{BUILT_AT}} 기준
     <button id="theme-btn" style="margin-left:auto;font:inherit;letter-spacing:0;cursor:pointer;border:1px solid var(--hairline-2);background:var(--surface);color:var(--ink-2);padding:5px 12px;border-radius:99px;font-size:12px">라이트/다크</button>
   </div>
-  <h1>수지<span class="hanja">(收支)</span> —<br>땅 위에 세우는 손익의 구조</h1>
-  <p class="sub">
+  <h1><span class="stagger">수지<span class="hanja">(收支)</span> —</span><span class="stagger">땅 위에 세우는 손익의 구조</span></h1>
+  <p class="sub stagger">
     토지의 용적률에서 조합의 비례율까지. 대한민국 부동산 개발사업의 수익 구조를
     공공 데이터 전량과 검증된 재무 모델로 해부하고, 시행사·자산운용사·컨설턴트가
     딜 스크리닝에 바로 쓸 수 있는 도구로 만들었다.
   </p>
-  <div class="hero-stats">
+  <div class="hero-stats stagger">
     <div class="hero-stat"><div class="v num-hero"><span data-count="216804">0</span><small>건</small></div><div class="k">아파트 실거래 수집</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="43">0</span><small>계열</small></div><div class="k">시장 시계열 (10년)</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="8">0</span><small>종</small></div><div class="k">공공 API 연동</div></div>
@@ -46,7 +80,7 @@
 
 <!-- ============ Ⅰ. 시장 ============ -->
 <div class="dim-rule">제 Ⅰ 장</div>
-<section class="chapter" id="ch1">
+<section class="chapter" id="ch1" data-num="Ⅰ">
   <header class="tblock reveal">
     <div class="tblock-frame">
       <div class="tblock-no">Ⅰ</div>
@@ -129,7 +163,7 @@
 
 <!-- ============ Ⅱ. 구조 ============ -->
 <div class="dim-rule">제 Ⅱ 장</div>
-<section class="chapter" id="ch2">
+<section class="chapter" id="ch2" data-num="Ⅱ">
   <header class="tblock reveal">
     <div class="tblock-frame">
       <div class="tblock-no">Ⅱ</div>
@@ -164,7 +198,7 @@
 
 <!-- ============ Ⅲ. 계산기 ============ -->
 <div class="dim-rule">제 Ⅲ 장</div>
-<section class="chapter" id="ch3">
+<section class="chapter" id="ch3" data-num="Ⅲ">
   <header class="tblock reveal">
     <div class="tblock-frame">
       <div class="tblock-no">Ⅲ</div>
@@ -214,7 +248,7 @@
 
 <!-- ============ Ⅳ. 민감도 ============ -->
 <div class="dim-rule">제 Ⅳ 장</div>
-<section class="chapter" id="ch4">
+<section class="chapter" id="ch4" data-num="Ⅳ">
   <header class="tblock reveal">
     <div class="tblock-frame">
       <div class="tblock-no">Ⅳ</div>
@@ -246,7 +280,7 @@
 
 <!-- ============ Ⅴ. 상권 ============ -->
 <div class="dim-rule">제 Ⅴ 장</div>
-<section class="chapter" id="ch5">
+<section class="chapter" id="ch5" data-num="Ⅴ">
   <header class="tblock reveal">
     <div class="tblock-frame">
       <div class="tblock-no">Ⅴ</div>
@@ -284,7 +318,7 @@
 
 <!-- ============ Ⅵ. 사례 ============ -->
 <div class="dim-rule">제 Ⅵ 장</div>
-<section class="chapter" id="ch6">
+<section class="chapter" id="ch6" data-num="Ⅵ">
   <header class="tblock reveal">
     <div class="tblock-frame">
       <div class="tblock-no">Ⅵ</div>
@@ -313,7 +347,7 @@
 
 <!-- ============ Ⅶ. 컨설팅 ============ -->
 <div class="dim-rule">제 Ⅶ 장</div>
-<section class="chapter" id="ch7">
+<section class="chapter" id="ch7" data-num="Ⅶ">
   <header class="tblock reveal">
     <div class="tblock-frame">
       <div class="tblock-no">Ⅶ</div>
@@ -370,7 +404,7 @@
 
 <!-- ============ Ⅷ. 방법론 ============ -->
 <div class="dim-rule">제 Ⅷ 장</div>
-<section class="chapter" id="ch8">
+<section class="chapter" id="ch8" data-num="Ⅷ">
   <header class="tblock reveal">
     <div class="tblock-frame">
       <div class="tblock-no">Ⅷ</div>
