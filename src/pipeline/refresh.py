@@ -142,6 +142,18 @@ def main():
             probs = validate()
             status["stages"]["validate"] = {"ok": not probs, "detail": "; ".join(probs) or "clean"}
             status["failures"].extend(probs)
+        # 6) Cloudflare Pages 배포 (yooooonjae.pages.dev) — 실패해도 직전 배포가 계속 서빙됨
+        if not aborted and not status["failures"] and "--no-deploy" not in args:
+            npx = Path("/opt/homebrew/bin/npx")
+            if npx.exists():
+                res = run_step("deploy", [str(npx), "--yes", "wrangler", "pages", "deploy", "web",
+                                          "--project-name", "yooooonjae", "--branch", "main",
+                                          "--commit-dirty=true"], 900, log)
+                status["stages"]["deploy"] = res
+                if not res["ok"]:
+                    status["failures"].append(f"deploy ({res['detail']}) — pages.dev는 직전 배포 유지")
+            else:
+                status["failures"].append("deploy: npx 없음 — 건너뜀")
 
     status["finished"] = datetime.datetime.now().isoformat(timespec="seconds")
     status["ok"] = not status["failures"]
