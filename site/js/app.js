@@ -182,6 +182,23 @@
     }, { xName: "시차", yName: "지표", labelW: 150, cellH: 40, cellText: true,
          vFmt: v => (v >= 0 ? "+" : "") + v.toFixed(2), vLabel: "상관계수 r",
          legend: "값 = 전국 매매지수 YoY와의 상관계수 r · 파랑 = 역상관, 주황 = 정상관 (진할수록 강함)", aria: "지표별 시차 상관" });
+    // ①-보조 시도별 동시상관 (17행 × 5지표 — 셀 텍스트 없이 색+툴팁)
+    const xs2 = E.correlation.data.cross_sido;
+    if (xs2 && $("#eda-corr-sido")) {
+      const cols = ["base_rate_level", "base_rate_12mchg", "unsold_yoy_own", "cci_yoy", "presale_yoy"];
+      const colLabels = { base_rate_level: "기준금리 레벨", base_rate_12mchg: "금리 12개월 변화",
+                          unsold_yoy_own: "자체 미분양 YoY", cci_yoy: "공사비 YoY", presale_yoy: "분양가 YoY" };
+      const rows = SIDO_ORDER.filter(n => n !== "전국" && xs2.some(r => r.sido === n))
+        .map(n => xs2.find(r => r.sido === n));
+      C.heatmap($("#eda-corr-sido"), {
+        xs: cols.map(c => colLabels[c]),
+        ys: rows.map(r => r.sido),
+        cells: rows.map(r => cols.map(c => r[c] == null ? 0 : r[c])),
+      }, { xName: "지표", yName: "시도", labelW: 62, cellH: 30,
+           vFmt: v => "r = " + (v >= 0 ? "+" : "") + v.toFixed(2), vLabel: "동시상관",
+           legend: "파랑 = 역상관, 주황 = 정상관 (진할수록 강함) · 각 시도 매매지수 YoY 기준",
+           aria: "시도별 지표 동시상관" });
+    }
     // ② 지역 동조화 — 횡단면 표준편차 (라인 재활용: 드래그 확대·단위 전환 지원)
     const S = E.synchronization.data;
     C.line($("#eda-sync"), [{
