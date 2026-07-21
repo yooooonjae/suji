@@ -16,7 +16,7 @@
     if (!el) return;
     const r = el.getBoundingClientRect();
     if (r.top < 64 || r.bottom > innerHeight) {
-      el.scrollIntoView({ behavior: "smooth", block: r.height > innerHeight - 140 ? "start" : "center" });
+      el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: r.height > innerHeight - 140 ? "start" : "center" });
     }
   }
 
@@ -139,6 +139,21 @@
         $("#chart-permits").innerHTML = '<p class="caption" style="padding:12px 0">' + selSido + " 대표 시군구는 표본 기간 내 공동주택 신축·증축 인허가가 드물다.</p>";
       }
     }
+    // 서울 25구 전수 ㎡당가 — 강남3(주황) vs 나머지(파랑), 평균 왜곡의 실증
+    const SG = window.__DATA_SEOULGU;
+    if (SG && $("#chart-seoul-gu")) {
+      const GN3 = ["강남구", "서초구", "송파구"];
+      const rows = Object.entries(SG.by_gu).map(([gu, d]) => ({ name: gu, value: d.median / 1e4 }))
+        .sort((a, b) => b.value - a.value);
+      C.hbars($("#chart-seoul-gu"), rows, { emph: GN3, color: "--s2", fmt: v => fmt.num(v, 0) + "만",
+        labelW: 64, width: 1160, rowH: 26, aria: "서울 25개 구 ㎡당 매매가 중위" });
+      const ratio = SG.gangnam3_median_avg / SG.non_gangnam3_median_avg;
+      const nSum = Object.values(SG.by_gu).reduce((a, d) => a + d.n, 0);
+      $("#seoul-gu-cap").innerHTML =
+        `서울 "평균"은 구별 격차를 가린다 — 강남3구(주황) 중위 ㎡당 ${fmt.num(SG.gangnam3_median_avg / 1e4, 0)}만원은 ` +
+        `나머지 22개 구 평균 ${fmt.num(SG.non_gangnam3_median_avg / 1e4, 0)}만원의 <b>${ratio.toFixed(2)}배</b>다. ` +
+        `국토교통부 실거래가, 25개 구 전수 ${fmt.num(nSum, 0)}건(최근 3년) — 시도 표본과 별도의 보조 데이터셋.`;
+    }
     // 시장 온도 진단 — 점 클릭 시 해당 시도로 전환 (유기적 연결, 상세 차트로 스크롤)
     C.phase($("#chart-phase"), M.phase_points, {
       selected: selSido,
@@ -221,7 +236,8 @@
         xs: cols.map(c => colLabels[c]),
         ys: rows.map(r => r.sido),
         cells: rows.map(r => cols.map(c => r[c])), // null은 heatmap이 "자료 없음" 셀로 표시
-      }, { xName: "지표", yName: "시도", labelW: 62, cellH: 26, width: 1160,
+      }, { xName: "지표", yName: "시도", labelW: 62, cellH: 26, width: 1160, cellText: true,
+           cellFmt: v => (v >= 0 ? "+" : "") + v.toFixed(2),
            vFmt: v => "r = " + (v >= 0 ? "+" : "") + v.toFixed(2), vLabel: "동시상관",
            legend: "파랑 = 역상관, 주황 = 정상관 (진할수록 강함) · 각 시도 매매지수 YoY 기준",
            aria: "시도별 지표 동시상관" });
@@ -281,6 +297,19 @@
     // 주요상권 시도별 — 파랑 계열
     const zones = Object.entries(SB.zones.by_sido).map(([k, v]) => ({ name: k, value: v })).sort((a, b) => b.value - a.value).slice(0, 12);
     C.hbars($("#chart-zones"), zones, { aria: "시도별 주요상권 수", color: "--s2", fmt: v => v + "곳", labelW: 60, width: 1160, rowH: 30 });
+    // 상업용 실거래 단가 — 오피스텔 시도별 중위 (Ⅲ장 프리셋 실측 대조군)
+    const RC = window.__DATA_RTMSCOM;
+    if (RC && $("#chart-com-price")) {
+      const rows = Object.entries(RC.offi).map(([sido, d]) => ({ name: sido, value: d.median_per_m2 / 1e4 }))
+        .sort((a, b) => b.value - a.value);
+      C.hbars($("#chart-com-price"), rows, { color: "--s2", fmt: v => fmt.num(v, 0) + "만",
+        labelW: 60, width: 1160, rowH: 30, aria: "시도별 오피스텔 ㎡당 실거래 중위" });
+      const so = RC.nrg["서울"], sl = RC.land["서울"], sf = RC.offi["서울"];
+      if (so && sl && sf) $("#com-price-cap").innerHTML =
+        `국토교통부 실거래가(오피스텔 매매 ${fmt.num(RC.totals.offi, 0)}건, 최근 3년) — Ⅲ장 오피스텔 프리셋 분양가 가정의 실측 대조군. ` +
+        `서울 중위 ㎡당: 오피스텔 <b>${fmt.num(sf.median_per_m2 / 1e4, 0)}만</b> · 상업·업무 건물 ${fmt.num(so.median_per_m2 / 1e4, 0)}만(${fmt.num(RC.totals.nrg, 0)}건) · ` +
+        `토지 ${fmt.num(sl.median_per_m2 / 1e4, 0)}만원(${fmt.num(RC.totals.land, 0)}건, 토지비 가정의 참조점).`;
+    }
     renderOffice();
   }
 
@@ -334,7 +363,7 @@
         <dt>IRR</dt><dd>${c.result.irr_annual == null ? "―" : fmt.pct(c.result.irr_annual)}</dd></dl>`;
       const pick = () => showCase(i, true);
       el2.addEventListener("click", pick);
-      el2.addEventListener("keydown", e => { if (e.key === "Enter") pick(); });
+      el2.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
       grid.appendChild(el2);
     });
     showCase(0);
@@ -370,13 +399,20 @@
 
   /* ---------- 테마 토글 (히어로·앱바 공용) ---------- */
   function initTheme() {
+    const syncPressed = () => {
+      const dark = (document.documentElement.dataset.theme ||
+        (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark";
+      document.querySelectorAll(".theme-toggle").forEach(b => b.setAttribute("aria-pressed", String(dark)));
+    };
     document.querySelectorAll(".theme-toggle").forEach(btn => btn.addEventListener("click", () => {
       const r = document.documentElement;
       const cur = r.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
       r.dataset.theme = cur === "dark" ? "light" : "dark";
+      syncPressed();
       renderAll(); // 차트 색 재계산
       if (window.CalcUI && window.CalcUI.refresh) window.CalcUI.refresh(); // 계산기·민감도도 재렌더
     }));
+    syncPressed();
   }
 
   /* ---------- 셀프테스트 (?selftest=1) — 실제 이벤트 경로 검증 ---------- */
@@ -386,7 +422,7 @@
     setTimeout(() => {
       const h = sel => { const n = document.querySelector(sel); return n ? Math.round(n.getBoundingClientRect().height) : -1; };
       document.title = JSON.stringify({
-        kpirow: h("#calc-kpis"), hero: h(".kpi.hero"), kpi2: h("#calc-kpis .kpi:nth-child(2)"),
+        kpirow: h("#calc-kpis"), hero: h(".kpi.kpi-hero"), kpi2: h("#calc-kpis .kpi:nth-child(2)"),
         verdict: h("#calc-verdict"), outmain: h(".out-main"), ledger: h("#calc-ledger"),
         calcout: h(".calc-out"), calcin: h(".calc-in"), panel: h(".calc-panel"),
       });

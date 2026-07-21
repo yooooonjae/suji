@@ -103,18 +103,32 @@ def build_inputs_from_state(s: dict, mode: str) -> dict:
     })
 
     units = []
+    income = None  # 수익형(오피스·상업) — NOI·매각가치 (calc-ui.js buildInputs 1:1)
     if mode == "신축분양":
-        units.append({"name": "주거", "count": zi["units_est"],
-                      "supply_m2": s["avg_supply"],
-                      "price_per_m2": pyman_to_wonm2(s["price_py"])})
-        if zi["neighborhood_gfa_m2"] > 0:
-            units.append({"name": "근생", "count": 1,
-                          "supply_m2": zi["neighborhood_gfa_m2"] * 0.6,
-                          "price_per_m2": pyman_to_wonm2(s["price_py"]) * 1.15})
+        asset = s.get("asset", "apt")
+        if asset != "apt":
+            nra_py = (zi["buildable_gfa_m2"] * (s["eff_ratio"] / 100)) / PY
+            noi = (nra_py * s["rent_py"] * 1e4 * 12
+                   * (1 - s["vacancy"] / 100) * (1 - s["opex"] / 100))
+            exit_value = noi / (s["cap"] / 100) if s["cap"] > 0 else 0
+            units.append({"name": "오피스" if asset == "office" else "상업시설",
+                          "count": 1, "supply_m2": 1, "price_per_m2": exit_value})
+            income = {"noi": noi, "exit_value": exit_value, "nra_py": nra_py}
+        else:
+            units.append({"name": "주거", "count": zi["units_est"],
+                          "supply_m2": s["avg_supply"],
+                          "price_per_m2": pyman_to_wonm2(s["price_py"])})
+            if zi["neighborhood_gfa_m2"] > 0:
+                units.append({"name": "근생", "count": 1,
+                              "supply_m2": zi["neighborhood_gfa_m2"] * 0.6,
+                              "price_per_m2": pyman_to_wonm2(s["price_py"]) * 1.15})
 
     inputs = {
         "mode": mode,
-        "revenue": {"units": units, "sell_through": s["sell_through"] / 100, "other_income": 0},
+        "revenue": {"units": units,
+                    "sell_through": 1 if income else s["sell_through"] / 100,
+                    "other_income": 0,
+                    "schedule": "terminal" if income else "presale"},
         "cost": {
             "land": {"purchase": s["land_eok"] * EOK if mode == "신축분양" else 0,
                      "acq_tax_rate": 0.046, "misc_rate": 0.01},

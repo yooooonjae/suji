@@ -92,9 +92,9 @@
   <div class="hero-stats stagger">
     <div class="hero-stat"><div class="v num-hero"><span data-count="236388">0</span><small>건</small></div><div class="k">아파트 실거래 수집</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="77">0</span><small>계열</small></div><div class="k">시장 시계열 (10년)</div></div>
-    <div class="hero-stat"><div class="v num-hero"><span data-count="10">0</span><small>종</small></div><div class="k">공공 데이터셋 연동</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="14">0</span><small>종</small></div><div class="k">공공 데이터셋 연동</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="6">0</span><small>모델</small></div><div class="k">예측 벤치마크</div></div>
-    <div class="hero-stat"><div class="v num-hero"><span data-count="152">0</span><small>개</small></div><div class="k">자동화 검증 테스트</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="162">0</span><small>개</small></div><div class="k">자동화 검증 테스트</div></div>
   </div>
 </header>
 
@@ -109,7 +109,7 @@
     <a class="ch-card" href="#/ch5"><div class="n">Ⅴ</div><h4>상권 — 272만 업소의 분포</h4><p>시도별 업종 분포와 주요상권 1,227곳 — 근생 비율을 정할 실제 근거.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch6"><div class="n">Ⅵ</div><h4>사례 — 네 개의 표준 사업</h4><p>실제 데이터에서 뽑은 입력값으로 계산한 신축 3건 + 재건축 1건의 수지 구조.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch7"><div class="n">Ⅶ</div><h4>컨설팅 — 절차·리스크·전략</h4><p>정비사업 7단계 타임라인과 시장 상황 × 사업유형 전략 매트릭스.</p><span class="go">상세보기 →</span></a>
-    <a class="ch-card" href="#/ch8"><div class="n">Ⅷ</div><h4>방법론 — 출처·가정·한계</h4><p>7개 기관 10종 데이터셋 출처, 모델 가정, 검증 체계와 한계의 투명한 고지.</p><span class="go">상세보기 →</span></a>
+    <a class="ch-card" href="#/ch8"><div class="n">Ⅷ</div><h4>방법론 — 출처·가정·한계</h4><p>7개 기관 14종 데이터셋 출처, 모델 가정, 검증 체계와 한계의 투명한 고지.</p><span class="go">상세보기 →</span></a>
   </div>
 </section>
 
@@ -145,6 +145,13 @@
       <div id="sm-sub"></div>
       <figcaption>서울·경기와 6개 광역시(부산·대구·인천·광주·대전·울산)를 고르면 시군구 단위로 세분화된다.
       타일을 클릭하면 위 상세 차트가 해당 지역으로 전환된다. 자료: 한국부동산원 시군구별 아파트 매매가격지수.</figcaption>
+    </figure>
+
+    <figure class="viz" id="fig-seoul-gu">
+      <div class="viz-head"><div class="viz-title">서울 25개 구 ㎡당 아파트 매매가 — 전수 195,863건</div><div class="viz-unit">만원/㎡ 중위값 · 최근 3년</div></div>
+      <div id="chart-seoul-gu"></div>
+      <figcaption id="seoul-gu-cap">서울 "평균"은 구별 격차를 가린다 — 강남3구(주황) 중위 ㎡당가는 나머지 22개 구 평균의 배수로 확인된다.
+      국토교통부 실거래가, 25개 구 전수 수집. 시도 표본과 별도의 보조 데이터셋.</figcaption>
     </figure>
 
     <figure class="viz">
@@ -299,13 +306,13 @@
   </header>
 
   <div class="calc reveal">
-    <div class="mode-tabs" role="tablist" aria-label="사업유형">
+    <div class="mode-tabs" role="group" aria-label="사업유형">
       <button data-mode="신축분양" aria-pressed="true">신축분양</button>
       <button data-mode="재건축" aria-pressed="false">재건축</button>
       <button data-mode="재개발" aria-pressed="false">재개발</button>
       <button data-mode="리모델링" aria-pressed="false">리모델링</button>
     </div>
-    <div class="preset-row" aria-label="프리셋">
+    <div class="preset-row" role="group" aria-label="프리셋">
       <button data-preset="수도권아파트">수도권 아파트</button>
       <button data-preset="지방아파트">지방 광역시 아파트</button>
       <button data-preset="서울재건축">서울 재건축</button>
@@ -319,7 +326,7 @@
       </div>
       <div class="calc-out">
         <p class="caption" id="calc-zoning"></p>
-        <div class="kpi-row" id="calc-kpis" aria-live="polite"></div>
+        <div class="kpi-row" id="calc-kpis"></div>
         <div id="calc-verdict" aria-live="polite"></div>
         <div class="out-main">
           <div class="wf-box"><div class="g-cap">수지 구성 — 수입에서 이익까지</div><div id="calc-wf"></div></div>
@@ -428,7 +435,14 @@
         <div id="chart-office-yield"></div>
         <figcaption id="office-yield-cap"></figcaption>
       </figure>
+
     </div>
+
+    <figure class="viz">
+      <div class="viz-head"><div class="viz-title">오피스텔 ㎡당 실거래가 — 시도별 중위</div><div class="viz-unit">만원/㎡ · 최근 3년 실거래 17,773건</div></div>
+      <div id="chart-com-price"></div>
+      <figcaption id="com-price-cap">국토교통부 실거래가(오피스텔 매매) — Ⅲ장 오피스텔 프리셋 분양가 가정의 실측 대조군.</figcaption>
+    </figure>
   </div>
 </section>
 
@@ -540,7 +554,7 @@
       <thead><tr><th>출처</th><th>내용</th><th>비고</th></tr></thead>
       <tbody>
         <tr><td>한국부동산원 R-ONE</td><td>아파트 매매·전세가격지수, ㎡당 평균 분양가격 (시도별 월간 10년) + 상업용부동산 임대동향 — 오피스·중대형상가 임대지수·공실률·투자수익률 (시도별 분기 10년)</td><td>OpenAPI</td></tr>
-        <tr><td>국토교통부 실거래가(RTMS)</td><td>아파트 매매 220,465건·분양권 15,923건 — 시도별 대표 시군구 표본</td><td>광주·전남은 2026-07 행정구역 통폐합(전남광주통합특별시)으로 신 법정동코드 재수집</td></tr>
+        <tr><td>국토교통부 실거래가(RTMS)</td><td>아파트 매매 220,465건·분양권 15,923건(시도별 대표 시군구 표본) + 서울 25개 구 아파트 전수 195,863건 + 상업·업무용 22,994건·오피스텔 17,773건·토지 112,518건(최근 3년, 시도별 표본)</td><td>광주·전남은 2026-07 행정구역 통폐합(전남광주통합특별시) 신 법정동코드로 재수집. 상업 3종은 ㎡당가 물리 범위 게이트로 이상치 4,122건 제외</td></tr>
         <tr><td>KOSIS(국토부·KICT)</td><td>미분양·준공후 미분양·착공·준공(월간)·인허가(연간)·건설공사비지수</td><td>OpenAPI</td></tr>
         <tr><td>국토교통부 건축HUB</td><td>건축 인허가 기본개요 — 공동주택 신축·증축 세대수(대표 시군구 동 단위 월별 표본)</td><td>OpenAPI · Accept 헤더 필수·발코니변경 중복 제외</td></tr>
         <tr><td>한국은행 ECOS</td><td>기준금리(일별→월말)·주택담보/기업대출 가중평균금리</td><td>OpenAPI</td></tr>
@@ -549,18 +563,18 @@
       </tbody>
     </table>
     </div>
-    <p class="footnote">표는 기관 기준 6행. 데이터셋 기준으로는 RTMS 2종(매매·분양권), 상권 2종(상가업소·주요상권), R-ONE 2종(주택가격동향·상업용 임대동향), 건축HUB 인허가를 포함해 10종이다.
+    <p class="footnote">표는 기관 기준 6행. 데이터셋 기준으로는 RTMS 6종(아파트 매매·분양권·서울 25구·상업업무·오피스텔·토지), 상권 2종(상가업소·주요상권), R-ONE 2종(주택가격동향·상업용 임대동향), 건축HUB 인허가를 포함해 14종이다.
     상가업소 DB는 소매·음식·서비스업 중심으로, 건설업·제조업 등 비상가 업종은 집계에 사실상 포함되지 않는다.</p>
 
     <h4>수지모델 핵심 가정</h4>
     <ul style="max-width:none">
       <li>단위: 계산은 원·㎡ 기준, 화면 표시만 억원·평 기준. 취득세율 4.6%, 예비비는 직접비 대비 요율.</li>
       <li>금융비 = 브릿지 원금×금리×기간 + PF 한도×평균인출률×금리×기간 + 취급수수료. 이자 스케줄은 균등 근사.</li>
-      <li>분양수입 스케줄: 계약금 10% / 중도금 60% 균등 / 잔금 30% 준공 시. 분기 현금흐름으로 NPV(기본 할인율 8%)·IRR(이분법) 산출.</li>
-      <li>정비사업: 비례율 = (총수입−총사업비)/종전자산평가액, 분담금 = 조합원분양가 − 권리가액. 재개발 임대의무는 일반분양 수입 차감으로 반영(기본 15% — 서울 최저는 10%로 보수적).</li>
+      <li>분양수입 스케줄: 계약금 10% / 중도금 60% 균등 / 잔금 30% 준공 시. 수익형(오피스·상업)의 매각가치는 분납이 아니라 준공 시 일시 유입으로 편성한다. 분기 현금흐름으로 NPV(기본 할인율 8%)·IRR(이분법) 산출 — 현금흐름 부호가 두 번 이상 바뀌는 비정형 입력에서는 IRR이 유일하지 않을 수 있어 "―"로 표시한다.</li>
+      <li>정비사업: 비례율 = (총수입−총사업비)/종전자산평가액(현금청산 발생 시에도 분모는 전체 종전자산 — 잔존 조합원 기준보다 보수적), 분담금 = 조합원분양가 − 권리가액. 재개발 임대의무는 일반분양 수입 차감으로 반영(기본 15% — 서울 최저는 10%로 보수적).</li>
       <li>미반영 항목(세전 모델): 법인세·재건축부담금(재초과이익환수)·보유세. 재건축 대상 단지는 부담금을 별도 원가로 검토해야 한다. 공사비는 지역 기준단가(서울 890·수도권 721·지방 682만원/평, 2025 정비사업 평균 실측)를 CCI로 시점보정.</li>
       <li>용도지역: 국토계획법 시행령 §84·§85 + 서울시 도시계획조례 §54·§55 기준값. 용적률은 지상 연면적 기준(지하 제외), 인센티브는 직접 지정 가능.</li>
-      <li>Python 코어 ↔ 웹 JS: 무작위 70건 입력 전 출력 일치(|Δ|&lt;1e-6) 테스트 강제. 모델 전체 152개 단위테스트.</li>
+      <li>Python 코어 ↔ 웹 JS: 무작위 70건 입력 전 출력 일치(|Δ|&lt;1e-6) 테스트 강제. 모델 전체 162개 단위테스트.</li>
     </ul>
 
     <h4>탐색적 분석(EDA) 방법론</h4>
@@ -588,7 +602,7 @@
 
 <footer class="colophon">
   <div style="font-weight:800;color:var(--ink-2);margin-bottom:6px">수지(收支) — 대한민국 부동산 개발의 손익 구조</div>
-  개인 연구 포트폴리오 · 데이터 기준일 {{BUILT_AT}} · 공공 데이터셋 10종 수집(7개 기관 API) · 모델 152 테스트 검증<br>
+  개인 연구 포트폴리오 · 데이터 기준일 {{BUILT_AT}} · 공공 데이터셋 14종 수집(7개 기관 API) · 모델 162 테스트 검증<br>
   본 페이지는 로컬 정적 사이트로 빌드되었고, 모든 데이터가 로컬에 내장되어 외부 네트워크 요청이 없다.
 </footer>
 

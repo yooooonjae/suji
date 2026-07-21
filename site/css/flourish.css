@@ -4,6 +4,7 @@
    ============================================================ */
 
 /* ---------- 히어로: 지면 글로우 + 타이틀 스태거 ---------- */
+.hero { overflow-x: clip; } /* 글로우 의사요소(-20% 인셋)의 가로 스크롤 누출 차단 — 세로 글로우는 유지 */
 .hero::before {
   content: ""; position: absolute; inset: -10% -20% auto;
   height: 90%; z-index: -1; pointer-events: none;
@@ -189,7 +190,7 @@ button:not(.theme-toggle):not(.theme-mini), select, input[type="number"] {
   border-radius: var(--radius-sm);
 }
 .chart-tools .unit-seg { border-radius: var(--radius-sm); }
-.tblock-frame { border-radius: 14px; }
-.tblock-no { border-radius: 14px 0 0 14px; }
-.tblock-meta { border-radius: 0 14px 14px 0; }
+.tblock-frame { border-radius: var(--radius); }
+.tblock-no { border-radius: var(--radius) 0 0 var(--radius); }
+.tblock-meta { border-radius: 0 var(--radius) var(--radius) 0; }
 .ab-badge { border-radius: 99px; } /* 배지는 필 유지 */

@@ -198,8 +198,9 @@ def test_meta_asof_populated(M):
 # rtms 결측 시도 처리
 # --------------------------------------------------------------------------- #
 def test_rtms_missing_sido_null_and_recorded(M):
+    # 2026-07 행정구역 통폐합 신코드(12) 재수집으로 광주·전남 채움 — 17시도 완비가 정상
     missing = M["meta"]["missing_rtms_sido"]
-    assert "광주" in missing and "전남" in missing
+    assert missing == [], f"결측 시도 재발생: {missing}"
     for sido in missing:
         # 결측이어도 요약엔 시도가 존재하되 실거래 중위가만 null
         assert M["sido_summary"][sido]["trade_median_last"] is None
@@ -236,7 +237,7 @@ def test_cases_profit_positive(CS):
 
 def test_cases_notes_count(CS):
     for c in CS["cases"]:
-        assert 4 <= len(c["notes"]) <= 6, c["name"]
+        assert 4 <= len(c["notes"]) <= 7, c["name"]  # 재건축 7개(재초환 미반영 노트 포함)
         assert all(isinstance(n, str) and n for n in c["notes"])
 
 

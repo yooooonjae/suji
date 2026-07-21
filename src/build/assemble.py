@@ -26,6 +26,8 @@ DATA_MAP = {
     "DATA_EDA": ("eda", OUT / "eda.json"),
     "DATA_COMMERCIAL": ("commercial", ROOT / "data" / "rone_commercial.json"),
     "DATA_ARCHUB": ("archub", ROOT / "data" / "archub.json"),
+    "DATA_SEOULGU": ("seoulgu", ROOT / "data" / "rtms_seoul.json"),
+    "DATA_RTMSCOM": ("rtmscom", ROOT / "data" / "rtms_commercial.json"),
 }
 CSS_FILES = ["tokens.css", "base.css", "components.css", "flourish.css"]
 JS_FILES = ["guard.js", "feasibility.js", "zoning.js", "charts.js", "calc-ui.js", "app.js"]

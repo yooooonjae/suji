@@ -63,6 +63,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --seq-100: #3a281a; --seq-200: #5f3a1c; --seq-300: #8f5420; --seq-400: #c07128; --seq-500: #e2903f; --seq-600: #f2ae66; --seq-700: #ffcf97;
     --ground: #171310;
     --surface: #201b16;
     --surface-2: #1a1511;
@@ -86,6 +87,7 @@
 }
 /* 뷰어 토글이 미디어쿼리를 양방향으로 이겨야 한다 */
 :root[data-theme="dark"] {
+  --seq-100: #3a281a; --seq-200: #5f3a1c; --seq-300: #8f5420; --seq-400: #c07128; --seq-500: #e2903f; --seq-600: #f2ae66; --seq-700: #ffcf97;
   --ground: #171310; --surface: #201b16; --surface-2: #1a1511;
   --ink: #f0e9e2; --ink-2: #c0b3a5; --ink-3: #8d7d6d;
   --hairline: #352d25; --hairline-2: #463c31;
@@ -97,6 +99,7 @@
   --shadow: 0 1px 2px rgba(0, 0, 0, .32), 0 10px 32px rgba(0, 0, 0, .36), 0 28px 72px rgba(0, 0, 0, .28);
 }
 :root[data-theme="light"] {
+  --seq-100: #fde3d3; --seq-200: #f9c39e; --seq-300: #f19d64; --seq-400: #e57728; --seq-500: #c25a12; --seq-600: #97430c; --seq-700: #6b2e06;
   --ground: #f6f4f1; --surface: #fdfcfb; --surface-2: #f0edea;
   --ink: #221c16; --ink-2: #5c5348; --ink-3: #99897b;
   --hairline: #e0d9d1; --hairline-2: #cbc2b7;

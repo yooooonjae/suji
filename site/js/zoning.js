@@ -59,6 +59,7 @@
     var mix = opts.mix || {};
     var res_ratio = mix.residential === undefined ? 1.0 : mix.residential;
     var nbh_ratio = mix.neighborhood === undefined ? 0.0 : mix.neighborhood;
+    if (res_ratio + nbh_ratio > 1 + 1e-9) throw new Error("용도 혼합비 합(residential+neighborhood)이 1을 초과");
     var avg_supply_m2 =
       opts.avg_supply_m2 === undefined ? DEFAULT_AVG_SUPPLY_M2 : opts.avg_supply_m2;
     var efficiency = opts.efficiency === undefined ? DEFAULT_EFFICIENCY : opts.efficiency;

@@ -115,17 +115,20 @@ def compute_costs(cost: dict, finance: dict, revenue_total: float) -> dict:
 # --------------------------------------------------------------------------- #
 # 분기 현금흐름
 # --------------------------------------------------------------------------- #
-def compute_cashflow(sales: float, other_income: float, cost: dict, months_total: int) -> list:
+def compute_cashflow(sales: float, other_income: float, cost: dict, months_total: int,
+                     schedule: str = "presale") -> list:
     """분기별 순현금흐름 리스트(cf_q, q=0..N) 생성.
 
     분기 수 Q = ceil(months_total/3), 인덱스 q=0..N (N = Q−1, 마지막 분기).
 
-    유입:
+    유입 (schedule="presale", 분양 기본):
       계약금 10%           → q0
       중도금 60%           → q1..N-1 균등 (중간 분기 없으면 마지막 분기로 이월)
       잔금   30%           → 마지막 분기(qN)
       기타수입(other)      → 마지막 분기(qN)
       (10/60/30 은 sales 기준, other 는 별도)
+    유입 (schedule="terminal", 수익형 매각):
+      sales 전액           → 마지막 분기(qN) 일시 유입 (매각가치는 준공 시 실현)
 
     유출:
       토지비               → q0
@@ -149,15 +152,18 @@ def compute_cashflow(sales: float, other_income: float, cost: dict, months_total
     outflow = [0.0] * quarters
 
     # --- 유입 ---
-    inflow[0] += sales * 0.10                      # 계약금
-    middle = list(range(1, last))                  # q1..N-1
-    if middle:
-        each = sales * 0.60 / len(middle)          # 중도금 균등
-        for q in middle:
-            inflow[q] += each
+    if schedule == "terminal":
+        inflow[last] += sales                       # 수익형 매각가치: 준공 시 일시 유입
     else:
-        inflow[last] += sales * 0.60               # 중간 분기 없음 → 마지막 분기
-    inflow[last] += sales * 0.30                    # 잔금
+        inflow[0] += sales * 0.10                  # 계약금
+        middle = list(range(1, last))              # q1..N-1
+        if middle:
+            each = sales * 0.60 / len(middle)      # 중도금 균등
+            for q in middle:
+                inflow[q] += each
+        else:
+            inflow[last] += sales * 0.60           # 중간 분기 없음 → 마지막 분기
+        inflow[last] += sales * 0.30                # 잔금
     inflow[last] += other_income                    # 기타수입
 
     # --- 유출 ---
@@ -327,7 +333,8 @@ def run_feasibility(inputs: dict) -> dict:
     months_total = inputs["schedule"]["months_total"]
     discount_rate = inputs.get("discount_rate", 0.08)
 
-    cashflows = compute_cashflow(sales, other, cost, months_total)
+    cashflows = compute_cashflow(sales, other, cost, months_total,
+                                 revenue.get("schedule", "presale"))
 
     return {
         "revenue_total": revenue_total,

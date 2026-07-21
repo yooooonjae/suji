@@ -98,7 +98,7 @@
   // ------------------------------------------------------------------ //
   // 분기별 순현금흐름 리스트(cf_q, q=0..N) 생성.
   // 분기 수 Q = ceil(months_total/3), 마지막 분기 인덱스 N = Q-1.
-  function compute_cashflow(sales, other_income, cost, months_total) {
+  function compute_cashflow(sales, other_income, cost, months_total, schedule) {
     var quarters = Math.max(1, Math.ceil(months_total / 3));
     var last = quarters - 1; // 마지막 분기 인덱스 (N)
 
@@ -110,19 +110,23 @@
     }
 
     // --- 유입 ---
-    inflow[0] += sales * 0.1; // 계약금 10%
-    // middle = range(1, last) → q1..last-1
-    var middleCount = last - 1; // len(range(1, last)) = max(0, last-1)
-    if (middleCount < 0) middleCount = 0;
-    if (middleCount > 0) {
-      var each = (sales * 0.6) / middleCount; // 중도금 균등
-      for (var q = 1; q < last; q++) {
-        inflow[q] += each;
-      }
+    if (schedule === "terminal") {
+      inflow[last] += sales; // 수익형 매각가치: 준공 시 일시 유입
     } else {
-      inflow[last] += sales * 0.6; // 중간 분기 없음 → 마지막 분기
+      inflow[0] += sales * 0.1; // 계약금 10%
+      // middle = range(1, last) → q1..last-1
+      var middleCount = last - 1; // len(range(1, last)) = max(0, last-1)
+      if (middleCount < 0) middleCount = 0;
+      if (middleCount > 0) {
+        var each = (sales * 0.6) / middleCount; // 중도금 균등
+        for (var q = 1; q < last; q++) {
+          inflow[q] += each;
+        }
+      } else {
+        inflow[last] += sales * 0.6; // 중간 분기 없음 → 마지막 분기
+      }
+      inflow[last] += sales * 0.3; // 잔금
     }
-    inflow[last] += sales * 0.3; // 잔금
     inflow[last] += other_income; // 기타수입
 
     // --- 유출 ---
@@ -320,7 +324,8 @@
     var months_total = inputs.schedule.months_total;
     var discount_rate = inputs.discount_rate === undefined ? 0.08 : inputs.discount_rate;
 
-    var cashflows = compute_cashflow(sales, other, cost, months_total);
+    var cashflows = compute_cashflow(sales, other, cost, months_total,
+      inputs.revenue ? inputs.revenue.schedule : undefined);
 
     return {
       revenue_total: revenue_total,

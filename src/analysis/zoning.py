@@ -96,6 +96,8 @@ def derive(site_area_m2, zone_code, options=None):
     mix = opts.get("mix") or {}
     res_ratio = mix.get("residential", 1.0)
     nbh_ratio = mix.get("neighborhood", 0.0)
+    if res_ratio + nbh_ratio > 1 + 1e-9:
+        raise ValueError("용도 혼합비 합(residential+neighborhood)이 1을 초과")
     avg_supply_m2 = opts.get("avg_supply_m2", DEFAULT_AVG_SUPPLY_M2)
     efficiency = opts.get("efficiency", DEFAULT_EFFICIENCY)
 

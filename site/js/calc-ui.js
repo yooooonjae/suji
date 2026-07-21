@@ -27,8 +27,6 @@
     rental: 15, cashout: 5,
   };
   const PY = 3.305785; // ㎡/평
-  const py2m2 = v => v / PY;             // 평당만원 → 원/㎡: (v×1e4)/PY
-  const pricePerM2 = v => (v * 1e4) / PY * 10; // 평당 v만원 → 원/㎡  (v×10000원/평 ÷ 3.3058㎡ ... )
 
   // 정밀: 평당 X만원 = X*10000 원/평 = X*10000/3.305785 원/㎡
   function pyman_to_wonm2(x) { return (x * 10000) / PY; }
@@ -75,7 +73,7 @@
       ["prior_eok", "기존 자산 평가액(종전자산)", "억원", 100, 20000, 50],
       ["members", "조합원 수", "명", 50, 5000, 10],
       ["mem_price_py", "조합원 평당 분양가", "만원", 600, 5000, 10],
-      ["gen_units", "일반분양 세대", "세대", 0, 3000, 10],
+      ["gen_units", "일반분양 세대(임대 차감 전)", "세대", 0, 3000, 10],
       ["relo_eok", "이주비 대여", "억원", 0, 10000, 50],
       ["demo_eok", "철거·명도비", "억원", 0, 2000, 10],
       ["rental", "임대주택 비율(재개발)", "%", 0, 30, 1],
@@ -180,7 +178,8 @@
     }
     const inputs = {
       mode,
-      revenue: { units, sell_through: income ? 1 : s.sell_through / 100, other_income: 0 },
+      revenue: { units, sell_through: income ? 1 : s.sell_through / 100, other_income: 0,
+                 schedule: income ? "terminal" : "presale" },
       cost: {
         land: { purchase: mode === "신축분양" ? s.land_eok * EOK : 0, acq_tax_rate: 0.046, misc_rate: 0.01 },
         construction: { gfa_m2: zi.buildable_gfa_m2, unit_cost_per_m2: pyman_to_wonm2(s.unit_cost_py) },
@@ -332,7 +331,7 @@
     C.waterfall($("#calc-wf"), items, { height: 280 });
     // 게이지
     C.gauge($("#g-margin"), out.margin_on_revenue || 0, { label: "마진율(수입)", min: -0.1, max: 0.35, target: 0.1 });
-    C.gauge($("#g-irr"), out.irr_annual == null ? 0 : out.irr_annual, { label: "IRR(연)", min: -0.2, max: 0.6, target: 0.15, fmt: v => out.irr_annual == null ? "―" : fmt.pct(v, 0) });
+    C.gauge($("#g-irr"), out.irr_annual == null ? 0 : out.irr_annual, { label: "IRR(연)", min: -0.2, max: 0.6, target: 0.15, fmt: v => out.irr_annual == null ? "―" : fmt.pct(v, 1) });
     // A/B 표시
     renderAB(out);
     global.__calcLast = out;
@@ -395,7 +394,7 @@
     // 수익형 예시 프리셋 (로컬 정의 — 서울 일반상업지 오피스 개발 가정)
     presets["서울오피스"] = presets["서울오피스"] || {
       // 2026-07-21 정합성 검증 반영: cap 4.0%(Savills 서울 프라임 실질)·공사비 890만/평(서울 실측)
-      // 성립 조합(엔진 스윕): 이익 761억·원가수익률 4.86%(cap 대비 +0.86%p)·임대 16.5만/평(명목 범위 내)
+      // 성립 조합(엔진 실측): 이익 810억·YoC 4.92%(cap +0.92%p)·매각가치는 준공 시 일시 유입(terminal)
       __mode: "신축분양", asset: "office", land_area: 8000, zone: "CG", nb_ratio: 0,
       eff_ratio: 65, rent_py: 16.5, vacancy: 5, opex: 27, cap: 4.0,
       land_eok: 1000, unit_cost_py: 890, months: 42, indirect: 6, marketing: 1.5,
@@ -439,7 +438,7 @@
   function renderSensitivity() {
     const { items, base } = sensitivity();
     C.tornado($("#sens-tornado"), items, base, { width: 1160 });
-    C.heatmap($("#sens-heat"), breakevenGrid(), { xName: "분양가", yName: "공사비", width: 1160 });
+    C.heatmap($("#sens-heat"), breakevenGrid(), { xName: "분양가", yName: "공사비", width: 1160, cellText: true, cellFmt: v => fmt.eok(v) });
   }
 
   // refresh: 테마 토글 등 토큰 색 변경 후 SVG 재렌더용 (codex 리뷰 반영)

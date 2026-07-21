@@ -224,3 +224,45 @@ def test_compute_npv_and_irr_pure():
 def test_compute_irr_none_no_sign_change():
     assert compute_irr_annual([-100.0, -50.0, -20.0]) is None
     assert compute_irr_annual([100.0, 50.0, 20.0]) is None
+
+
+# --------------------------------------------------------------------------- #
+# 수익형 terminal 스케줄 (매각가치 준공 시 일시 유입)
+# --------------------------------------------------------------------------- #
+def _income_inputs(schedule):
+    return {
+        "mode": "신축분양",
+        "revenue": {"units": [{"name": "오피스", "count": 1, "supply_m2": 1,
+                               "price_per_m2": 4e11}],
+                    "sell_through": 1.0, "other_income": 0,
+                    "schedule": schedule},
+        "cost": {"land": {"purchase": 1e11, "acq_tax_rate": 0.046, "misc_rate": 0.01},
+                 "construction": {"gfa_m2": 4e4, "unit_cost_per_m2": 2.5e6},
+                 "indirect_rate": 0.06, "marketing_rate": 0.015, "contingency_rate": 0.01},
+        "finance": {"equity": 8e10,
+                    "bridge": {"amount": 1e11, "rate": 0.08, "months": 10},
+                    "pf": {"amount": 4e11, "rate": 0.06, "months": 34, "drawdown": 0.55},
+                    "fee_rate": 0.015},
+        "schedule": {"months_total": 42},
+    }
+
+
+def test_terminal_schedule_lump_sum_at_last_quarter():
+    """terminal: 매출 전액이 마지막 분기 유입 — 앞 분기 유입은 0."""
+    r = run_feasibility(_income_inputs("terminal"))
+    cf = r["cashflow_quarterly"]
+    p = run_feasibility(_income_inputs("presale"))
+    # 총량 보존: Σcf = 이익, 스케줄과 무관
+    assert abs(sum(cf) - r["profit"]) < 1e-3
+    assert abs(sum(p["cashflow_quarterly"]) - p["profit"]) < 1e-3
+    assert abs(r["profit"] - p["profit"]) < 1e-3  # 이익은 스케줄 불변
+    # terminal 은 마지막 분기 유입이 presale 보다 크고(전액), 첫 분기는 더 음수(계약금 부재)
+    assert cf[-1] > p["cashflow_quarterly"][-1]
+    assert cf[0] < p["cashflow_quarterly"][0]
+
+
+def test_terminal_schedule_npv_lower_than_presale():
+    """수입이 늦게 들어오므로 NPV(terminal) < NPV(presale) — codex 검증 반영."""
+    r_t = run_feasibility(_income_inputs("terminal"))
+    r_p = run_feasibility(_income_inputs("presale"))
+    assert r_t["npv"] < r_p["npv"]

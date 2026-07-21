@@ -28,7 +28,8 @@ JS_PATH = os.path.abspath(
 
 N_SHINCHUK = 50           # 신축분양(경계 5 + 무작위 45)
 N_REDEV = 20              # 정비사업(재개발·재건축·리모델링) 무작위
-N_CASES = N_SHINCHUK + N_REDEV  # 70
+N_INCOME = 8              # 수익형(terminal 스케줄) 고정 케이스
+N_CASES = N_SHINCHUK + N_REDEV + N_INCOME  # 78
 REL_TOL = 1e-9
 ABS_TOL = 1e-6
 
@@ -313,7 +314,40 @@ def make_inputs():
     cases = cases[:N_SHINCHUK]
     for _ in range(N_REDEV):
         cases.append(_random_redev_case(rng))
+    cases.extend(_income_cases())
     return cases
+
+
+def _income_cases():
+    """수익형(오피스·상업) terminal 스케줄 고정 케이스 — NOI÷cap 매각가치를
+    준공 시 일시 유입으로 편성하는 경로의 Python↔JS 패리티를 고정한다."""
+    def mk(exit_value, months, other=0.0, schedule="terminal", sell=1.0, land=8e10):
+        return {
+            "mode": "신축분양",
+            "revenue": {"units": [{"name": "오피스", "count": 1, "supply_m2": 1,
+                                   "price_per_m2": exit_value}],
+                        "sell_through": sell, "other_income": other,
+                        "schedule": schedule},
+            "cost": {"land": {"purchase": land, "acq_tax_rate": 0.046, "misc_rate": 0.01},
+                     "construction": {"gfa_m2": 4.2e4, "unit_cost_per_m2": 2.69e6},
+                     "indirect_rate": 0.06, "marketing_rate": 0.015,
+                     "contingency_rate": 0.01},
+            "finance": {"equity": 8e10,
+                        "bridge": {"amount": 1e11, "rate": 0.0825, "months": 10},
+                        "pf": {"amount": 4e11, "rate": 0.0625, "months": 34, "drawdown": 0.55},
+                        "fee_rate": 0.015},
+            "schedule": {"months_total": months},
+        }
+    return [
+        mk(4.32e11, 42),                       # 서울오피스 프리셋 규모
+        mk(4.32e11, 42, other=3e9),            # 기타수입 동반 (other는 양쪽 다 qN)
+        mk(1.5e11, 7),                         # 3분기 소형 — 이월 경계
+        mk(2e11, 6),                           # 2분기 — middle 없음
+        mk(9e10, 3),                           # 1분기 — q0=qN 동일 분기
+        mk(0.0, 24),                           # 매각가치 0 (cap=0 가드 경로)
+        mk(4.32e11, 42, schedule="presale"),   # 동일 입력 presale 명시 — 분기 배분 대조군
+        mk(3e11, 60, sell=0.7),               # terminal 은 sell_through 반영 후 일시 유입
+    ]
 
 
 INPUTS = make_inputs()

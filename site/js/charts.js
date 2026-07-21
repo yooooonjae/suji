@@ -48,12 +48,13 @@
   }
   const fmt = {
     eok(v) { // 원 → 억원
-      const e = v / 1e8;
-      if (Math.abs(e) >= 10000) return (e / 10000).toFixed(1).replace(/\.0$/, "") + "조";
-      if (Math.abs(e) >= 100) return Math.round(e).toLocaleString() + "억";
-      return e.toFixed(1).replace(/\.0$/, "") + "억";
+      const e = v / 1e8, a = Math.abs(e);
+      if (a >= 9999.5) return (e / 10000).toFixed(1).replace(/\.0$/, "") + "조"; // 억 반올림으로 1조 도달분 포함
+      if (a >= 100) return Math.round(e).toLocaleString() + "억";
+      const t = e.toFixed(1).replace(/\.0$/, "");
+      return (t === "-0" ? "0" : t) + "억";
     },
-    pct(v, d) { return (v * 100).toFixed(d == null ? 1 : d) + "%"; },
+    pct(v, d) { const t = (v * 100).toFixed(d == null ? 1 : d); return (parseFloat(t) === 0 ? t.replace("-", "") : t) + "%"; },
     num(v, d) { return Number(v).toLocaleString(undefined, { maximumFractionDigits: d == null ? 1 : d }); },
     ym(ym) { return ym.slice(0, 4) + "." + ym.slice(4); },
   };
@@ -454,7 +455,7 @@
           const strong = Math.abs(v) / maxAbs > 0.5; // 진한 배경에만 흰 글자 (연한 셀은 먹색 — 대비 확보)
           el("text", { x: M.l + c * cw + cw / 2, y: M.t + r * cellH + cellH / 2 + 4, "text-anchor": "middle",
             "font-size": 11.5, "font-weight": 700, "font-family": "var(--font-num)", "pointer-events": "none",
-            fill: strong ? "#fff" : css("--ink-2") }, svg).textContent = vFmt(v);
+            fill: strong ? "#fff" : css("--ink-2") }, svg).textContent = (opts.cellFmt || vFmt)(v);
         }
         rect.addEventListener("mousemove", ev => tipShow(
           `<div class="t-title">${opts.xName || "X"} ${xv} · ${opts.yName || "Y"} ${yv}</div>${opts.vLabel || "이익"} <b class="num">${vFmt(v)}</b>`, ev.clientX, ev.clientY));
@@ -652,9 +653,10 @@
       }
       const w2 = ((W - M.l - M.r) * d.value) / hi;
       const isSel = opts.selected === d.name;
-      const lab = el("text", { x: M.l - 11, y: cy + rowH / 2 + 5, "text-anchor": "end", "font-size": 13.5, fill: isSel ? css("--blueprint") : css("--ink-2"), "font-weight": isSel ? 800 : 700 }, svg);
+      const isEm = isSel || (opts.emph && opts.emph.indexOf(d.name) >= 0); // 강조 행(예: 강남3구)
+      const lab = el("text", { x: M.l - 11, y: cy + rowH / 2 + 5, "text-anchor": "end", "font-size": 13.5, fill: isEm ? css("--blueprint") : css("--ink-2"), "font-weight": isEm ? 800 : 700 }, svg);
       lab.textContent = d.name;
-      const barCol = css(isSel ? "--s1" : (opts.color || "--s1"));
+      const barCol = css(isEm ? "--s1" : (opts.color || "--s1"));
       const bar = el("rect", { x: M.l, y: cy + 8, width: Math.max(2, w2), height: rowH - 16,
         fill: grad(svg, barCol, "h", -0.18, 0.16), rx: 6, opacity: isSel ? 1 : .95 }, svg);
       el("text", { x: M.l + Math.max(2, w2) + 9, y: cy + rowH / 2 + 5, "font-size": 13, fill: css("--ink-2"), "font-family": "var(--font-num)", "font-weight": 700 }, svg)
@@ -665,6 +667,12 @@
         [bar, lab].forEach(nd => {
           nd.style.cursor = "pointer";
           nd.addEventListener("click", () => opts.onSelect(d.name));
+        });
+        bar.setAttribute("role", "button");
+        bar.setAttribute("tabindex", "0");
+        bar.setAttribute("aria-label", d.name + " 선택");
+        bar.addEventListener("keydown", ev => {
+          if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); opts.onSelect(d.name); }
         });
       }
     });
@@ -709,6 +717,12 @@
       if (opts.onSelect && p.name !== "전국") {
         c.style.cursor = "pointer";
         c.addEventListener("click", () => opts.onSelect(p.name));
+        c.setAttribute("role", "button");
+        c.setAttribute("tabindex", "0");
+        c.setAttribute("aria-label", p.name + " 상세 보기");
+        c.addEventListener("keydown", ev => {
+          if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); opts.onSelect(p.name); }
+        });
       }
       const tw = p.name.length * 11.6 + 4, th = 13;
       let cands = [
