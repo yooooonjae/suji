@@ -140,7 +140,7 @@
   // 줌·단위 상태는 root._chartState 에 보존 (테마 전환·시도 전환 재렌더에도 유지).
   function line(root, series, opts) {
     opts = opts || {};
-    const W = opts.width || 960, H = opts.height || 320;
+    const W = opts.width || 1160, H = opts.height || 300;
     const M = { t: 14, r: opts.rightPad || 74, b: 26, l: 46 };
     root.innerHTML = "";
 
@@ -649,7 +649,7 @@
   // pts: [{name, x(미분양 증감%), y(지수 YoY%)}]
   function phase(root, pts, opts) {
     opts = opts || {};
-    const W = opts.width || 720, H = 520;
+    const W = opts.width || 1160, H = 470;
     const M = { t: 28, r: 96, b: 44, l: 56 };
     root.innerHTML = "";
     const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "시장 국면 맵" }, root);

@@ -433,8 +433,8 @@
   }
   function renderSensitivity() {
     const { items, base } = sensitivity();
-    C.tornado($("#sens-tornado"), items, base);
-    C.heatmap($("#sens-heat"), breakevenGrid(), { xName: "분양가", yName: "공사비" });
+    C.tornado($("#sens-tornado"), items, base, { width: 1160 });
+    C.heatmap($("#sens-heat"), breakevenGrid(), { xName: "분양가", yName: "공사비", width: 1160 });
   }
 
   // refresh: 테마 토글 등 토큰 색 변경 후 SVG 재렌더용 (codex 리뷰 반영)

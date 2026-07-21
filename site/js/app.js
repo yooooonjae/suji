@@ -179,7 +179,7 @@
       xs: ["동시", "3개월 선행", "6개월 선행", "12개월 선행"],
       ys: drivers.map(k => labels[k] || k),
       cells: drivers.map(k => lagKeys.map(l => (corr[k].by_lag[l] || { r: 0 }).r)),
-    }, { xName: "시차", yName: "지표", labelW: 150, cellH: 40, cellText: true,
+    }, { xName: "시차", yName: "지표", labelW: 150, cellH: 40, cellText: true, width: 1160,
          vFmt: v => (v >= 0 ? "+" : "") + v.toFixed(2), vLabel: "상관계수 r",
          legend: "값 = 전국 매매지수 YoY와의 상관계수 r · 파랑 = 역상관, 주황 = 정상관 (진할수록 강함)", aria: "지표별 시차 상관" });
     // ①-보조 시도별 동시상관 (17행 × 5지표 — 셀 텍스트 없이 색+툴팁)
@@ -194,7 +194,7 @@
         xs: cols.map(c => colLabels[c]),
         ys: rows.map(r => r.sido),
         cells: rows.map(r => cols.map(c => r[c] == null ? 0 : r[c])),
-      }, { xName: "지표", yName: "시도", labelW: 62, cellH: 30,
+      }, { xName: "지표", yName: "시도", labelW: 62, cellH: 26, width: 1160,
            vFmt: v => "r = " + (v >= 0 ? "+" : "") + v.toFixed(2), vLabel: "동시상관",
            legend: "파랑 = 역상관, 주황 = 정상관 (진할수록 강함) · 각 시도 매매지수 YoY 기준",
            aria: "시도별 지표 동시상관" });
@@ -238,7 +238,7 @@
     const totals = Object.entries(counts).map(([sido, m]) => ({ name: sido, value: Object.values(m).reduce((a, b) => a + b, 0) }))
       .sort((a, b) => b.value - a.value);
     C.hbars($("#chart-sbiz-sido"), totals, {
-      aria: "시도별 상가업소 수", color: "--s2", fmt: v => fmt.num(v, 0), labelW: 60,
+      aria: "시도별 상가업소 수", color: "--s2", fmt: v => fmt.num(v, 0), labelW: 60, width: 1160, rowH: 30,
       selected: selCommerceSido,
       onSelect: n => { selCommerceSido = n; renderCommerce(); },
     });
@@ -250,7 +250,7 @@
     C.hbars($("#chart-sbiz-upjong"), upjong, { aria: selCommerceSido + " 업종 구성", color: "--s2", fmt: v => fmt.num(v, 0), labelW: 130 });
     // 주요상권 시도별 — 파랑 계열
     const zones = Object.entries(SB.zones.by_sido).map(([k, v]) => ({ name: k, value: v })).sort((a, b) => b.value - a.value).slice(0, 12);
-    C.hbars($("#chart-zones"), zones, { aria: "시도별 주요상권 수", color: "--s2", fmt: v => v + "곳", labelW: 60 });
+    C.hbars($("#chart-zones"), zones, { aria: "시도별 주요상권 수", color: "--s2", fmt: v => v + "곳", labelW: 60, width: 1160, rowH: 30 });
     renderOffice();
   }
 
@@ -274,15 +274,15 @@
     yt.textContent = sido + " — 오피스 투자수익률 분해";
     C.line($("#chart-office-vac"), [
       { name: "공실률", color: "--s2", emph: true, points: mkq(vac) },
-    ], { aria: sido + " 오피스 공실률", yFmt: v => v.toFixed(1) + "%", height: 220, rightPad: 56 });
+    ], { aria: sido + " 오피스 공실률", yFmt: v => v.toFixed(1) + "%", width: 700, height: 220, rightPad: 56 });
     C.line($("#chart-office-rent"), [
       { name: "임대지수", color: "--s1", emph: true, points: mkq(rent) },
-    ], { aria: sido + " 오피스 임대가격지수", height: 200, rightPad: 64 });
+    ], { aria: sido + " 오피스 임대가격지수", width: 700, height: 200, rightPad: 64 });
     C.line($("#chart-office-yield"), [
       { name: "투자", color: "--s1", emph: true, points: yld.map((p, i) => ({ x: i, label: p.yq.replace("Q", " Q"), y: p.total })) },
       { name: "소득", color: "--s2", points: yld.map((p, i) => ({ x: i, label: p.yq.replace("Q", " Q"), y: p.income })) },
       { name: "자본", color: "--s3", points: yld.map((p, i) => ({ x: i, label: p.yq.replace("Q", " Q"), y: p.capital })) },
-    ], { aria: sido + " 오피스 투자수익률", yFmt: v => v.toFixed(1) + "%", height: 444, rightPad: 60 });
+    ], { aria: sido + " 오피스 투자수익률", yFmt: v => v.toFixed(1) + "%", width: 700, height: 452, rightPad: 60 });
     const lastY = yld[yld.length - 1];
     $("#office-yield-cap").textContent =
       `최근 분기(${lastY.yq}) 소득수익률 ${lastY.income.toFixed(2)}% — 연환산 약 ${(lastY.income * 4).toFixed(1)}%. ` +
@@ -323,7 +323,7 @@
       { name: "기타", value: -(r.cost.contingency + (r.cost.demolition || 0) + (r.cost.relocation_interest || 0) + (r.cost.cash_settlement || 0)), kind: "out" },
       { name: "개발이익", kind: "sum" },
     ];
-    C.waterfall($("#case-wf"), items, { height: 260 });
+    C.waterfall($("#case-wf"), items, { width: 1160, height: 280 });
     $("#case-notes").innerHTML = c.notes.map(n => `<li>${n}</li>`).join("");
     // 유기적 연결: 이 사례를 Ⅲ장 계산기 프리셋으로 열기 (검증된 프리셋 버튼 경로 재사용)
     const open = $("#case-open-calc");
