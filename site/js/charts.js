@@ -94,14 +94,22 @@
     });
 
     // 계열
+    const ends = [];
     series.forEach(s => {
       const col = css(s.color || "--s1");
       const d = s.points.map((p, i) => (i ? "L" : "M") + x(p.x != null ? p.x : i).toFixed(1) + " " + y(p.y).toFixed(1)).join("");
       el("path", { d, fill: "none", stroke: col, "stroke-width": s.emph ? 2.6 : 2, "stroke-linejoin": "round", opacity: s.dim ? 0.35 : 1 }, svg);
-      // 직접 라벨 (선 끝)
       const last = s.points[s.points.length - 1];
-      el("text", { x: W - M.r + 6, y: y(last.y) + 4, "font-size": 11, "font-weight": 700, fill: col }, svg)
-        .textContent = s.name;
+      ends.push({ name: s.name, col, ty: y(last.y) + 4 });
+    });
+    // 직접 라벨 — 세로 충돌 회피(위→아래 정렬 후 최소 15px 간격 보장)
+    ends.sort((a, b) => a.ty - b.ty);
+    for (let i = 1; i < ends.length; i++) {
+      if (ends[i].ty - ends[i - 1].ty < 15) ends[i].ty = ends[i - 1].ty + 15;
+    }
+    ends.forEach(e2 => {
+      el("text", { x: W - M.r + 6, y: Math.min(H - M.b - 2, Math.max(M.t + 8, e2.ty)), "font-size": 11, "font-weight": 700, fill: e2.col }, svg)
+        .textContent = e2.name;
     });
 
     // 크로스헤어 + 툴팁
@@ -207,7 +215,9 @@
     root.innerHTML = "";
     const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "민감도 토네이도" }, root);
     const all = items.flatMap(it => [it.low, it.high]).concat([base]);
-    const [lo, hi] = extent(all);
+    let [lo, hi] = extent(all);
+    const pad2 = (hi - lo) * 0.14 || 1; // 좌우 수치 라벨 자리 확보 (라벨-변수명 충돌 방지)
+    lo -= pad2; hi += pad2;
     const x = v => M.l + ((v - lo) / (hi - lo || 1)) * (W - M.l - M.r);
     items.forEach((it, i) => {
       const cy = M.t + i * 44 + 22;

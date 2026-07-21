@@ -314,6 +314,8 @@
       renderAB(global.__calcLast);
     });
     $("#btn-sens").addEventListener("click", renderSensitivity);
+    // 부팅 기본값: 실데이터 기반 수도권 프리셋 (있으면) — 첫 화면부터 성립하는 딜
+    if (presets["수도권아파트"]) Object.assign(st, presets["수도권아파트"]);
     renderInputs(); recalc(); renderSensitivity();
   }
   function syncModeTabs() {
