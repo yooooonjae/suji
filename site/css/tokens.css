@@ -57,7 +57,7 @@
   --col-read: 1360px;         /* 읽기 컬럼 — 차트 폭과 동일 (전폭 일관, 2026-07-21 지시) */
   --col-wide: 1360px;         /* 차트·계산기 컬럼 */
   --radius: 3px;              /* 도면적 절제 — 큰 라운드 금지 */
-  --shadow: 0 1px 2px rgba(43, 32, 22, .05), 0 8px 28px rgba(43, 32, 22, .07);
+  --shadow: 0 1px 2px rgba(43, 32, 22, .06), 0 10px 32px rgba(43, 32, 22, .08), 0 28px 72px rgba(43, 32, 22, .05);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -80,7 +80,7 @@
     --s5: #2b95b5; --s6: #e66767; --s7: #c76684; --s8: #b5762f;
     --grid: #2b241d;
     --axis: #50453a;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 28px rgba(0, 0, 0, .35);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .32), 0 10px 32px rgba(0, 0, 0, .36), 0 28px 72px rgba(0, 0, 0, .28);
   }
 }
 /* 뷰어 토글이 미디어쿼리를 양방향으로 이겨야 한다 */
@@ -93,7 +93,7 @@
   --s1: #d06712; --s2: #3987e5; --s3: #b8830f; --s4: #c4586a;
   --s5: #2b95b5; --s6: #e66767; --s7: #c76684; --s8: #b5762f;
   --grid: #2b241d; --axis: #50453a;
-  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 28px rgba(0, 0, 0, .35);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .32), 0 10px 32px rgba(0, 0, 0, .36), 0 28px 72px rgba(0, 0, 0, .28);
 }
 :root[data-theme="light"] {
   --ground: #f6f4f1; --surface: #fdfcfb; --surface-2: #f0edea;
@@ -104,5 +104,5 @@
   --s1: #e05910; --s2: #2a78d6; --s3: #c98a00; --s4: #b03a48;
   --s5: #0f7f9e; --s6: #e34948; --s7: #d16b8a; --s8: #a05a1f;
   --grid: #ece6df; --axis: #c2b6a8;
-  --shadow: 0 1px 2px rgba(43, 32, 22, .05), 0 8px 28px rgba(43, 32, 22, .07);
+  --shadow: 0 1px 2px rgba(43, 32, 22, .06), 0 10px 32px rgba(43, 32, 22, .08), 0 28px 72px rgba(43, 32, 22, .05);
 }

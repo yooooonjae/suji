@@ -118,3 +118,68 @@ html:not([data-theme="light"]) body.dark-ambient::after { content: none; }
 ::-webkit-scrollbar-thumb { background: var(--hairline-2); border-radius: 6px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--axis); }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* ============================================================
+   프리미엄 마감 (2026-07-21) — 리서치 하우스 보고서 격.
+   기존 제도지 정체성 위에 깊이·광택·괘선 정밀도만 더한다.
+   ============================================================ */
+
+/* 지면 카드: 상단 은은한 광택 + 층진 그림자 */
+.viz, .kpi, .case-card, .calc, .tblock-frame {
+  background-image: linear-gradient(180deg,
+    color-mix(in srgb, var(--surface) 88%, #fff) 0,
+    var(--surface) 64px);
+}
+:root[data-theme="dark"] .viz, :root[data-theme="dark"] .kpi,
+:root[data-theme="dark"] .case-card, :root[data-theme="dark"] .calc,
+:root[data-theme="dark"] .tblock-frame {
+  background-image: linear-gradient(180deg,
+    color-mix(in srgb, var(--surface) 90%, #fff) 0,
+    var(--surface) 64px);
+}
+.viz { box-shadow: var(--shadow); }
+
+/* 도곽(표제란): 이중 괘선 — 도면 표제란의 정밀 마감 */
+.tblock-frame { outline: 1px solid var(--hairline); outline-offset: -6px; box-shadow: var(--shadow); }
+
+/* 히어로 통계 수치: 제도펜 그라데이션 잉크 */
+.hero-stat .v {
+  background: linear-gradient(135deg, var(--blueprint) 0%, var(--blueprint-2) 55%, color-mix(in srgb, var(--blueprint-2) 72%, #fff) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: var(--blueprint);
+}
+.hero-stat .v small { -webkit-text-fill-color: var(--ink-3); }
+
+/* KPI 타일: 함몰 지면 + 수치 위계 */
+.kpi { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 60%, #fff), 0 1px 2px rgba(0,0,0,.04); }
+
+/* 버튼: 제도펜 그라데이션 + 프레스 깊이 */
+.ab-row button.primary, .case-open, .chart-tools .unit-seg button[aria-pressed="true"] {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--blueprint-2) 88%, #fff) 0%,
+    var(--blueprint) 100%);
+  border-color: var(--blueprint); color: #fff;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--blueprint) 35%, transparent);
+}
+.ab-row button.primary:hover, .case-open:hover {
+  background: linear-gradient(180deg, var(--blueprint-2) 0%, var(--blueprint) 100%);
+  color: #fff;
+}
+.case-open:hover { color: #fff; }
+
+/* 앱바: 유리 질감 강화 */
+nav.appbar {
+  background: color-mix(in srgb, var(--ground) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(1.25);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--hairline) 60%, transparent);
+}
+
+/* 표: 헤더 소문자 괘선 정밀화 */
+table.ledger thead th, table.sources thead th, table.matrix thead th {
+  letter-spacing: .06em;
+  border-bottom: 1.5px solid var(--hairline-2);
+}
+
+/* 선택 스몰멀티플 타일: 잉크 링 */
+.sm-cell.sel { box-shadow: 0 0 0 1.5px var(--blueprint), var(--shadow); }

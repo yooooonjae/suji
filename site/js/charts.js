@@ -17,6 +17,35 @@
   function css(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
+  // 단일 색상 명도 변조 (amt -1..1) — 그라데이션 스톱용. 동일 색상군 내 깊이감만 주고
+  // 값 인코딩은 길이/위치가 담당한다 (색은 정체성 유지).
+  function shade(hex, amt) {
+    const h = hex.replace("#", "");
+    const f = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+    const n = parseInt(f, 16);
+    if (isNaN(n)) return hex;
+    const t = amt < 0 ? 0 : 255, a = Math.abs(amt);
+    const r = Math.round(((n >> 16) & 255) + (t - ((n >> 16) & 255)) * a);
+    const g = Math.round(((n >> 8) & 255) + (t - ((n >> 8) & 255)) * a);
+    const b = Math.round((n & 255) + (t - (n & 255)) * a);
+    return "#" + ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
+  }
+  // SVG 그라데이션 (차트당 색상별 1회 정의, fill용 url 반환). dir: "h"(좌→우)|"v"(상→하)
+  let gradSeq = 0;
+  function grad(svg, color, dir, s0, s1, o0, o1) {
+    if (!svg._grads) svg._grads = new Map();
+    const key = color + dir + s0 + s1 + (o0 || 1) + (o1 || 1);
+    if (svg._grads.has(key)) return svg._grads.get(key);
+    let defs = svg.querySelector("defs") || el("defs", {}, svg);
+    const id = "gr" + (++gradSeq);
+    const lg = el("linearGradient", dir === "v"
+      ? { id, x1: 0, y1: 0, x2: 0, y2: 1 } : { id, x1: 0, y1: 0, x2: 1, y2: 0 }, defs);
+    el("stop", { offset: "0%", "stop-color": shade(color, s0), "stop-opacity": o0 == null ? 1 : o0 }, lg);
+    el("stop", { offset: "100%", "stop-color": shade(color, s1), "stop-opacity": o1 == null ? 1 : o1 }, lg);
+    const url = `url(#${id})`;
+    svg._grads.set(key, url);
+    return url;
+  }
   const fmt = {
     eok(v) { // 원 → 억원
       const e = v / 1e8;
@@ -184,12 +213,17 @@
           .textContent = lp[i].label;
       });
 
-      // 계열
+      // 계열 (강조 계열엔 은은한 영역 워시 — 스몰멀티플과 동일 문법)
       const ends = [];
       V.forEach(s => {
         if (!s.points.length) return;
         const col = css(s.color || "--s1");
         const d = s.points.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(p.y).toFixed(1)).join("");
+        if (s.emph && !s.dim) {
+          const base = H - M.b;
+          const area = d + `L${x(s.points.length - 1).toFixed(1)} ${base}L${x(0).toFixed(1)} ${base}Z`;
+          el("path", { d: area, fill: grad(svg, col, "v", 0, 0, 0.14, 0), "pointer-events": "none" }, svg);
+        }
         el("path", { d, fill: "none", stroke: col, "stroke-width": s.emph ? 2.6 : 2, "stroke-linejoin": "round", opacity: s.dim ? 0.35 : 1 }, svg);
         const last = s.points[s.points.length - 1];
         ends.push({ name: s.name, col, ty: y(last.y) + 4 });
@@ -310,7 +344,8 @@
       const isSum = s.kind === "sum";
       const col = isSum ? (s.y1 >= 0 ? css("--pos") : css("--neg")) : s.kind === "in" ? css("--s1") : css("--ink-3");
       const top = Math.min(y(s.y0), y(s.y1)), h = Math.max(2, Math.abs(y(s.y0) - y(s.y1)));
-      const r = el("rect", { x: cx + bw * 0.14, y: top, width: bw * 0.72, height: h, fill: col, rx: 2, opacity: isSum ? 1 : 0.88 }, svg);
+      const r = el("rect", { x: cx + bw * 0.14, y: top, width: bw * 0.72, height: h,
+        fill: grad(svg, col, "v", 0.12, -0.14), rx: 2, opacity: isSum ? 1 : 0.9 }, svg);
       // 연결선
       if (i < steps.length - 1 && !isSum) {
         el("line", { x1: cx + bw * 0.86, x2: cx + bw + bw * 0.14, y1: y(s.y1), y2: y(s.y1), stroke: css("--axis"), "stroke-width": 1, "stroke-dasharray": "2 3" }, svg);
@@ -424,7 +459,10 @@
     const A0 = Math.PI, A1 = 2 * Math.PI;
     arc(A0, A1, css("--surface-2"), 10);
     const t = Math.max(0, Math.min(1, (value - lo) / (hi - lo)));
-    if (t > 0.001) arc(A0, A0 + t * Math.PI, value >= (opts.goodFrom != null ? opts.goodFrom : 0) ? css("--s1") : css("--neg"), 10);
+    if (t > 0.001) {
+      const gc = value >= (opts.goodFrom != null ? opts.goodFrom : 0) ? css("--s1") : css("--neg");
+      arc(A0, A0 + t * Math.PI, grad(svg, gc, "h", -0.16, 0.14), 10);
+    }
     // 목표 눈금
     if (opts.target != null) {
       const ta = A0 + Math.max(0, Math.min(1, (opts.target - lo) / (hi - lo))) * Math.PI;
@@ -494,7 +532,7 @@
         for (let j = fcFrom; j <= fcTo; j++) band += "L" + x(hist.length + j) + " " + y(fc.q90[j]);
         for (let j = fcTo; j >= fcFrom; j--) band += "L" + x(hist.length + j) + " " + y(fc.q10[j]);
         band += "Z";
-        el("path", { d: band, fill: css("--blueprint-wash"), opacity: .9 }, svg);
+        el("path", { d: band, fill: grad(svg, css("--blueprint-wash"), "h", 0, -0.04, 0.55, 0.95) }, svg);
       }
       // 실적선
       if (h0v >= 0) {
@@ -590,7 +628,9 @@
       const isSel = opts.selected === d.name;
       const lab = el("text", { x: M.l - 11, y: cy + rowH / 2 + 5, "text-anchor": "end", "font-size": 13.5, fill: isSel ? css("--blueprint") : css("--ink-2"), "font-weight": isSel ? 800 : 700 }, svg);
       lab.textContent = d.name;
-      const bar = el("rect", { x: M.l, y: cy + 8, width: Math.max(2, w2), height: rowH - 16, fill: css(isSel ? "--s1" : (opts.color || "--s1")), rx: 3, opacity: isSel ? 1 : .92 }, svg);
+      const barCol = css(isSel ? "--s1" : (opts.color || "--s1"));
+      const bar = el("rect", { x: M.l, y: cy + 8, width: Math.max(2, w2), height: rowH - 16,
+        fill: grad(svg, barCol, "h", -0.18, 0.16), rx: 3, opacity: isSel ? 1 : .95 }, svg);
       el("text", { x: M.l + Math.max(2, w2) + 9, y: cy + rowH / 2 + 5, "font-size": 13, fill: css("--ink-2"), "font-family": "var(--font-num)", "font-weight": 700 }, svg)
         .textContent = opts.fmt ? opts.fmt(d.value) : fmt.num(d.value, 0);
       bar.addEventListener("mousemove", ev => tipShow(`<div class="t-title">${d.name}</div><b class="num">${opts.fmt ? opts.fmt(d.value) : fmt.num(d.value, 0)}</b>${opts.onSelect ? '<br><span style="opacity:.7">클릭: 상세 보기</span>' : ""}`, ev.clientX, ev.clientY));

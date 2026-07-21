@@ -7,7 +7,7 @@ out/cases.json 을 생성한다.
 
 데이터 근거(코드로 산출):
   분양가   = 해당 시도 HUG 최근 3개월 평균 ㎡당가 → 평당만원 환산
-  공사비   = 평당 750만원 × (CCI 최신 / CCI 2023 평균)
+  공사비   = 지역 기준단가(서울 827·수도권 670·지방 634만원/평) × (CCI 최신 / CCI 2023 평균)
   금리     = ECOS 최신 기준금리 + 스프레드(브릿지 +5.5%p, PF +3.5%p — 가정)
   토지비   = 사례별 합리 가정(notes 명시)
 
@@ -31,8 +31,11 @@ OUT = ROOT / "out"
 PY = 3.305785  # ㎡/평 (calc-ui.js 와 동일 상수)
 EOK = 1e8      # 억원 → 원
 
-# 공사비 기준 단가(평당만원) — CCI 로 시점보정. 근거: 스펙 고정값 750만원/평.
-BASE_UNIT_COST_PY = 750.0
+# 공사비 기준 단가(평당만원, 지역 차등) — CCI 로 시점보정.
+# 근거: 2025 정비사업 평균 도급단가 실측(하우징헤럴드 — 전국 808·서울 890·수도권 721·지방 682만원/평)을
+# CCI 보정계수(≈1.076)로 역산한 기준값. 2026-07-21 정합성 전수검증 반영(이전: 전국 균일 750).
+REGIONAL_UNIT_COST_BASE = {"서울": 827.0, "수도권": 670.0, "지방": 634.0}
+BASE_UNIT_COST_PY = REGIONAL_UNIT_COST_BASE["수도권"]  # 하위호환 기본값
 BRIDGE_SPREAD = 5.5  # %p (가정: 브릿지 = 기준금리 + 5.5%p)
 PF_SPREAD = 3.5      # %p (가정: PF = 기준금리 + 3.5%p)
 RELO_SPREAD = 2.5    # %p (가정: 이주비 대여 = 기준금리 + 2.5%p)
@@ -79,9 +82,9 @@ def cci_factor(kosis: dict) -> float:
     return latest / statistics.mean(y2023)
 
 
-def unit_cost_py(kosis: dict) -> float:
-    """공사비 평당만원 = 750 × CCI 보정계수."""
-    return round(BASE_UNIT_COST_PY * cci_factor(kosis), 1)
+def unit_cost_py(kosis: dict, region: str = "수도권") -> float:
+    """공사비 평당만원 = 지역 기준단가 × CCI 보정계수."""
+    return round(REGIONAL_UNIT_COST_BASE[region] * cci_factor(kosis), 1)
 
 
 def base_rate_pct(ecos: dict) -> float:
@@ -153,7 +156,9 @@ def build_inputs_from_state(s: dict, mode: str) -> dict:
 # 프리셋 구성 (실무단위 · calc-ui.js st 키와 일치)
 # --------------------------------------------------------------------------- #
 def build_presets(hug: dict, kosis: dict, ecos: dict) -> dict:
-    ucp = unit_cost_py(kosis)                       # 공사비 평당만원(CCI 보정)
+    ucp_cap = unit_cost_py(kosis, "수도권")         # 공사비 평당만원(지역별, CCI 보정)
+    ucp_loc = unit_cost_py(kosis, "지방")
+    ucp_seo = unit_cost_py(kosis, "서울")
     base = base_rate_pct(ecos)                      # 기준금리 %
     br = round(base + BRIDGE_SPREAD, 2)             # 브릿지 금리 %
     pr = round(base + PF_SPREAD, 2)                 # PF 금리 %
@@ -167,7 +172,7 @@ def build_presets(hug: dict, kosis: dict, ecos: dict) -> dict:
         "수도권아파트": {
             "land_area": 15000, "zone": "R3", "nb_ratio": 0,
             "avg_supply": 84.9, "price_py": gg, "sell_through": 95,
-            "land_eok": 380, "unit_cost_py": ucp, "months": 36,
+            "land_eok": 380, "unit_cost_py": ucp_cap, "months": 36,
             "indirect": 6, "marketing": 3.5, "contingency": 1,
             "equity_eok": 350, "bridge_eok": 600, "bridge_rate": br, "bridge_mo": 12,
             "pf_eok": 2000, "pf_rate": pr, "pf_draw": 55, "fee": 1.5,
@@ -176,7 +181,7 @@ def build_presets(hug: dict, kosis: dict, ecos: dict) -> dict:
         "지방아파트": {
             "land_area": 18000, "zone": "R3", "nb_ratio": 0,
             "avg_supply": 84.9, "price_py": bs, "sell_through": 90,
-            "land_eok": 480, "unit_cost_py": ucp, "months": 34,
+            "land_eok": 480, "unit_cost_py": ucp_loc, "months": 34,
             "indirect": 6, "marketing": 4, "contingency": 1,
             "equity_eok": 300, "bridge_eok": 500, "bridge_rate": br, "bridge_mo": 12,
             "pf_eok": 1800, "pf_rate": pr, "pf_draw": 55, "fee": 1.5,
@@ -185,7 +190,7 @@ def build_presets(hug: dict, kosis: dict, ecos: dict) -> dict:
         "오피스텔": {
             "land_area": 3000, "zone": "RS", "nb_ratio": 20,
             "avg_supply": 44.0, "price_py": su, "sell_through": 92,
-            "land_eok": 700, "unit_cost_py": ucp, "months": 30,
+            "land_eok": 700, "unit_cost_py": ucp_seo, "months": 30,
             "indirect": 6.5, "marketing": 4, "contingency": 1,
             "equity_eok": 350, "bridge_eok": 500, "bridge_rate": br, "bridge_mo": 12,
             "pf_eok": 900, "pf_rate": pr, "pf_draw": 60, "fee": 1.5,
@@ -195,7 +200,7 @@ def build_presets(hug: dict, kosis: dict, ecos: dict) -> dict:
             "__mode": "재건축",
             "land_area": 32000, "zone": "R3", "nb_ratio": 0,
             "avg_supply": 84.9, "price_py": su, "sell_through": 95,
-            "land_eok": 0, "unit_cost_py": ucp, "months": 42,
+            "land_eok": 0, "unit_cost_py": ucp_seo, "months": 42,
             "indirect": 6, "marketing": 3, "contingency": 1,
             "equity_eok": 500, "bridge_eok": 500, "bridge_rate": br, "bridge_mo": 12,
             "pf_eok": 3000, "pf_rate": pr, "pf_draw": 55, "fee": 1.5,
@@ -215,8 +220,8 @@ def build_presets(hug: dict, kosis: dict, ecos: dict) -> dict:
 def _notes(kind: str, s: dict, kosis: dict) -> list:
     fac = cci_factor(kosis)
     common = [
-        f"공사비: 평당 {BASE_UNIT_COST_PY:.0f}만원 × CCI 보정(최신/2023평균={fac:.3f}) "
-        f"= 평당 {s['unit_cost_py']:.0f}만원 (한국건설기술연구원 건설공사비지수)",
+        f"공사비: 지역 기준단가(2025 정비사업 평균 실측: 서울 890·수도권 721·지방 682만원/평 역산) "
+        f"× CCI 보정({fac:.3f}) = 평당 {s['unit_cost_py']:.0f}만원",
         f"금융: ECOS 최신 기준금리 기준 — 브릿지 {s['bridge_rate']:.2f}%(+{BRIDGE_SPREAD}%p), "
         f"PF {s['pf_rate']:.2f}%(+{PF_SPREAD}%p) 가정",
         "취득세 4.6%·기타 1.0%·간접비·판매비·예비비는 실무 표준 요율 가정",
@@ -252,6 +257,7 @@ def _notes(kind: str, s: dict, kosis: dict) -> list:
             f"(비례율·분담금 산출 기준)",
             f"이주비 대여 {s['relo_eok']:.0f}억({s['relo_rate']:.2f}%, +{RELO_SPREAD}%p)·"
             f"철거명도 {s['demo_eok']:.0f}억·현금청산 {s['cashout']}% 가정",
+            "재건축부담금(재초과이익환수)은 미반영 — 대상 단지라면 별도 원가로 추가 검토 필요",
         ] + common
     return common
 

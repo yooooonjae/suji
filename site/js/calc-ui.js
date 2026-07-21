@@ -389,11 +389,12 @@
     presets = presetData || {};
     // 수익형 예시 프리셋 (로컬 정의 — 서울 일반상업지 오피스 개발 가정)
     presets["서울오피스"] = presets["서울오피스"] || {
-      // 검증된 성립 조합: 이익 766억·마진 18.5%·원가수익률 4.66%(cap 대비 +0.86%p)·IRR 27.2%
+      // 2026-07-21 정합성 검증 반영: cap 4.0%(Savills 서울 프라임 실질)·공사비 890만/평(서울 실측)
+      // 성립 조합(엔진 스윕): 이익 761억·원가수익률 4.86%(cap 대비 +0.86%p)·임대 16.5만/평(명목 범위 내)
       __mode: "신축분양", asset: "office", land_area: 8000, zone: "CG", nb_ratio: 0,
-      eff_ratio: 65, rent_py: 15, vacancy: 5, opex: 27, cap: 3.8,
-      land_eok: 1100, unit_cost_py: 780, months: 42, indirect: 6, marketing: 1.5,
-      equity_eok: 800, bridge_eok: 1000, bridge_rate: 8.0, pf_eok: 4000, pf_rate: 6.0,
+      eff_ratio: 65, rent_py: 16.5, vacancy: 5, opex: 27, cap: 4.0,
+      land_eok: 1000, unit_cost_py: 890, months: 42, indirect: 6, marketing: 1.5,
+      equity_eok: 800, bridge_eok: 1000, bridge_rate: 8.25, pf_eok: 4000, pf_rate: 6.25,
     };
     // 모드 탭
     document.querySelectorAll(".mode-tabs button").forEach(b => {

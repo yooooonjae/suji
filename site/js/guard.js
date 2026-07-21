@@ -44,7 +44,20 @@
   }
   setInterval(checkDevtools, 800);
 
-  // 4) 콘솔 저작권 고지
+  // 4) 인쇄 차단 — @media print에서 본문을 숨기고 고지문만 출력.
+  //    (스크린샷은 OS 영역이라 웹 기술로 차단 불가 — 한계 인지하고 인쇄만 막는다)
+  const printCss = document.createElement("style");
+  printCss.textContent =
+    "@media print { body > * { display: none !important; } " +
+    "body::before { content: '본 연구는 저작물입니다 — 인쇄가 허용되지 않습니다. 열람: yooooonjae.pages.dev'; " +
+    "display: block; padding: 48px; font-size: 16px; font-weight: 700; } }";
+  document.head.appendChild(printCss);
+  addEventListener("beforeprint", () => { /* 차단 CSS가 본문을 숨김 — 이벤트는 흔적용 */ });
+  addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toUpperCase() === "P") { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+
+  // 5) 콘솔 저작권 고지
   try {
     console.log("%c수지(收支) — 개인 연구 저작물", "font-size:16px;font-weight:800;color:#1e5d95");
     console.log("코드·데이터의 무단 복제와 재배포를 금합니다.");
