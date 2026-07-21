@@ -1,0 +1,120 @@
+/* ============================================================
+   flourish — 화려함 레이어 (모션·글로우·워터마크)
+   모든 모션은 prefers-reduced-motion에서 base.css 전역 규칙으로 소거됨
+   ============================================================ */
+
+/* ---------- 히어로: 지면 글로우 + 타이틀 스태거 ---------- */
+.hero::before {
+  content: ""; position: absolute; inset: -10% -20% auto;
+  height: 90%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(46% 60% at 24% 30%, color-mix(in srgb, var(--blueprint-2) 14%, transparent), transparent 70%),
+    radial-gradient(30% 40% at 78% 62%, color-mix(in srgb, var(--seal) 7%, transparent), transparent 70%);
+  filter: blur(2px);
+}
+:root[data-theme="dark"] .hero::before,
+html:not([data-theme="light"]) .hero::before { opacity: .9; }
+
+.hero .stagger { opacity: 0; transform: translateY(22px); animation: rise .8s cubic-bezier(.2,.7,.2,1) forwards; }
+.hero h1 .stagger { display: block; }
+.hero .stagger:nth-child(2) { animation-delay: .12s; }
+.hero .sub.stagger { animation-delay: .28s; }
+.hero .hero-stats.stagger { animation-delay: .45s; }
+.hero .hero-eyebrow.stagger { animation-delay: 0s; }
+@keyframes rise { to { opacity: 1; transform: none; } }
+
+/* ---------- 히어로: 청사진 드로잉 (건물 매싱 라인아트) ---------- */
+.hero-art {
+  position: absolute; right: 0; top: 14%; height: 74%; width: min(36%, 470px);
+  z-index: -1; pointer-events: none; opacity: .42;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 34%);
+  mask-image: linear-gradient(90deg, transparent, #000 34%);
+}
+.hero-art svg { width: 100%; height: 100%; }
+.hero-art path, .hero-art line, .hero-art rect, .hero-art circle {
+  fill: none; stroke: var(--blueprint-2); stroke-width: 1.4;
+  stroke-dasharray: 1400; stroke-dashoffset: 1400;
+  animation: draw 2.6s ease-out forwards;
+}
+.hero-art .fast { animation-duration: 1.6s; animation-delay: .5s; }
+.hero-art .slow { animation-duration: 3.4s; animation-delay: .9s; }
+.hero-art .dim2 { stroke: var(--axis); stroke-width: 1; animation-delay: 1.6s; }
+.hero-art .seal-dot { stroke: var(--seal); animation-delay: 2.2s; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@media (max-width: 980px) { .hero-art { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .hero .stagger { opacity: 1; transform: none; animation: none; }
+  .hero-art path, .hero-art line, .hero-art rect, .hero-art circle { stroke-dashoffset: 0; animation: none; }
+}
+
+/* ---------- 도곽 뒤 챕터 워터마크 ---------- */
+section.chapter { position: relative; }
+section.chapter::before {
+  content: attr(data-num);
+  position: absolute; top: 8px; right: max(12px, calc((100vw - 1120px)/2 - 60px));
+  font-family: var(--font-num); font-weight: 700;
+  font-size: clamp(120px, 18vw, 260px); line-height: 1;
+  color: var(--blueprint); opacity: .05; pointer-events: none;
+  z-index: 0; user-select: none;
+}
+:root[data-theme="dark"] section.chapter::before { opacity: .07; }
+
+/* ---------- 카드·figure 호버 리프트 + 글로우 ---------- */
+figure.viz, .case-card, .hero-stat, .calc-panel {
+  transition: transform .22s cubic-bezier(.2,.7,.2,1), box-shadow .22s, border-color .22s;
+}
+figure.viz:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 2px 4px rgba(22,32,43,.06), 0 16px 44px rgba(30,93,149,.13);
+  border-color: color-mix(in srgb, var(--blueprint-2) 45%, var(--hairline));
+}
+:root[data-theme="dark"] figure.viz:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,.4), 0 16px 48px rgba(106,163,216,.14);
+}
+.hero-stat:hover { transform: translateY(-3px); border-color: var(--blueprint-2); }
+
+/* ---------- 리빌 스태거 (그리드 자식 시차) ---------- */
+.smallmult .sm-cell { transition: border-color .15s, transform .18s; }
+.smallmult .sm-cell:hover { transform: translateY(-2px); }
+.reveal .sm-cell, .reveal .case-card, .reveal .hero-stat { transition-delay: 0s; }
+.reveal.in .sm-cell { animation: rise .5s ease both; }
+.reveal.in .sm-cell:nth-child(2n) { animation-delay: .04s; }
+.reveal.in .sm-cell:nth-child(3n) { animation-delay: .08s; }
+.reveal.in .sm-cell:nth-child(5n) { animation-delay: .12s; }
+
+/* ---------- 레일 호버 챕터명 툴팁 ---------- */
+nav.rail a { position: relative; }
+nav.rail a::after {
+  content: attr(title); position: absolute; left: 46px; top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  background: var(--ink); color: var(--ground);
+  font-size: 11px; font-weight: 700; letter-spacing: .05em;
+  padding: 4px 10px; border-radius: var(--radius);
+  white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: opacity .15s, transform .15s;
+}
+nav.rail a:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
+
+/* ---------- 버튼 감각 ---------- */
+.mode-tabs button, .preset-row button, .ab-row button {
+  transition: transform .12s, background .15s, border-color .15s, color .15s, box-shadow .15s;
+}
+.mode-tabs button:active, .preset-row button:active, .ab-row button:active { transform: scale(.97); }
+.mode-tabs button[aria-pressed="true"] { box-shadow: 0 4px 14px color-mix(in srgb, var(--blueprint) 35%, transparent); }
+
+/* ---------- 인장 스탬프 등장 ---------- */
+.stamp { animation: stamp-in .5s cubic-bezier(.2,1.6,.4,1) 1.9s backwards; }
+@keyframes stamp-in {
+  from { transform: rotate(-8deg) scale(2.2); opacity: 0; }
+  to { transform: rotate(-8deg) scale(1); opacity: .82; }
+}
+
+/* ---------- 다크 지면 미광 ---------- */
+:root[data-theme="dark"] body::after,
+html:not([data-theme="light"]) body.dark-ambient::after { content: none; }
+
+/* ---------- 스크롤바 (webkit) ---------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--hairline-2); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: var(--axis); }
+::-webkit-scrollbar-track { background: transparent; }

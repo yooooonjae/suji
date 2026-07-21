@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수지(收支) — 대한민국 부동산 개발의 손익 구조</title>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/flourish.css">
+</head>
+<body>
+<div id="progress"></div>
+
+<nav class="rail" aria-label="챕터 이동">
+  <a href="#ch1" title="시장">Ⅰ</a>
+  <a href="#ch2" title="구조">Ⅱ</a>
+  <a href="#ch3" title="계산기">Ⅲ</a>
+  <a href="#ch4" title="민감도">Ⅳ</a>
+  <a href="#ch5" title="상권">Ⅴ</a>
+  <a href="#ch6" title="사례">Ⅵ</a>
+  <a href="#ch7" title="컨설팅">Ⅶ</a>
+  <a href="#ch8" title="방법론">Ⅷ</a>
+</nav>
+
+<div class="wrap">
+
+<!-- ============ 서장: 표지 ============ -->
+<header class="hero" id="top">
+  <div class="hero-art" aria-hidden="true">
+    <svg viewBox="0 0 420 520">
+      <!-- 청사진 건물 매싱: 타워 2동 + 저층 근생 + 크레인 + 치수선 -->
+      <rect class="slow" x="70" y="120" width="110" height="330"/>
+      <rect class="slow" x="210" y="180" width="90" height="270"/>
+      <rect class="fast" x="300" y="370" width="80" height="80"/>
+      <line class="fast" x1="70" y1="180" x2="180" y2="180"/>
+      <line class="fast" x1="70" y1="240" x2="180" y2="240"/>
+      <line class="fast" x1="70" y1="300" x2="180" y2="300"/>
+      <line class="fast" x1="70" y1="360" x2="180" y2="360"/>
+      <line class="fast" x1="70" y1="420" x2="180" y2="420"/>
+      <line class="fast" x1="210" y1="240" x2="300" y2="240"/>
+      <line class="fast" x1="210" y1="300" x2="300" y2="300"/>
+      <line class="fast" x1="210" y1="360" x2="300" y2="360"/>
+      <line class="fast" x1="210" y1="420" x2="300" y2="420"/>
+      <!-- 크레인 -->
+      <line class="fast" x1="125" y1="120" x2="125" y2="46"/>
+      <line class="fast" x1="60" y1="46" x2="250" y2="46"/>
+      <line class="fast" x1="125" y1="46" x2="60" y2="70"/>
+      <line class="fast" x1="238" y1="46" x2="238" y2="86"/>
+      <rect class="fast" x="230" y="86" width="16" height="14"/>
+      <!-- 지반선 -->
+      <line class="slow" x1="30" y1="450" x2="400" y2="450"/>
+      <!-- 치수선 (dimension) -->
+      <line class="dim2" x1="40" y1="120" x2="40" y2="450"/>
+      <line class="dim2" x1="34" y1="120" x2="46" y2="120"/>
+      <line class="dim2" x1="34" y1="450" x2="46" y2="450"/>
+      <line class="dim2" x1="70" y1="480" x2="300" y2="480"/>
+      <line class="dim2" x1="70" y1="474" x2="70" y2="486"/>
+      <line class="dim2" x1="300" y1="474" x2="300" y2="486"/>
+      <circle class="seal-dot" cx="125" cy="46" r="5"/>
+    </svg>
+  </div>
+  <div class="hero-eyebrow stagger">
+    부동산 개발 수지분석 연구 · 2026-07-21 기준
+    <button id="theme-btn" style="margin-left:auto;font:inherit;letter-spacing:0;cursor:pointer;border:1px solid var(--hairline-2);background:var(--surface);color:var(--ink-2);padding:5px 12px;border-radius:99px;font-size:12px">라이트/다크</button>
+  </div>
+  <h1><span class="stagger">수지<span class="hanja">(收支)</span> —</span><span class="stagger">땅 위에 세우는 손익의 구조</span></h1>
+  <p class="sub stagger">
+    토지의 용적률에서 조합의 비례율까지. 대한민국 부동산 개발사업의 수익 구조를
+    공공 데이터 전량과 검증된 재무 모델로 해부하고, 시행사·자산운용사·컨설턴트가
+    딜 스크리닝에 바로 쓸 수 있는 도구로 만들었다.
+  </p>
+  <div class="hero-stats stagger">
+    <div class="hero-stat"><div class="v num-hero"><span data-count="216804">0</span><small>건</small></div><div class="k">아파트 실거래 수집</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="43">0</span><small>계열</small></div><div class="k">시장 시계열 (10년)</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="8">0</span><small>종</small></div><div class="k">공공 API 연동</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="6">0</span><small>모델</small></div><div class="k">예측 벤치마크</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="123">0</span><small>개</small></div><div class="k">모델 검증 테스트</div></div>
+  </div>
+  <div class="stamp">수지<br>연구<br>檢證畢</div>
+</header>
+
+<!-- ============ Ⅰ. 시장 ============ -->
+<div class="dim-rule">제 Ⅰ 장</div>
+<section class="chapter" id="ch1" data-num="Ⅰ">
+  <header class="tblock reveal">
+    <div class="tblock-frame">
+      <div class="tblock-no">Ⅰ</div>
+      <div class="tblock-main">
+        <div class="tblock-eyebrow">Market</div>
+        <div class="tblock-title">시장 — 열일곱 개의 사이클</div>
+      </div>
+      <div class="tblock-meta"><span>출처 <b>부동산원·국토부·한국은행</b></span><span>주기 <b>월별 · 10년</b></span></div>
+    </div>
+  </header>
+
+  <div class="col-read reveal">
+    <p class="lede">부동산 개발의 첫 질문은 "어디서, 언제"다. 전국 17개 시도의 아파트 매매가격지수를
+    한 화면에 펼치면, 같은 나라 안에서 전혀 다른 국면을 지나는 시장들이 보인다.
+    시도를 선택하면 아래 상세와 예측이 함께 바뀐다.</p>
+  </div>
+
+  <div class="col-wide reveal">
+    <figure class="viz">
+      <div class="viz-head"><div class="viz-title">시도별 아파트 매매가격지수 — 최근 10년</div><div class="viz-unit">지수 (2026.01=100) · 우측 수치는 최근 1년 변동률 · 클릭하여 선택</div></div>
+      <div id="sm-sale"></div>
+      <figcaption>한국부동산원 전국주택가격동향조사. 음영은 지수 수준, 점은 최근월.</figcaption>
+    </figure>
+
+    <figure class="viz">
+      <div class="viz-head"><div class="viz-title" id="detail-title">서울 — 매매·전세가격지수</div><div class="viz-unit">지수 (2026.01=100)</div></div>
+      <div id="chart-detail"></div>
+    </figure>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:var(--sp-3)">
+      <figure class="viz">
+        <div class="viz-head"><div class="viz-title">미분양 주택 추이</div><div class="viz-unit">호</div></div>
+        <div id="chart-unsold"></div>
+        <figcaption>국토교통부 미분양주택현황. 준공후 미분양은 "악성 재고"로 별도 추적.</figcaption>
+      </figure>
+      <figure class="viz">
+        <div class="viz-head"><div class="viz-title">금리 환경</div><div class="viz-unit">연 %</div></div>
+        <div id="chart-rates"></div>
+        <figcaption>한국은행 ECOS. 기업대출 금리는 PF 조달비용의 하방 프록시.</figcaption>
+      </figure>
+    </div>
+
+    <figure class="viz reveal">
+      <div class="viz-head"><div class="viz-title">시장 국면 맵 — 가격 모멘텀 × 재고 압력</div><div class="viz-unit">최근월 기준 YoY</div></div>
+      <div id="chart-phase"></div>
+      <figcaption>세로: 매매지수 1년 변동률 · 가로: 미분양 1년 증감률. 좌상(재고 감소·가격 상승)이 진입 적기, 우하가 침체.</figcaption>
+    </figure>
+
+    <figure class="viz reveal">
+      <div class="viz-head"><div class="viz-title">마진 스퀴즈 — 분양가는 공사비를 이기고 있는가</div><div class="viz-unit">동일 시점=100 지수화</div></div>
+      <div id="chart-squeeze"></div>
+      <figcaption>분양가(HUG 민간아파트 ㎡당 분양가, 전국) vs 건설공사비지수(KICT). 두 선의 간격이 개발 마진의 거시적 여유다.</figcaption>
+    </figure>
+
+    <h3 class="reveal">그리고, 12개월 뒤</h3>
+    <div class="col-read reveal" style="padding-inline:0">
+      <p>6개 예측 모델 — 나이브 베이스라인부터 SARIMA, LightGBM, 딥러닝(LSTM),
+      시계열 파운데이션 모델(Chronos-Bolt 제로샷)까지 — 을 동일 조건의 롤링 백테스트로
+      겨루게 했다. 120개월 소표본에서는 <b>고전적 SARIMA가 우승</b>했고, 학습 없이 답한
+      Chronos가 근소한 2위였다. 딥러닝은 데이터가 부족하면 진다 — 이 정직한 결과 자체가
+      본 연구의 방법론적 입장이다.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:var(--sp-3);align-items:start" class="reveal">
+      <figure class="viz" style="margin:0">
+        <div class="viz-head"><div class="viz-title" id="fan-title">서울 — 12개월 예측</div><div class="viz-unit">지수 · 80% 예측구간</div></div>
+        <div id="chart-fan"></div>
+        <figcaption>우승 모델(SARIMA) 분위수 예측. 구간은 불확실성의 정직한 폭이다.</figcaption>
+      </figure>
+      <figure class="viz" style="margin:0">
+        <div class="viz-head"><div class="viz-title">모델 벤치마크</div><div class="viz-unit">롤링 백테스트 · 지수 오차</div></div>
+        <div class="viz-scroll"><table class="ledger" aria-label="예측모델 벤치마크">
+          <thead><tr><th>#</th><th style="text-align:left">모델</th><th>MAE</th><th>sMAPE</th></tr></thead>
+          <tbody id="bench-body"></tbody>
+        </table></div>
+        <figcaption>오리진 3회(−24·−18·−12개월) × 12개월 예측, 17개 시도 평균.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Ⅱ. 구조 ============ -->
+<div class="dim-rule">제 Ⅱ 장</div>
+<section class="chapter" id="ch2" data-num="Ⅱ">
+  <header class="tblock reveal">
+    <div class="tblock-frame">
+      <div class="tblock-no">Ⅱ</div>
+      <div class="tblock-main">
+        <div class="tblock-eyebrow">Anatomy</div>
+        <div class="tblock-title">구조 — 수지표의 해부학</div>
+      </div>
+      <div class="tblock-meta"><span>모델 검증 <b>123 테스트</b></span><span>Python↔JS <b>|Δ|&lt;1e-6</b></span></div>
+    </div>
+  </header>
+
+  <div class="col-read reveal">
+    <p class="lede">모든 개발사업의 손익은 한 장의 수지표로 수렴한다.
+    수입은 결국 <b>분양가 × 면적 × 세대수 × 분양률</b>이고, 지출은 여섯 갈래다.</p>
+    <p><b>땅에서 세대수까지.</b> 대지면적에 용도지역의 법정 용적률을 곱하면 지을 수 있는
+    연면적이 나오고, 연면적을 평균 공급면적으로 나누면 세대수가 나온다.
+    제2종일반주거지역 1만㎡(서울 조례 용적률 200%)라면 연면적 2만㎡ — 84㎡형 기준 약 176세대.
+    이 한 줄의 산수가 총수입의 상한을 결정한다.</p>
+    <p><b>여섯 갈래의 지출.</b> ① 토지비(매입가+취득세 4.6%+부대) ② 공사비(연면적×평당 공사비 —
+    최근 3년 공사비지수 급등이 사업성 악화의 주범) ③ 간접비(설계·감리·각종 부담금)
+    ④ 판매비(분양수입의 3~4%) ⑤ 금융비(브릿지·PF 이자와 수수료 — 금리 1%p가 수십억을 움직인다)
+    ⑥ 예비비. 정비사업이라면 철거·명도비, 이주비 이자, 현금청산이 더해진다.</p>
+    <p><b>정비사업의 고유 문법.</b> 재개발·재건축의 성적표는 <b>비례율</b> =
+    (총수입 − 총사업비) ÷ 종전자산평가액이다. 비례율이 100%를 넘으면 조합원의 자산 가치가
+    커지고, 조합원 분담금 = 조합원분양가 − (종전자산 × 비례율). 재개발은 임대주택
+    의무비율만큼 일반분양 수입이 줄고, 현금청산자가 늘수록 사업비가 는다.</p>
+    <p class="footnote">본 연구의 수지모델은 위 구조 전체를 분기 현금흐름으로 전개해 NPV·IRR까지
+    산출한다. Python 코어와 웹 계산기(JavaScript)는 무작위 입력 90조에서 유효숫자 14자리까지
+    일치함을 테스트로 강제했다 — 아래 Ⅲ장에서 직접 만져볼 수 있다.</p>
+  </div>
+</section>
+
+<!-- ============ Ⅲ. 계산기 ============ -->
+<div class="dim-rule">제 Ⅲ 장</div>
+<section class="chapter" id="ch3" data-num="Ⅲ">
+  <header class="tblock reveal">
+    <div class="tblock-frame">
+      <div class="tblock-no">Ⅲ</div>
+      <div class="tblock-main">
+        <div class="tblock-eyebrow">Instrument</div>
+        <div class="tblock-title">계산기 — 딜을 30초 안에 재단하라</div>
+      </div>
+      <div class="tblock-meta"><span>모드 <b>신축·재개발·재건축·리모델링</b></span><span>연산 <b>실시간</b></span></div>
+    </div>
+  </header>
+
+  <div class="calc reveal">
+    <div class="mode-tabs" role="tablist" aria-label="사업유형">
+      <button data-mode="신축분양" aria-pressed="true">신축분양</button>
+      <button data-mode="재건축" aria-pressed="false">재건축</button>
+      <button data-mode="재개발" aria-pressed="false">재개발</button>
+      <button data-mode="리모델링" aria-pressed="false">리모델링</button>
+    </div>
+    <div class="preset-row" aria-label="프리셋">
+      <button data-preset="수도권아파트">수도권 아파트</button>
+      <button data-preset="지방아파트">지방 광역시 아파트</button>
+      <button data-preset="서울재건축">서울 재건축</button>
+    </div>
+
+    <div class="calc-panel">
+      <div class="calc-in">
+        <div id="calc-fields"></div>
+      </div>
+      <div class="calc-out">
+        <p class="caption" id="calc-zoning" style="margin-bottom:var(--sp-2)"></p>
+        <div class="kpi-row" id="calc-kpis" aria-live="polite"></div>
+        <div style="display:flex;gap:var(--sp-3);align-items:center;flex-wrap:wrap;margin-bottom:var(--sp-2)">
+          <div id="g-margin"></div><div id="g-irr"></div>
+          <div class="ab-row" style="margin:0">
+            <button id="btn-snap" class="primary">현재를 A로 저장</button>
+            <span id="ab-result" class="caption"></span>
+          </div>
+        </div>
+        <div id="calc-wf" style="margin-bottom:var(--sp-3)"></div>
+        <div class="viz-scroll" id="calc-ledger"></div>
+      </div>
+    </div>
+    <p class="caption" style="margin-top:var(--sp-2)">단위: 억원·평당 만원(1평=3.3058㎡). 취득세 4.6%, PF 인출률·기간 등 세부 가정은 Ⅷ장 참조.
+    입력을 바꾸면 즉시 재계산되며, "A로 저장" 후 입력을 바꾸면 시나리오 비교가 표시된다.</p>
+  </div>
+</section>
+
+<!-- ============ Ⅳ. 민감도 ============ -->
+<div class="dim-rule">제 Ⅳ 장</div>
+<section class="chapter" id="ch4" data-num="Ⅳ">
+  <header class="tblock reveal">
+    <div class="tblock-frame">
+      <div class="tblock-no">Ⅳ</div>
+      <div class="tblock-main">
+        <div class="tblock-eyebrow">Sensitivity</div>
+        <div class="tblock-title">민감도 — 무엇이 사업을 죽이는가</div>
+      </div>
+      <div class="tblock-meta"><span>기준 <b>Ⅲ장 현재 입력</b></span><span><button id="btn-sens" style="font:inherit;cursor:pointer;border:1px solid var(--hairline-2);background:var(--surface);color:var(--blueprint);padding:3px 10px;border-radius:var(--radius);font-weight:700">↻ 재계산</button></span></div>
+    </div>
+  </header>
+
+  <div class="col-read reveal">
+    <p class="lede">Ⅲ장에서 만든 바로 그 사업의 이익이, 변수 하나가 흔들릴 때 얼마나 흔들리는지를 본다.
+    거의 모든 딜에서 순서는 같다 — <b>분양가, 그다음 공사비</b>. 나머지는 그 둘의 그림자다.</p>
+  </div>
+  <div class="col-wide reveal">
+    <figure class="viz">
+      <div class="viz-head"><div class="viz-title">토네이도 — 변수별 이익 스윙</div><div class="viz-unit">개발이익 기준</div></div>
+      <div id="sens-tornado"></div>
+      <figcaption>각 변수만 ± 변동 시 개발이익. 막대가 길수록 그 변수 관리가 딜의 본질이다.</figcaption>
+    </figure>
+    <figure class="viz">
+      <div class="viz-head"><div class="viz-title">손익분기 지도 — 분양가 × 공사비</div><div class="viz-unit">개발이익 · 적색=손실</div></div>
+      <div class="viz-scroll"><div id="sens-heat"></div></div>
+      <figcaption>두 핵심 변수의 조합별 이익. 적색 경계선이 이 사업의 생존선이다.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ Ⅴ. 상권 ============ -->
+<div class="dim-rule">제 Ⅴ 장</div>
+<section class="chapter" id="ch5" data-num="Ⅴ">
+  <header class="tblock reveal">
+    <div class="tblock-frame">
+      <div class="tblock-no">Ⅴ</div>
+      <div class="tblock-main">
+        <div class="tblock-eyebrow">Commerce</div>
+        <div class="tblock-title">상권 — 272만 업소가 그리는 지도</div>
+      </div>
+      <div class="tblock-meta"><span>출처 <b>소상공인시장진흥공단</b></span><span>주요상권 <b>1,227곳</b></span></div>
+    </div>
+  </header>
+
+  <div class="col-read reveal">
+    <p class="lede">주거 개발의 저층부, 근생의 성패는 상권이 정한다. 전국 상가업소
+    272만 개와 공단이 지정한 주요상권 1,227곳의 분포는, 근생 비율을 얼마로 가져갈지
+    — Ⅲ장 계산기의 "근생 비율" 슬라이더 — 에 대한 데이터적 근거다.</p>
+  </div>
+  <div class="col-wide reveal">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--sp-3)">
+      <figure class="viz" style="margin:0">
+        <div class="viz-head"><div class="viz-title">시도별 상가업소 수</div><div class="viz-unit">개</div></div>
+        <div id="chart-sbiz-sido"></div>
+      </figure>
+      <figure class="viz" style="margin:0">
+        <div class="viz-head"><div class="viz-title">서울 업종 구성 (상위 10)</div><div class="viz-unit">개</div></div>
+        <div id="chart-sbiz-upjong"></div>
+      </figure>
+    </div>
+    <figure class="viz reveal">
+      <div class="viz-head"><div class="viz-title">시도별 주요상권 수</div><div class="viz-unit">공단 지정 · 상위 12</div></div>
+      <div id="chart-zones"></div>
+      <figcaption>주요상권이 많다는 것은 검증된 집객 동선이 많다는 뜻 — 근생 분양가 프리미엄의 근거가 된다.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ Ⅵ. 사례 ============ -->
+<div class="dim-rule">제 Ⅵ 장</div>
+<section class="chapter" id="ch6" data-num="Ⅵ">
+  <header class="tblock reveal">
+    <div class="tblock-frame">
+      <div class="tblock-no">Ⅵ</div>
+      <div class="tblock-main">
+        <div class="tblock-eyebrow">Cases</div>
+        <div class="tblock-title">사례 — 네 개의 표준 딜</div>
+      </div>
+      <div class="tblock-meta"><span>입력 근거 <b>실데이터</b></span><span>계산 <b>본 모델</b></span></div>
+    </div>
+  </header>
+
+  <div class="col-read reveal">
+    <p class="lede">실제 시장 데이터에서 산출한 파라미터로 네 개의 표준 사례를 구성했다.
+    분양가는 그 지역의 최근 실제 분양가, 공사비는 공사비지수 반영값, 금리는 현재
+    기준금리에 실무 스프레드를 얹었다. 카드를 선택하면 수지 구조가 펼쳐진다.</p>
+  </div>
+  <div class="col-wide reveal">
+    <div class="case-grid" id="case-grid"></div>
+    <figure class="viz">
+      <div class="viz-head"><div class="viz-title" id="case-detail-title"></div><div class="viz-unit">억원</div></div>
+      <div id="case-wf"></div>
+      <figcaption><ul id="case-notes" style="margin:0 0 0 1.1em"></ul></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ Ⅶ. 컨설팅 ============ -->
+<div class="dim-rule">제 Ⅶ 장</div>
+<section class="chapter" id="ch7" data-num="Ⅶ">
+  <header class="tblock reveal">
+    <div class="tblock-frame">
+      <div class="tblock-no">Ⅶ</div>
+      <div class="tblock-main">
+        <div class="tblock-eyebrow">Advisory</div>
+        <div class="tblock-title">컨설팅 — 절차, 리스크, 그리고 국면별 전략</div>
+      </div>
+      <div class="tblock-meta"><span>관점 <b>시행·정비·운용</b></span></div>
+    </div>
+  </header>
+
+  <div class="col-read reveal">
+    <h3 style="margin-top:0">정비사업 7단계 — 각 단계가 품은 리스크</h3>
+    <div class="timeline">
+      <div class="tl-step"><div class="tl-no">01</div><div><h5>정비구역 지정</h5><p>도시·주거환경정비 기본계획 → 구역 지정. 수년이 걸리는 관문.</p><div class="risk">리스크: 지정 지연·해제, 규제 변경</div></div></div>
+      <div class="tl-step"><div class="tl-no">02</div><div><h5>조합 설립</h5><p>토지등소유자 3/4 동의. 동의율이 사업 속도의 제1 변수.</p><div class="risk">리스크: 동의율 미달, 비대위 갈등</div></div></div>
+      <div class="tl-step"><div class="tl-no">03</div><div><h5>사업시행인가</h5><p>건축심의·각종 영향평가를 통과한 설계가 확정된다.</p><div class="risk">리스크: 인허가 조건 부담, 설계 변경</div></div></div>
+      <div class="tl-step"><div class="tl-no">04</div><div><h5>관리처분인가</h5><p>종전자산 감정평가와 분담금이 확정되는 순간 — 비례율의 시험대.</p><div class="risk">리스크: 비례율 하락 → 분담금 급증 → 조합 내홍</div></div></div>
+      <div class="tl-step"><div class="tl-no">05</div><div><h5>이주·철거</h5><p>이주비 대여가 시작되고 금융비가 본격적으로 쌓인다.</p><div class="risk">리스크: 명도 소송 지연, 이주비 금리</div></div></div>
+      <div class="tl-step"><div class="tl-no">06</div><div><h5>착공·일반분양</h5><p>공사비 본계약과 분양 시점 — 이 연구의 Ⅰ장(시장 국면)이 답할 질문.</p><div class="risk">리스크: 공사비 증액 요구, 미분양</div></div></div>
+      <div class="tl-step"><div class="tl-no">07</div><div><h5>준공·이전고시</h5><p>잔금 유입과 청산. 수지표가 실적표가 된다.</p><div class="risk">리스크: 준공 지연 지체상금, 하자 분쟁</div></div></div>
+    </div>
+
+    <h3>시장 국면 × 사업유형 — 전략 매트릭스</h3>
+  </div>
+  <div class="col-wide reveal">
+    <div class="viz-scroll">
+    <table class="matrix" aria-label="국면별 전략 매트릭스">
+      <thead><tr><th style="width:110px">국면 \ 유형</th><th>신축분양</th><th>재건축·재개발</th><th>리모델링</th></tr></thead>
+      <tbody>
+        <tr><th>회복기<br><span class="caption">재고↓ 가격 보합</span></th>
+          <td><b>토지 선점기.</b> 지가가 분양가 회복을 아직 반영하지 못한 구간 — 매입 경쟁 전에 움직인다.</td>
+          <td>동의율 작업과 조합 설립을 진행할 적기. 관리처분은 확장기에 맞춘다.</td>
+          <td>분담금 수용성이 낮은 시기 — 추진위 단계에 머무르며 준비.</td></tr>
+        <tr><th>확장기<br><span class="caption">재고↓ 가격↑</span></th>
+          <td><b>분양 극대화.</b> 분양가 상한을 시험하되, 공사비 물가연동 조항을 경계.</td>
+          <td><b>일반분양 타이밍의 정점.</b> 비례율이 가장 잘 나오는 구간 — 관리처분·착공을 밀어붙인다.</td>
+          <td>수직증축 인허가와 일반분양 소량이 성립 — 추진 적기.</td></tr>
+        <tr><th>둔화기<br><span class="caption">재고↑ 가격 보합</span></th>
+          <td>분양률 가정을 보수화(85%↓)하고 중도금 무이자 등 판촉비를 수지에 선반영.</td>
+          <td>공사비 증액 협상이 몰리는 구간 — 도급계약 물가조항 재점검.</td>
+          <td>분담금 저항 시작 — 사업비 다이어트로 대응.</td></tr>
+        <tr><th>침체기<br><span class="caption">재고↑ 가격↓</span></th>
+          <td><b>신규 착수 금지선.</b> 진행 딜은 브릿지 연장보다 손절 조건을 먼저 계산한다.</td>
+          <td>속도 조절 — 이주 개시를 미뤄 금융비 누적을 차단. 현금청산 증가 대비.</td>
+          <td>사실상 동결 — 장기 수선 계획으로 회귀.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="footnote" style="margin-top:var(--sp-3)">국면 판정은 Ⅰ장 국면 맵(매매지수 YoY × 미분양 YoY)을 따른다.
+    전략은 일반론이며 개별 딜의 입지·금융 구조가 우선한다.</p>
+  </div>
+</section>
+
+<!-- ============ Ⅷ. 방법론 ============ -->
+<div class="dim-rule">제 Ⅷ 장</div>
+<section class="chapter" id="ch8" data-num="Ⅷ">
+  <header class="tblock reveal">
+    <div class="tblock-frame">
+      <div class="tblock-no">Ⅷ</div>
+      <div class="tblock-main">
+        <div class="tblock-eyebrow">Methodology</div>
+        <div class="tblock-title">방법론 — 출처, 가정, 그리고 한계</div>
+      </div>
+      <div class="tblock-meta"><span>빌드 <b>2026-07-21</b></span></div>
+    </div>
+  </header>
+
+  <div class="col-wide reveal">
+    <h4 style="margin-top:0">데이터 출처</h4>
+    <div class="viz-scroll">
+    <table class="sources">
+      <thead><tr><th>출처</th><th>내용</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td>한국부동산원 R-ONE</td><td>아파트 매매·전세가격지수, ㎡당 평균 분양가격 (시도별 월간 10년)</td><td>OpenAPI</td></tr>
+        <tr><td>국토교통부 실거래가(RTMS)</td><td>아파트 매매 201,738건·분양권 15,066건 — 시도별 대표 시군구 표본</td><td>광주·전남은 조회기간 내 원천 데이터 공백(전 시군구 0건)을 확인</td></tr>
+        <tr><td>KOSIS(국토부·KICT)</td><td>미분양·준공후미분양·착공·준공(월간)·인허가(연간)·건설공사비지수</td><td>OpenAPI</td></tr>
+        <tr><td>한국은행 ECOS</td><td>기준금리(일별→월말)·주택담보/기업대출 가중평균금리</td><td>OpenAPI</td></tr>
+        <tr><td>주택도시보증공사(HUG)</td><td>민간아파트 지역별 ㎡당 분양가격 (17시도 월간)</td><td>결측월(분양실적 없음)은 보간 없이 결측 처리</td></tr>
+        <tr><td>소상공인시장진흥공단</td><td>상가업소 시도×업종 매트릭스(272만), 주요상권 1,227곳</td><td>OpenAPI + 공표 CSV</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h4>수지모델 핵심 가정</h4>
+    <ul style="max-width:none">
+      <li>단위: 원·㎡ 내부 통일(표시만 억원·평). 취득세율 4.6%, 예비비는 직접비 대비 요율.</li>
+      <li>금융비 = 브릿지 원금×금리×기간 + PF 한도×평균인출률×금리×기간 + 취급수수료. 이자 스케줄은 균등 근사.</li>
+      <li>분양수입 스케줄: 계약금 10% / 중도금 60% 균등 / 잔금 30% 준공 시. 분기 현금흐름으로 NPV(기본 할인율 8%)·IRR(이분법) 산출.</li>
+      <li>정비사업: 비례율 = (총수입−총사업비)/종전자산평가액, 분담금 = 조합원분양가 − 권리가액. 재개발 임대의무는 일반분양 수입 차감으로 반영.</li>
+      <li>용도지역: 국토계획법 시행령 §84·§85 + 서울시 도시계획조례 §54·§55 기준값. 용적률은 지상 연면적 기준(지하 제외), 인센티브는 직접 지정 가능.</li>
+      <li>Python 코어 ↔ 웹 JS: 무작위 90조 입력 전 출력 일치(|Δ|&lt;1e-6) 테스트 강제. 모델 전체 123개 단위테스트.</li>
+    </ul>
+
+    <h4>예측 방법론</h4>
+    <ul style="max-width:none">
+      <li>대상: 시도별 아파트 매매가격지수(120개월). 외생 피처는 라그(1·3·6·12)만 사용 — 미래 정보 누출 차단.</li>
+      <li>벤치마크: naive·계절naive·SARIMA·LightGBM(분위수)·LSTM(시도 풀링)·Chronos-Bolt(제로샷) — 롤링 오리진 3회 × 12개월, MAE·sMAPE.</li>
+      <li>결과: SARIMA 우승(시도평균 MAE 0.68), Chronos 2위. <b>소표본에서 딥러닝의 열위는 예상된 결과이며 그대로 보고한다.</b></li>
+    </ul>
+
+    <h4>한계 고지</h4>
+    <ul style="max-width:none">
+      <li>본 도구의 산출은 스크리닝 목적의 추정이며 감정평가·회계·세무 자문을 대체하지 않는다. 법인세·부가세 등 세무 효과는 단순화되어 있다.</li>
+      <li>실거래 표본은 시도별 대표 시군구 기준으로, ㎡당 2백만원 미만 저가 거래를 제외한 중위값이라 지방 시도는 상향 편의가 있을 수 있다.</li>
+      <li>예측구간(80%)은 모델 불확실성의 하한이다 — 정책·금리 충격 같은 구조 변화는 담지 못한다.</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="colophon">
+  <div style="font-weight:800;color:var(--ink-2);margin-bottom:6px">수지(收支) — 대한민국 부동산 개발의 손익 구조</div>
+  개인 연구 포트폴리오 · 데이터 기준일 2026-07-21 · 공공 데이터 8종 API 수집 · 모델 123 테스트 검증<br>
+  본 페이지는 단일 HTML로 빌드되었으며 외부 요청이 없다.
+</footer>
+
+</div><!-- /wrap -->
+
+<script src="data/market.js"></script>
+<script src="data/cases.js"></script>
+<script src="data/forecast.js"></script>
+<script src="data/sbiz.js"></script>
+<script src="js/feasibility.js"></script>
+<script src="js/zoning.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/calc-ui.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

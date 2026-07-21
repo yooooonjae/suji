@@ -1,0 +1,108 @@
+/* ============================================================
+   「수지(收支)」 디자인 토큰 — 제도지(blueprint) 에디토리얼
+   라이트: 쿨톤 제도지 위 먹선 / 다크: 심야 제도판
+   차트 팔레트는 dataviz 검증기 통과값 (surface #fbfcfd / #1a2129)
+   ============================================================ */
+:root {
+  /* 지면 */
+  --ground: #f2f4f6;          /* 페이지 지면 (제도지) */
+  --surface: #fbfcfd;         /* 카드·차트 지면 */
+  --surface-2: #eceff2;       /* 함몰 지면 (입력부·코드) */
+  --ink: #16202b;             /* 먹 — 본문 */
+  --ink-2: #4c5a68;           /* 보조 먹 */
+  --ink-3: #8494a3;           /* 옅은 먹 (캡션·축) */
+  --hairline: #d7dde3;        /* 헤어라인 */
+  --hairline-2: #c2cbd4;      /* 진한 헤어라인 (도곽) */
+
+  /* 악센트 */
+  --blueprint: #1e5d95;       /* 청람 — 주 악센트 */
+  --blueprint-2: #2a78d6;     /* 청람 밝음 — 링크·활성 */
+  --blueprint-wash: #e3edf6;  /* 청람 워시 (선택·호버 배경) */
+  --seal: #c23b2e;            /* 인장 — 스탬프·경고적 강조 (절제 사용) */
+
+  /* 의미색 (semantic — 계열색으로 재사용 금지) */
+  --pos: #0e7a3c;             /* 흑자·개선 */
+  --neg: #c23b2e;             /* 적자·악화 (=인장 계열, 의미 우선) */
+
+  /* 차트 계열 (검증 통과 순서 고정 — 순환 금지) */
+  --s1: #2a78d6; --s2: #1baf7a; --s3: #eda100; --s4: #008300;
+  --s5: #4a3aa7; --s6: #e34948; --s7: #e87ba4; --s8: #eb6834;
+  /* 순차 램프 (블루) */
+  --seq-100: #cde2fb; --seq-200: #9ec5f4; --seq-300: #6da7ec;
+  --seq-400: #3987e5; --seq-500: #256abf; --seq-600: #184f95; --seq-700: #0d366b;
+  /* 차트 크롬 */
+  --grid: #e3e7ec;
+  --axis: #b6c0ca;
+
+  /* 타이포 */
+  --font-body: "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", -apple-system, sans-serif;
+  --font-num: "Charter", "Georgia", "Times New Roman", serif; /* 재무 수치 세리프 */
+  --font-mono: "SF Mono", "Menlo", monospace;
+
+  /* 타입 스케일 (1.25 단계) */
+  --t-hero: clamp(44px, 7.5vw, 84px);
+  --t-h1: clamp(30px, 4vw, 44px);
+  --t-h2: 26px;
+  --t-h3: 19px;
+  --t-body: 16px;
+  --t-small: 13.5px;
+  --t-caption: 12px;
+  --lh-body: 1.72;
+
+  /* 간격 리듬 */
+  --sp-1: 6px; --sp-2: 12px; --sp-3: 20px; --sp-4: 32px;
+  --sp-5: 52px; --sp-6: 84px; --sp-7: 136px;
+
+  /* 구조 */
+  --col-read: 68ch;           /* 읽기 컬럼 */
+  --col-wide: 1120px;         /* 차트·계산기 컬럼 */
+  --radius: 3px;              /* 도면적 절제 — 큰 라운드 금지 */
+  --shadow: 0 1px 2px rgba(22, 32, 43, .05), 0 8px 28px rgba(22, 32, 43, .07);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #10151b;
+    --surface: #1a2129;
+    --surface-2: #141b22;
+    --ink: #e8edf2;
+    --ink-2: #a8b6c2;
+    --ink-3: #6e7f8e;
+    --hairline: #2a333d;
+    --hairline-2: #38434f;
+    --blueprint: #6aa3d8;
+    --blueprint-2: #7db4e8;
+    --blueprint-wash: #1c2b3a;
+    --seal: #e06a5c;
+    --pos: #3fae6d;
+    --neg: #e06a5c;
+    --s1: #3987e5; --s2: #199e70; --s3: #c98500; --s4: #2ea52e;
+    --s5: #9085e9; --s6: #e66767; --s7: #d55181; --s8: #d95926;
+    --grid: #242e38;
+    --axis: #42505d;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 28px rgba(0, 0, 0, .35);
+  }
+}
+/* 뷰어 토글이 미디어쿼리를 양방향으로 이겨야 한다 */
+:root[data-theme="dark"] {
+  --ground: #10151b; --surface: #1a2129; --surface-2: #141b22;
+  --ink: #e8edf2; --ink-2: #a8b6c2; --ink-3: #6e7f8e;
+  --hairline: #2a333d; --hairline-2: #38434f;
+  --blueprint: #6aa3d8; --blueprint-2: #7db4e8; --blueprint-wash: #1c2b3a;
+  --seal: #e06a5c; --pos: #3fae6d; --neg: #e06a5c;
+  --s1: #3987e5; --s2: #199e70; --s3: #c98500; --s4: #2ea52e;
+  --s5: #9085e9; --s6: #e66767; --s7: #d55181; --s8: #d95926;
+  --grid: #242e38; --axis: #42505d;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 28px rgba(0, 0, 0, .35);
+}
+:root[data-theme="light"] {
+  --ground: #f2f4f6; --surface: #fbfcfd; --surface-2: #eceff2;
+  --ink: #16202b; --ink-2: #4c5a68; --ink-3: #8494a3;
+  --hairline: #d7dde3; --hairline-2: #c2cbd4;
+  --blueprint: #1e5d95; --blueprint-2: #2a78d6; --blueprint-wash: #e3edf6;
+  --seal: #c23b2e; --pos: #0e7a3c; --neg: #c23b2e;
+  --s1: #2a78d6; --s2: #1baf7a; --s3: #eda100; --s4: #008300;
+  --s5: #4a3aa7; --s6: #e34948; --s7: #e87ba4; --s8: #eb6834;
+  --grid: #e3e7ec; --axis: #b6c0ca;
+  --shadow: 0 1px 2px rgba(22, 32, 43, .05), 0 8px 28px rgba(22, 32, 43, .07);
+}

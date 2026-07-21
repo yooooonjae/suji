@@ -6,3 +6,5 @@ config.json
 .DS_Store
 자료/
 venv/
+server.log
+web/
