@@ -1,0 +1,518 @@
+{
+  "cases": [
+    {
+      "type": "신축분양",
+      "name": "수도권 공동주택 표준 사례",
+      "preset": "수도권아파트",
+      "inputs": {
+        "mode": "신축분양",
+        "revenue": {
+          "units": [
+            {
+              "name": "주거",
+              "count": 331,
+              "supply_m2": 84.9,
+              "price_per_m2": 7372530.276469885
+            }
+          ],
+          "sell_through": 0.95,
+          "other_income": 0
+        },
+        "cost": {
+          "land": {
+            "purchase": 38000000000.0,
+            "acq_tax_rate": 0.046,
+            "misc_rate": 0.01
+          },
+          "construction": {
+            "gfa_m2": 37500.0,
+            "unit_cost_per_m2": 2442082.591578097
+          },
+          "indirect_rate": 0.06,
+          "marketing_rate": 0.035,
+          "contingency_rate": 0.01
+        },
+        "finance": {
+          "equity": 35000000000.0,
+          "bridge": {
+            "amount": 60000000000.0,
+            "rate": 0.0825,
+            "months": 12
+          },
+          "pf": {
+            "amount": 200000000000.0,
+            "rate": 0.0625,
+            "months": 29,
+            "drawdown": 0.55
+          },
+          "fee_rate": 0.015
+        },
+        "schedule": {
+          "months_total": 36
+        }
+      },
+      "result": {
+        "revenue_total": 196823003147.5126,
+        "cost": {
+          "land": 40128000000.0,
+          "construction": 91578097184.17863,
+          "indirect": 5494685831.050718,
+          "marketing": 6888805110.162942,
+          "finance": 25464583333.333336,
+          "contingency": 1372007830.1522937
+        },
+        "cost_total": 170926179288.87793,
+        "profit": 25896823858.634674,
+        "margin_on_revenue": 0.1315741729599859,
+        "margin_on_cost": 0.15150882074575084,
+        "roe": 0.7399092531038478,
+        "cashflow_quarterly": [
+          -31460361377.82462,
+          1070270700.6813984,
+          1070270700.6813984,
+          1070270700.6813984,
+          1070270700.6813984,
+          1070270700.6813984,
+          1070270700.6813984,
+          1070270700.6813984,
+          1070270700.6813984,
+          1070270700.6813984,
+          1070270700.6813984,
+          46654478229.64531
+        ],
+        "npv": 15937652312.830404,
+        "irr_annual": 0.27905812358961946,
+        "proportion_rate": null,
+        "rights_value": null,
+        "member_contribution": null
+      },
+      "notes": [
+        "분양가: 경기 HUG 최근 3개월 평균 ㎡당가 → 평당 2437만원 (주택도시보증공사 민간아파트 분양가)",
+        "토지비 380억(대지 15,000㎡, 3종일반주거 가정) — ㎡당 약 253만원",
+        "용적률·세대수는 용도지역 모듈(서울 조례 대표값)로 산정, 분양률 95% 가정",
+        "공사비: 평당 750만원 × CCI 보정(최신/2023평균=1.076) = 평당 807만원 (한국건설기술연구원 건설공사비지수)",
+        "금융: ECOS 최신 기준금리 기준 — 브릿지 8.25%(+5.5%p), PF 6.25%(+3.5%p) 가정",
+        "취득세 4.6%·기타 1.0%·간접비·판매비·예비비는 실무 표준 요율 가정"
+      ]
+    },
+    {
+      "type": "신축분양",
+      "name": "지방 광역시 공동주택 표준 사례(부산)",
+      "preset": "지방아파트",
+      "inputs": {
+        "mode": "신축분양",
+        "revenue": {
+          "units": [
+            {
+              "name": "주거",
+              "count": 397,
+              "supply_m2": 84.9,
+              "price_per_m2": 8022905.300858948
+            }
+          ],
+          "sell_through": 0.9,
+          "other_income": 0
+        },
+        "cost": {
+          "land": {
+            "purchase": 48000000000.0,
+            "acq_tax_rate": 0.046,
+            "misc_rate": 0.01
+          },
+          "construction": {
+            "gfa_m2": 45000.0,
+            "unit_cost_per_m2": 2442082.591578097
+          },
+          "indirect_rate": 0.06,
+          "marketing_rate": 0.04,
+          "contingency_rate": 0.01
+        },
+        "finance": {
+          "equity": 30000000000.0,
+          "bridge": {
+            "amount": 50000000000.0,
+            "rate": 0.0825,
+            "months": 12
+          },
+          "pf": {
+            "amount": 180000000000.0,
+            "rate": 0.0625,
+            "months": 27,
+            "drawdown": 0.55
+          },
+          "fee_rate": 0.015
+        },
+        "schedule": {
+          "months_total": 34
+        }
+      },
+      "result": {
+        "revenue_total": 243372987033.33704,
+        "cost": {
+          "land": 50688000000.0,
+          "construction": 109893716621.01437,
+          "indirect": 6593622997.260862,
+          "marketing": 9734919481.33348,
+          "finance": 21496875000.0,
+          "contingency": 1671753396.1827524
+        },
+        "cost_total": 200078887495.79147,
+        "profit": 43294099537.54556,
+        "margin_on_revenue": 0.1778919676554538,
+        "margin_on_cost": 0.21638514727575256,
+        "roe": 1.4431366512515187,
+        "cashflow_quarterly": [
+          -38962190579.3378,
+          2380286718.5820484,
+          2380286718.5820484,
+          2380286718.5820484,
+          2380286718.5820484,
+          2380286718.5820484,
+          2380286718.5820484,
+          2380286718.5820484,
+          2380286718.5820484,
+          2380286718.5820484,
+          2380286718.5820484,
+          58453422931.062904
+        ],
+        "npv": 29786877117.134556,
+        "irr_annual": 0.393877038317368,
+        "proportion_rate": null,
+        "rights_value": null,
+        "member_contribution": null
+      },
+      "notes": [
+        "분양가: 부산 HUG 최근 3개월 평균 ㎡당가 → 평당 2652만원 (주택도시보증공사 민간아파트 분양가)",
+        "토지비 480억(대지 18,000㎡) — 수도권 대비 낮은 지가 가정, 분양률 90%(지방 흡수율 보수적)",
+        "공사비: 평당 750만원 × CCI 보정(최신/2023평균=1.076) = 평당 807만원 (한국건설기술연구원 건설공사비지수)",
+        "금융: ECOS 최신 기준금리 기준 — 브릿지 8.25%(+5.5%p), PF 6.25%(+3.5%p) 가정",
+        "취득세 4.6%·기타 1.0%·간접비·판매비·예비비는 실무 표준 요율 가정"
+      ]
+    },
+    {
+      "type": "신축분양",
+      "name": "오피스텔 표준 사례(서울, 근생 혼합)",
+      "preset": "오피스텔",
+      "inputs": {
+        "mode": "신축분양",
+        "revenue": {
+          "units": [
+            {
+              "name": "주거",
+              "count": 163,
+              "supply_m2": 44.0,
+              "price_per_m2": 16512265.61920996
+            },
+            {
+              "name": "근생",
+              "count": 1,
+              "supply_m2": 1440.0,
+              "price_per_m2": 18989105.462091453
+            }
+          ],
+          "sell_through": 0.92,
+          "other_income": 0
+        },
+        "cost": {
+          "land": {
+            "purchase": 70000000000.0,
+            "acq_tax_rate": 0.046,
+            "misc_rate": 0.01
+          },
+          "construction": {
+            "gfa_m2": 12000.0,
+            "unit_cost_per_m2": 2442082.591578097
+          },
+          "indirect_rate": 0.065,
+          "marketing_rate": 0.04,
+          "contingency_rate": 0.01
+        },
+        "finance": {
+          "equity": 35000000000.0,
+          "bridge": {
+            "amount": 50000000000.0,
+            "rate": 0.0825,
+            "months": 12
+          },
+          "pf": {
+            "amount": 90000000000.0,
+            "rate": 0.0625,
+            "months": 24,
+            "drawdown": 0.6
+          },
+          "fee_rate": 0.015
+        },
+        "schedule": {
+          "months_total": 30
+        }
+      },
+      "result": {
+        "revenue_total": 134108658415.47469,
+        "cost": {
+          "land": 73920000000.0,
+          "construction": 29304991098.937164,
+          "indirect": 1904824421.4309158,
+          "marketing": 5364346336.618987,
+          "finance": 12975000000.0,
+          "contingency": 1051298155.2036808
+        },
+        "cost_total": 124520460012.19075,
+        "profit": 9588198403.283936,
+        "margin_on_revenue": 0.07149574469367416,
+        "margin_on_cost": 0.07700098764769449,
+        "roe": 0.27394852580811246,
+        "cashflow_quarterly": [
+          -65569180159.6716,
+          5132212038.357,
+          5132212038.357,
+          5132212038.357,
+          5132212038.357,
+          5132212038.357,
+          5132212038.357,
+          5132212038.357,
+          5132212038.357,
+          34099682256.09953
+        ],
+        "npv": 797704533.9969769,
+        "irr_annual": 0.08821986779492041,
+        "proportion_rate": null,
+        "rights_value": null,
+        "member_contribution": null
+      },
+      "notes": [
+        "분양가: 서울 HUG 최근 3개월 평균 ㎡당가 → 평당 5459만원 (오피스텔 대용치로 서울 분양가 사용)",
+        "준주거 근생 혼합 20% — 근생부는 주거 대비 +15% 단가·전용 60% 가정",
+        "토지비 700억(도심 소규모 대지 3,000㎡), 평균 공급 44.0㎡(소형 위주)",
+        "공사비: 평당 750만원 × CCI 보정(최신/2023평균=1.076) = 평당 807만원 (한국건설기술연구원 건설공사비지수)",
+        "금융: ECOS 최신 기준금리 기준 — 브릿지 8.25%(+5.5%p), PF 6.25%(+3.5%p) 가정",
+        "취득세 4.6%·기타 1.0%·간접비·판매비·예비비는 실무 표준 요율 가정"
+      ]
+    },
+    {
+      "type": "재건축",
+      "name": "서울 재건축 표준 사례",
+      "preset": "서울재건축",
+      "inputs": {
+        "mode": "재건축",
+        "revenue": {
+          "units": [],
+          "sell_through": 0.95,
+          "other_income": 0
+        },
+        "cost": {
+          "land": {
+            "purchase": 0,
+            "acq_tax_rate": 0.046,
+            "misc_rate": 0.01
+          },
+          "construction": {
+            "gfa_m2": 80000.0,
+            "unit_cost_per_m2": 2442082.591578097
+          },
+          "indirect_rate": 0.06,
+          "marketing_rate": 0.03,
+          "contingency_rate": 0.01
+        },
+        "finance": {
+          "equity": 50000000000.0,
+          "bridge": {
+            "amount": 50000000000.0,
+            "rate": 0.0825,
+            "months": 12
+          },
+          "pf": {
+            "amount": 300000000000.0,
+            "rate": 0.0625,
+            "months": 34,
+            "drawdown": 0.55
+          },
+          "fee_rate": 0.015
+        },
+        "schedule": {
+          "months_total": 42
+        },
+        "redevelopment": {
+          "prior_asset_value": 480000000000.0,
+          "member_count": 500,
+          "member_supply_m2": 84.9,
+          "member_price_per_m2": 14035395.52632733,
+          "general_units": [
+            {
+              "name": "일반",
+              "count": 200,
+              "supply_m2": 84.9,
+              "price_per_m2": 16512265.61920996
+            }
+          ],
+          "relocation_loan": {
+            "amount": 80000000000.0,
+            "rate": 0.0525,
+            "months": 29
+          },
+          "demolition_cost": 15000000000.0,
+          "rental_ratio": 0,
+          "cash_settlement_ratio": 0.05
+        }
+      },
+      "result": {
+        "revenue_total": 832371769791.4413,
+        "cost": {
+          "land": 0.0,
+          "construction": 195366607326.24777,
+          "indirect": 11721996439.574865,
+          "marketing": 24971153093.743237,
+          "finance": 38593750000.0,
+          "contingency": 2070886037.6582263,
+          "demolition": 15000000000.0,
+          "relocation_interest": 10150000000.0,
+          "cash_settlement": 24000000000.0
+        },
+        "cost_total": 321874392897.2241,
+        "profit": 510497376894.21716,
+        "margin_on_revenue": 0.6133045298041849,
+        "margin_on_cost": 1.5860142594730149,
+        "roe": 10.209947537884343,
+        "cashflow_quarterly": [
+          37246973112.37832,
+          20876942277.49341,
+          20876942277.49341,
+          20876942277.49341,
+          20876942277.49341,
+          20876942277.49341,
+          20876942277.49341,
+          20876942277.49341,
+          20876942277.49341,
+          20876942277.49341,
+          20876942277.49341,
+          20876942277.49341,
+          20876942277.49341,
+          222727096451.9179
+        ],
+        "npv": 432245952801.6602,
+        "irr_annual": null,
+        "proportion_rate": 1.0635362018629524,
+        "rights_value": 1020994753.7884343,
+        "member_contribution": 170610326.39675617
+      },
+      "notes": [
+        "일반분양가: 서울 HUG 최근 3개월 평균 → 평당 5459만원, 조합원분양가는 그 85% (평당 4640만원) 가정",
+        "종전자산평가액 4,800억·조합원 500명·일반분양 200세대 (비례율·분담금 산출 기준)",
+        "이주비 대여 800억(5.25%, +2.5%p)·철거명도 150억·현금청산 5% 가정",
+        "공사비: 평당 750만원 × CCI 보정(최신/2023평균=1.076) = 평당 807만원 (한국건설기술연구원 건설공사비지수)",
+        "금융: ECOS 최신 기준금리 기준 — 브릿지 8.25%(+5.5%p), PF 6.25%(+3.5%p) 가정",
+        "취득세 4.6%·기타 1.0%·간접비·판매비·예비비는 실무 표준 요율 가정"
+      ]
+    }
+  ],
+  "presets": {
+    "수도권아파트": {
+      "land_area": 15000,
+      "zone": "R3",
+      "nb_ratio": 0,
+      "avg_supply": 84.9,
+      "price_py": 2437.2,
+      "sell_through": 95,
+      "land_eok": 380,
+      "unit_cost_py": 807.3,
+      "months": 36,
+      "indirect": 6,
+      "marketing": 3.5,
+      "contingency": 1,
+      "equity_eok": 350,
+      "bridge_eok": 600,
+      "bridge_rate": 8.25,
+      "bridge_mo": 12,
+      "pf_eok": 2000,
+      "pf_rate": 6.25,
+      "pf_draw": 55,
+      "fee": 1.5
+    },
+    "지방아파트": {
+      "land_area": 18000,
+      "zone": "R3",
+      "nb_ratio": 0,
+      "avg_supply": 84.9,
+      "price_py": 2652.2,
+      "sell_through": 90,
+      "land_eok": 480,
+      "unit_cost_py": 807.3,
+      "months": 34,
+      "indirect": 6,
+      "marketing": 4,
+      "contingency": 1,
+      "equity_eok": 300,
+      "bridge_eok": 500,
+      "bridge_rate": 8.25,
+      "bridge_mo": 12,
+      "pf_eok": 1800,
+      "pf_rate": 6.25,
+      "pf_draw": 55,
+      "fee": 1.5
+    },
+    "오피스텔": {
+      "land_area": 3000,
+      "zone": "RS",
+      "nb_ratio": 20,
+      "avg_supply": 44.0,
+      "price_py": 5458.6,
+      "sell_through": 92,
+      "land_eok": 700,
+      "unit_cost_py": 807.3,
+      "months": 30,
+      "indirect": 6.5,
+      "marketing": 4,
+      "contingency": 1,
+      "equity_eok": 350,
+      "bridge_eok": 500,
+      "bridge_rate": 8.25,
+      "bridge_mo": 12,
+      "pf_eok": 900,
+      "pf_rate": 6.25,
+      "pf_draw": 60,
+      "fee": 1.5
+    },
+    "서울재건축": {
+      "__mode": "재건축",
+      "land_area": 32000,
+      "zone": "R3",
+      "nb_ratio": 0,
+      "avg_supply": 84.9,
+      "price_py": 5458.6,
+      "sell_through": 95,
+      "land_eok": 0,
+      "unit_cost_py": 807.3,
+      "months": 42,
+      "indirect": 6,
+      "marketing": 3,
+      "contingency": 1,
+      "equity_eok": 500,
+      "bridge_eok": 500,
+      "bridge_rate": 8.25,
+      "bridge_mo": 12,
+      "pf_eok": 3000,
+      "pf_rate": 6.25,
+      "pf_draw": 55,
+      "fee": 1.5,
+      "prior_eok": 4800,
+      "members": 500,
+      "mem_supply": 84.9,
+      "mem_price_py": 4639.8,
+      "gen_units": 200,
+      "relo_eok": 800,
+      "relo_rate": 5.25,
+      "demo_eok": 150,
+      "rental": 0,
+      "cashout": 5
+    }
+  },
+  "meta": {
+    "sources": [
+      "주택도시보증공사(HUG) 민간아파트 분양가격 동향",
+      "통계청 국가통계포털(KOSIS) · 건설공사비지수는 한국건설기술연구원",
+      "한국은행 경제통계시스템(ECOS)"
+    ],
+    "cci_factor": 1.0764,
+    "base_rate_pct": 2.75,
+    "built_at": "2026-07-21"
+  }
+}
