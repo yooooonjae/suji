@@ -26,7 +26,9 @@ JS_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "site", "js", "feasibility.js")
 )
 
-N_CASES = 50
+N_SHINCHUK = 50           # 신축분양(경계 5 + 무작위 45)
+N_REDEV = 20              # 정비사업(재개발·재건축·리모델링) 무작위
+N_CASES = N_SHINCHUK + N_REDEV  # 70
 REL_TOL = 1e-9
 ABS_TOL = 1e-6
 
@@ -100,6 +102,76 @@ def _random_case(rng):
         "discount_rate": _rate(rng),
     }
     # 가끔 discount_rate 키를 제거 → 기본값(0.08) 경로 검증
+    if rng.random() < 0.15:
+        del case["discount_rate"]
+    return case
+
+
+def _random_redev_case(rng):
+    """정비사업(재개발·재건축·리모델링) 한 조 생성.
+
+    현금청산·임대의무·이주비·철거비·토지비 0 관행·일반분양 0종(리모델링) 등
+    경계를 무작위로 포함한다. mode 는 세 정비사업 중 하나.
+    """
+    mode = rng.choice(["재개발", "재건축", "리모델링"])
+    cash_ratio = 0.0 if rng.random() < 0.4 else rng.uniform(0.0, 0.4)
+    rental = 0.0 if rng.random() < 0.5 else rng.uniform(0.0, 0.3)
+    n_general = rng.randint(0, 3)  # 0 → 일반분양 없음(리모델링 극단)
+
+    case = {
+        "mode": mode,
+        "revenue": {
+            "sell_through": 0.0 if rng.random() < 0.1 else rng.uniform(0.3, 1.0),
+            "other_income": 0 if rng.random() < 0.5 else rng.uniform(0, 5e9),
+        },
+        "redevelopment": {
+            "prior_asset_value": rng.uniform(1e10, 2e11),
+            "member_count": rng.randint(20, 500),
+            "member_supply_m2": rng.uniform(60, 150),
+            "member_price_per_m2": rng.uniform(3e6, 2e7),
+            "general_units": _units(rng, n_general),
+            "relocation_loan": {
+                "amount": 0 if rng.random() < 0.3 else rng.uniform(1e9, 3e10),
+                "rate": _rate(rng),
+                "months": rng.randint(0, 36),
+            },
+            "demolition_cost": 0 if rng.random() < 0.3 else rng.uniform(1e9, 2e10),
+            "rental_ratio": rental,
+            "cash_settlement_ratio": cash_ratio,
+        },
+        "cost": {
+            "land": {
+                # 정비사업 관행: 토지비 0 우세
+                "purchase": 0 if rng.random() < 0.6 else rng.uniform(1e9, 5e10),
+                "acq_tax_rate": _rate(rng),
+                "misc_rate": _rate(rng),
+            },
+            "construction": {
+                "gfa_m2": rng.uniform(1e4, 3e5),
+                "unit_cost_per_m2": rng.uniform(1.5e6, 4e6),
+            },
+            "indirect_rate": _rate(rng),
+            "marketing_rate": _rate(rng),
+            "contingency_rate": _rate(rng),
+        },
+        "finance": {
+            "equity": 0 if rng.random() < 0.3 else rng.uniform(1e9, 5e10),
+            "bridge": {
+                "amount": 0 if rng.random() < 0.4 else rng.uniform(1e8, 1e10),
+                "rate": _rate(rng),
+                "months": rng.randint(0, 36),
+            },
+            "pf": {
+                "amount": 0 if rng.random() < 0.4 else rng.uniform(1e9, 5e10),
+                "rate": _rate(rng),
+                "months": rng.randint(0, 48),
+                "drawdown": rng.uniform(0.0, 1.0),
+            },
+            "fee_rate": _rate(rng),
+        },
+        "schedule": {"months_total": rng.randint(6, 60)},
+        "discount_rate": _rate(rng),
+    }
     if rng.random() < 0.15:
         del case["discount_rate"]
     return case
@@ -227,14 +299,21 @@ def _boundary_cases():
 
 
 def make_inputs():
-    """고정 시드로 경계 + 무작위 = 총 N_CASES 조 생성."""
+    """고정 시드로 신축분양(경계+무작위) + 정비사업 무작위 = 총 N_CASES 조 생성.
+
+    앞 N_SHINCHUK 조는 기존 신축분양 세트를 그대로 보존(시드·순서 동일)하고,
+    이어서 N_REDEV 조의 정비사업 케이스를 덧붙인다.
+    """
     rng = random.Random()
     rng.seed(42)
     bounds = _boundary_cases()
     cases = list(bounds)
-    while len(cases) < N_CASES:
+    while len(cases) < N_SHINCHUK:
         cases.append(_random_case(rng))
-    return cases[:N_CASES]
+    cases = cases[:N_SHINCHUK]
+    for _ in range(N_REDEV):
+        cases.append(_random_redev_case(rng))
+    return cases
 
 
 INPUTS = make_inputs()
@@ -285,9 +364,10 @@ def _close(a, b, path):
 def _compare(py, js, idx):
     p = f"case[{idx}]"
 
-    # 스칼라들
+    # 스칼라들 (정비사업 지표 3종 포함 — 신축분양은 양쪽 None)
     for k in ("revenue_total", "cost_total", "profit",
-              "margin_on_revenue", "margin_on_cost", "roe", "npv", "irr_annual"):
+              "margin_on_revenue", "margin_on_cost", "roe", "npv", "irr_annual",
+              "proportion_rate", "rights_value", "member_contribution"):
         _close(py[k], js[k], f"{p}.{k}")
 
     # cost dict: 키집합 동일 + 키별 비교
@@ -330,3 +410,9 @@ def test_covers_boundaries():
     assert JS_RESULTS[0]["roe"] is None
     # None 결과가 최소 1건 이상 존재(패리티가 None 경로도 실제로 탄다)
     assert any(r["irr_annual"] is None for r in PY_RESULTS)
+    # 신축분양 케이스는 정비사업 지표가 None
+    assert PY_RESULTS[0]["proportion_rate"] is None
+    assert JS_RESULTS[0]["proportion_rate"] is None
+    # 정비사업 케이스(뒤 N_REDEV 조)는 비례율이 실수로 산출됨(양쪽 일치)
+    assert any(r["proportion_rate"] is not None for r in PY_RESULTS[N_SHINCHUK:])
+    assert any(r["proportion_rate"] is not None for r in JS_RESULTS[N_SHINCHUK:])

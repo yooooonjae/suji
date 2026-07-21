@@ -14,6 +14,9 @@
 (function (global) {
   "use strict";
 
+  // 정비사업 모드(비-신축). rental_ratio 는 재개발에만 적용된다.
+  var _REDEV_MODES = ["재개발", "재건축", "리모델링"];
+
   // ------------------------------------------------------------------ //
   // 보조: 좌→우 합산 (Python sum(iterable, 0) 과 동일 순서)
   // ------------------------------------------------------------------ //
@@ -123,8 +126,14 @@
     inflow[last] += other_income; // 기타수입
 
     // --- 유출 ---
+    // 정비사업 전용 항목은 키 부재(신축분양) 시 0 → 결과 불변.
+    var demolition = cost.demolition === undefined ? 0 : cost.demolition;
+    var reloc_int = cost.relocation_interest === undefined ? 0 : cost.relocation_interest;
+    var cash_settlement = cost.cash_settlement === undefined ? 0 : cost.cash_settlement;
     outflow[0] += cost.land; // 토지비 q0
-    var even_direct = (cost.construction + cost.indirect + cost.contingency) / quarters;
+    outflow[0] += cash_settlement; // 현금청산비 q0(정비사업)
+    var even_direct =
+      (cost.construction + cost.indirect + cost.contingency + demolition + reloc_int) / quarters;
     var even_finance = cost.finance / quarters;
     for (var q2 = 0; q2 < quarters; q2++) {
       outflow[q2] += even_direct + even_finance;
@@ -205,6 +214,42 @@
   }
 
   // ------------------------------------------------------------------ //
+  // 정비사업(재개발·재건축·리모델링)
+  // ------------------------------------------------------------------ //
+  // 이주비 대여 이자 = amount × rate × months / 12 (이자만 사업비).
+  function compute_relocation_interest(loan) {
+    if (!loan) return 0.0;
+    var amount = loan.amount === undefined ? 0 : loan.amount;
+    var rate = loan.rate === undefined ? 0 : loan.rate;
+    var months = loan.months === undefined ? 0 : loan.months;
+    return (amount * rate * months) / 12;
+  }
+
+  // 정비사업 수입. 반환: {member, general, other, sales, total}.
+  //   유효조합원수 = member_count × (1 − cash_settlement_ratio)
+  //   member  = 유효조합원수 × member_supply_m2 × member_price_per_m2
+  //   general = Σ(general_units)×sell_through, 재개발이면 ×(1 − rental_ratio)
+  //   sales = member + general, other = other_income, total = sales + other
+  function compute_redevelopment_revenue(redev, revenue, mode) {
+    var cash_ratio = redev.cash_settlement_ratio || 0;
+    var eff_members = redev.member_count * (1 - cash_ratio);
+    var member_unit_price = redev.member_supply_m2 * redev.member_price_per_m2;
+    var member = eff_members * member_unit_price;
+
+    var sell_through = revenue.sell_through === undefined ? 1.0 : revenue.sell_through;
+    var general_rev = compute_revenue({
+      units: redev.general_units || [],
+      sell_through: sell_through,
+    });
+    var rental_ratio = mode === "재개발" ? redev.rental_ratio || 0 : 0.0;
+    var general = general_rev.sales * (1 - rental_ratio);
+
+    var other = revenue.other_income || 0;
+    var sales = member + general;
+    return { member: member, general: general, other: other, sales: sales, total: sales + other };
+  }
+
+  // ------------------------------------------------------------------ //
   // 진입점
   // ------------------------------------------------------------------ //
   // 분모 0 이면 null, 아니면 나눗셈.
@@ -214,27 +259,68 @@
 
   // 수지분석 실행. 입력·출력 스키마는 Python 과 동일.
   function run_feasibility(inputs) {
-    var rev = compute_revenue(inputs.revenue);
-    var revenue_total = rev.total;
+    var mode = inputs.mode === undefined ? "신축분양" : inputs.mode;
+    var is_redev = _REDEV_MODES.indexOf(mode) !== -1;
+    var revenue = inputs.revenue === undefined ? {} : inputs.revenue;
 
+    // --- 수입 ---
+    var rev, sales, other, revenue_total;
+    if (is_redev) {
+      var redev = inputs.redevelopment;
+      rev = compute_redevelopment_revenue(redev, revenue, mode);
+      sales = rev.sales;
+      other = rev.other;
+      revenue_total = rev.total;
+    } else {
+      rev = compute_revenue(revenue);
+      sales = rev.sales;
+      other = rev.other;
+      revenue_total = rev.total;
+    }
+
+    // --- 지출 ---
     var cost = compute_costs(inputs.cost, inputs.finance, revenue_total);
-    // sum(cost.values()): land→construction→indirect→marketing→finance→contingency
-    var cost_total = _sum([
+    var costVals = [
       cost.land,
       cost.construction,
       cost.indirect,
       cost.marketing,
       cost.finance,
       cost.contingency,
-    ]);
+    ];
+    if (is_redev) {
+      var redevC = inputs.redevelopment;
+      var cash_ratio = redevC.cash_settlement_ratio || 0;
+      cost.demolition = redevC.demolition_cost || 0;
+      cost.relocation_interest = compute_relocation_interest(redevC.relocation_loan);
+      cost.cash_settlement = redevC.prior_asset_value * cash_ratio;
+      // sum 순서: 기존 6키 → demolition → relocation_interest → cash_settlement
+      costVals.push(cost.demolition, cost.relocation_interest, cost.cash_settlement);
+    }
+    var cost_total = _sum(costVals);
 
     var profit = revenue_total - cost_total;
+
+    // --- 정비사업 지표(비례율·권리가액·분담금) ---
+    var proportion_rate = null;
+    var rights_value = null;
+    var member_contribution = null;
+    if (is_redev) {
+      var redevM = inputs.redevelopment;
+      var prior = redevM.prior_asset_value;
+      proportion_rate = _safe_div(profit, prior);
+      var base_rights = _safe_div(prior, redevM.member_count);
+      rights_value =
+        proportion_rate === null || base_rights === null ? null : base_rights * proportion_rate;
+      var member_unit_price = redevM.member_supply_m2 * redevM.member_price_per_m2;
+      member_contribution = rights_value === null ? null : member_unit_price - rights_value;
+    }
 
     var equity = inputs.finance.equity === undefined ? 0 : inputs.finance.equity;
     var months_total = inputs.schedule.months_total;
     var discount_rate = inputs.discount_rate === undefined ? 0.08 : inputs.discount_rate;
 
-    var cashflows = compute_cashflow(rev.sales, rev.other, cost, months_total);
+    var cashflows = compute_cashflow(sales, other, cost, months_total);
 
     return {
       revenue_total: revenue_total,
@@ -247,6 +333,9 @@
       cashflow_quarterly: cashflows,
       npv: compute_npv(cashflows, discount_rate),
       irr_annual: compute_irr_annual(cashflows),
+      proportion_rate: proportion_rate,
+      rights_value: rights_value,
+      member_contribution: member_contribution,
     };
   }
 
@@ -263,5 +352,7 @@
     compute_cashflow: compute_cashflow,
     compute_npv: compute_npv,
     compute_irr_annual: compute_irr_annual,
+    compute_relocation_interest: compute_relocation_interest,
+    compute_redevelopment_revenue: compute_redevelopment_revenue,
   };
 })(typeof window !== "undefined" ? window : globalThis);
