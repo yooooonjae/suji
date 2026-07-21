@@ -122,7 +122,7 @@ def test_ym_minus_wraps_year():
 # 계약 키 존재
 # --------------------------------------------------------------------------- #
 REQUIRED_MARKET_KEYS = [
-    "sale_index", "jeonse_index", "unsold", "unsold_completed",
+    "sale_index", "jeonse_index", "sub_index", "unsold", "unsold_completed",
     "base_rate", "mortgage_rate", "corp_loan_rate",
     "presale_indexed", "cci_indexed", "phase_points", "sido_summary", "meta",
 ]
@@ -137,6 +137,43 @@ def test_market_sale_index_has_nationwide_and_18(M):
     assert "전국" in M["sale_index"]
     assert len(M["sale_index"]) == 18
     assert "전국" in M["jeonse_index"]
+
+
+# --------------------------------------------------------------------------- #
+# sub_index — 시군구 드릴다운(R-ONE 하위지역)
+# --------------------------------------------------------------------------- #
+def test_sub_index_region_counts(M):
+    """서울 25구·경기 28시·부산 16구군 등 시도별 하위지역 수(원자료 실측)."""
+    sub = M["sub_index"]
+    assert len(sub["서울"]) == 25
+    assert len(sub["경기"]) == 28
+    assert len(sub["부산"]) == 16
+    for sido in ("대구", "인천"):
+        assert len(sub[sido]) == 8
+    for sido in ("광주", "대전", "울산"):
+        assert len(sub[sido]) == 5
+
+
+def test_sub_index_value_range(M):
+    """모든 하위지역 지수는 유효범위 20~200 내."""
+    for units in M["sub_index"].values():
+        for series in units.values():
+            for p in series:
+                assert 20.0 <= p["value"] <= 200.0, p
+
+
+def test_sub_index_latest_month_matches_sido(M):
+    """하위지역 최근월은 상위 시도 매매지수 최근월과 동일해야 정합(드릴다운 기준)."""
+    for sido, units in M["sub_index"].items():
+        sido_last = M["sale_index"][sido][-1]["ym"]
+        for name, series in units.items():
+            assert series[-1]["ym"] == sido_last, f"{sido}/{name}"
+
+
+def test_sub_index_seoul_has_gangnam(M):
+    gangnam = M["sub_index"]["서울"]["강남구"]
+    assert gangnam and all(set(p) == {"ym", "value"} for p in gangnam)
+    assert len(gangnam) >= 24  # 최근 10년(120개월) 수집이나 최소 하한만 강제
 
 
 def test_rate_series_truncated_to_120(M):

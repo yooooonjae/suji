@@ -3,6 +3,8 @@ out/market.json 을 생성한다.
 
 출력 계약(키는 site/js/app.js 가 소비 — 정확 일치 필수):
   sale_index, jeonse_index        : rone 그대로(전국 포함 18개 시도)
+  sub_index                       : rone_sub 매매지수 시군구 드릴다운
+                                    {시도: {시군구: [{ym,value}...]}} (서울25·경기28·부산16 등)
   unsold, unsold_completed        : kosis 그대로
   base_rate, mortgage_rate, corp_loan_rate : ecos, 최근 120개월 절단
   presale_indexed                 : HUG 전국(시도 산술평균) ㎡당가 지수(시작월=100)
@@ -209,6 +211,7 @@ def sido_summary(rone: dict, kosis: dict, hug: dict, rtms: dict, hug_nat: list) 
 # --------------------------------------------------------------------------- #
 def build() -> dict:
     rone = _load("rone.json")
+    rone_sub = _load("rone_sub.json")
     kosis = _load("kosis.json")
     ecos = _load("ecos.json")
     hug = _load("hug.json")
@@ -230,6 +233,7 @@ def build() -> dict:
     market = {
         "sale_index": sale,
         "jeonse_index": rone["jeonse_index"],
+        "sub_index": rone_sub["sale_sub"],
         "unsold": unsold,
         "unsold_completed": kosis["unsold_completed"],
         "base_rate": tail(ecos["base_rate"]),
@@ -267,7 +271,9 @@ def main() -> Path:
     path.write_text(json.dumps(market, ensure_ascii=False, indent=2), encoding="utf-8")
     m = market["meta"]
     print(f"market.json 생성: {path}")
-    print(f"  시도 {len(market['sale_index'])}개 · phase_points {len(market['phase_points'])}개 · "
+    sub_n = sum(len(v) for v in market["sub_index"].values())
+    print(f"  시도 {len(market['sale_index'])}개 · sub_index {len(market['sub_index'])}시도/{sub_n}지역 · "
+          f"phase_points {len(market['phase_points'])}개 · "
           f"분양가지수 {len(market['presale_indexed'])}개월(시작 {m['index_base_ym']})")
     print(f"  asof: {m['asof']} · rtms 결측 {m['missing_rtms_sido']}")
     return path
