@@ -67,3 +67,14 @@
 - `DT_MLTM_5403`(후보)은 인허가가 아니라 "(일반가구)행정구역별 주택유형"(센서스 %) → 폐기.
 - 착공·준공 월 플로우는 정정치로 음수 존재(예: 대구 202508 착공 −56) — 원본 유지, 검증 하한 완화.
 - KOSIS getMeta는 키 미인용 JSON(`{OBJ_ID:"..."}`) 반환 → 정규식 보정 후 파싱.
+
+## 상가(상권)정보 sdsc2 (2026-07-21 실측, Task 9)
+
+- 베이스 `apis.data.go.kr/B553077/api/open/sdsc2` — 기존 service_key로 **정상 200**.
+- `largeUpjongList` 25개 대분류(indsLclsCd A1~U1), `middleUpjongList?indsLclsCd=`로 중분류.
+- 시도 필터는 `storeListInDong?divId=ctprvnCd&key=<시도2자리>` (+`indsLclsCd`/`indsMclsCd` 병용 가능,
+  `numOfRows=1`로 totalCount만 취득). `storeListInUpjong`은 지역 필터 불가, `storeListInAdmi`는 404.
+- 시도코드는 **개편 신코드만 인식**: 강원 42→**51**, 전북 45→**52** (구코드 NODATA_ERROR 03).
+- 간헐 502 Bad Gateway 실측(장시간 연속호출 중) → 백오프 재시도로 흡수. 업소 0건은 resultCode 03.
+- 수집 완료: 시도17×대분류25 + 서울·경기·부산 중분류(각 91개) → `data/sbiz.json`
+  (전국 업소 2,725,313 · 중분류합=대분류합 3개 시도 전부 일치 · 주요상권 CSV 1,227건 통합).
