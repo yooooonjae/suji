@@ -149,7 +149,7 @@
       const dir = yoy >= 0 ? "up" : "down";
       cell.innerHTML = `<div class="sm-name"><span>${name}</span><span class="sm-delta ${dir}">${yoy >= 0 ? "+" : ""}${(yoy * 100).toFixed(1)}%</span></div>`;
       const W = 150, H = 52;
-      const svg = el("svg", { viewBox: `0 0 ${W} ${H}` });
+      const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, "aria-hidden": "true" });
       const [lo, hi] = extent(ser.map(p => p.value));
       const x = i => (i / (ser.length - 1)) * W;
       const y = v => 4 + (1 - (v - lo) / (hi - lo)) * (H - 8);
@@ -172,7 +172,7 @@
     const W = opts.width || 760, H = opts.height || 320;
     const M = { t: 16, r: 16, b: 54, l: 16 };
     root.innerHTML = "";
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.aria || "수지 워터폴" }, root);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.aria || "수지 구성도" }, root);
     let run = 0; const steps = [];
     items.forEach(it => {
       if (it.kind === "sum") { steps.push({ ...it, y0: 0, y1: run }); }
@@ -213,7 +213,7 @@
     const W = opts.width || 720, H = items.length * 44 + 40;
     const M = { t: 8, r: 70, b: 30, l: 128 };
     root.innerHTML = "";
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "민감도 토네이도" }, root);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "민감도 그래프" }, root);
     const all = items.flatMap(it => [it.low, it.high]).concat([base]);
     let [lo, hi] = extent(all);
     const pad2 = (hi - lo) * 0.14 || 1; // 좌우 수치 라벨 자리 확보 (라벨-변수명 충돌 방지)
@@ -247,7 +247,7 @@
     const M = { t: 30, r: 16, b: 44, l: 74 };
     const H = M.t + grid.ys.length * cellH + M.b;
     root.innerHTML = "";
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "손익분기 히트맵" }, root);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "손익분기 지도" }, root);
     const cw = (W - M.l - M.r) / grid.xs.length;
     const vs = grid.cells.flat();
     const maxAbs = Math.max(...vs.map(Math.abs)) || 1;
@@ -309,7 +309,7 @@
     const W = opts.width || 760, H = opts.height || 300;
     const M = { t: 14, r: 60, b: 26, l: 46 };
     root.innerHTML = "";
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.aria || "예측 팬차트" }, root);
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.aria || "12개월 예측 그래프" }, root);
     const n = hist.length + fc.median.length;
     const all = hist.map(p => p.y).concat(fc.q10, fc.q90);
     let [lo, hi] = extent(all); const pad = (hi - lo) * 0.1; lo -= pad; hi += pad;

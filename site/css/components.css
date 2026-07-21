@@ -70,6 +70,10 @@ figure.viz figcaption {
   border-top: 1px solid var(--hairline);
 }
 .viz-scroll { overflow-x: auto; }
+/* 예측 팬차트 + 벤치마크 표 — 좁은 화면에서 세로 적층 (가로 스크롤 방지) */
+.fc-split { display: grid; grid-template-columns: 2fr 1fr; gap: var(--sp-3); align-items: start; }
+.fc-split > .viz { min-width: 0; }
+@media (max-width: 760px) { .fc-split { grid-template-columns: 1fr; } }
 
 /* 범례 */
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--t-caption); color: var(--ink-2); }

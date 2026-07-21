@@ -82,7 +82,7 @@
     <div class="hero-stat"><div class="v num-hero"><span data-count="77">0</span><small>계열</small></div><div class="k">시장 시계열 (10년)</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="8">0</span><small>종</small></div><div class="k">공공 API 연동</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="6">0</span><small>모델</small></div><div class="k">예측 벤치마크</div></div>
-    <div class="hero-stat"><div class="v num-hero"><span data-count="148">0</span><small>개</small></div><div class="k">자동화 검증 테스트</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="152">0</span><small>개</small></div><div class="k">자동화 검증 테스트</div></div>
   </div>
 </header>
 
@@ -140,7 +140,7 @@
       <div id="chart-detail"></div>
     </figure>
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:var(--sp-3)">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--sp-3)">
       <figure class="viz">
         <div class="viz-head"><div class="viz-title">미분양 주택 추이</div><div class="viz-unit">호</div></div>
         <div id="chart-unsold"></div>
@@ -173,7 +173,7 @@
       Chronos-Bolt가 근소한 2위였다. 딥러닝(LSTM)은 표본이 부족하면 열세였다 — 이 결과 자체가
       본 연구의 방법론적 입장이다.</p>
     </div>
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:var(--sp-3);align-items:start" class="reveal">
+    <div class="fc-split reveal">
       <figure class="viz" style="margin:0">
         <div class="viz-head"><div class="viz-title" id="fan-title">서울 — 12개월 예측</div><div class="viz-unit">지수 · 80% 예측구간</div></div>
         <div id="chart-fan"></div>
@@ -201,7 +201,7 @@
         <div class="tblock-eyebrow">Anatomy</div>
         <h2 class="tblock-title">구조 — 수지표의 해부학</h2>
       </div>
-      <div class="tblock-meta"><span>모델 검증 <b>148 테스트</b></span><span>Python↔JS <b>|Δ|&lt;1e-6</b></span></div>
+      <div class="tblock-meta"><span>모델 검증 <b>152 테스트</b></span><span>Python↔JS <b>|Δ|&lt;1e-6</b></span></div>
     </div>
   </header>
 
@@ -475,7 +475,7 @@
       <li>분양수입 스케줄: 계약금 10% / 중도금 60% 균등 / 잔금 30% 준공 시. 분기 현금흐름으로 NPV(기본 할인율 8%)·IRR(이분법) 산출.</li>
       <li>정비사업: 비례율 = (총수입−총사업비)/종전자산평가액, 분담금 = 조합원분양가 − 권리가액. 재개발 임대의무는 일반분양 수입 차감으로 반영.</li>
       <li>용도지역: 국토계획법 시행령 §84·§85 + 서울시 도시계획조례 §54·§55 기준값. 용적률은 지상 연면적 기준(지하 제외), 인센티브는 직접 지정 가능.</li>
-      <li>Python 코어 ↔ 웹 JS: 무작위 90조 입력 전 출력 일치(|Δ|&lt;1e-6) 테스트 강제. 모델 전체 148개 단위테스트.</li>
+      <li>Python 코어 ↔ 웹 JS: 무작위 90조 입력 전 출력 일치(|Δ|&lt;1e-6) 테스트 강제. 모델 전체 152개 단위테스트.</li>
     </ul>
 
     <h4>예측 방법론</h4>
@@ -496,7 +496,7 @@
 
 <footer class="colophon">
   <div style="font-weight:800;color:var(--ink-2);margin-bottom:6px">수지(收支) — 대한민국 부동산 개발의 손익 구조</div>
-  개인 연구 포트폴리오 · 데이터 기준일 {{BUILT_AT}} · 공공 데이터 8종 API 수집 · 모델 148 테스트 검증<br>
+  개인 연구 포트폴리오 · 데이터 기준일 {{BUILT_AT}} · 공공 데이터 8종 API 수집 · 모델 152 테스트 검증<br>
   본 페이지는 로컬 정적 사이트로 빌드되었고, 모든 데이터가 로컬에 내장되어 외부 네트워크 요청이 없다.
 </footer>
 
