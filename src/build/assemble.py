@@ -70,6 +70,12 @@ def build_dist() -> Path:
     tpl = tpl.replace("{{BUILT_AT}}", datetime.date.today().isoformat())
     tpl = tpl.replace("{{ROBOTS}}", _robots_tag())
 
+
+    # 조사 분리 검사 — 강조 태그 닫힘과 조사 사이 공백/개행은 실화면 띄어쓰기가 된다 (5차 리뷰 채택)
+    import re as _re
+    _bad = _re.findall(r"</(?:b|strong|em|i)>[ \t]*\n[ \t]*(?:이|가|을|를|은|는|의|와|과|로|다|이다|한다|된다)[ .,<]", tpl)
+    if _bad:
+        raise RuntimeError(f"조사 분리 의심 {len(_bad)}건 — 태그와 조사를 붙이거나 조사를 태그 안으로: {_bad[:3]}")
     leftover = re.findall(r"\{\{[A-Z_:.\w\-]+\}\}", tpl)
     if leftover:
         raise RuntimeError(f"미치환 플레이스홀더: {leftover}")

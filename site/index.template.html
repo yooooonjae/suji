@@ -98,7 +98,7 @@
   <div class="hero-stats stagger">
     <div class="hero-stat"><div class="v num-hero"><span data-count="236388">236,388</span><small>건</small></div><div class="k">아파트 실거래 수집</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="77">77</span><small>계열</small></div><div class="k">시장 시계열 (10년)</div></div>
-    <div class="hero-stat"><div class="v num-hero"><span data-count="14">14</span><small>종</small></div><div class="k">공공 데이터셋 연동</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="14">14</span><small>종</small></div><div class="k">공공 데이터셋 통합</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="6">6</span><small>모델</small></div><div class="k">예측 벤치마크</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="162">162</span><small>개</small></div><div class="k">자동화 검증 테스트</div></div>
   </div>
@@ -190,7 +190,7 @@
     <figure class="viz reveal">
       <div class="viz-head"><div class="viz-title">시장 온도 진단 — 가격 흐름과 미분양 재고</div><div class="viz-unit">최근 1년 변동 기준</div></div>
       <div id="chart-phase"></div>
-      <figcaption>세로: 매매지수 1년 변동률 · 가로: 미분양 1년 증감률. 좌상(재고 감소·가격 상승)이 진입 적기, 우하가 침체.
+      <figcaption>세로: 매매지수 1년 변동률 · 가로: 미분양 1년 증감률. 좌상(재고 감소·가격 상승)은 회복·확장 국면, 우하는 침체 국면에 해당한다.
       점을 클릭하면 위 상세 차트와 예측이 해당 시도로 전환된다.</figcaption>
     </figure>
 
@@ -726,7 +726,7 @@
     <b>0.35%p 낮다</b> — 채권보다 덜 버는 시장에서 프라임을 사는 행위는 그 자체로
     <b>임대료 성장과 자본차익에 대한 베팅</b>이다. 직전 소유자의 8년이 그 베팅의 근거다:
     가격 상승 연 4.5% + 운영수익 약 3.6% ≈ <b>총자산 기준 연 8%대 성과</b>.
-    KB의 LTV 72%(후순위 포함) 구조는 이 성과가 반복된다는 전제 위에 서 있다 —
+    후순위 포함 LTV 72%의 레버리지 구조는 향후 임대수익 유지·자산가치 방어·차환 여건에 민감하다 —
     금리가 내려가면 증폭되고, 공실이 늘면 후순위부터 얇아지는 구조다.</p>
   </div>
 
@@ -767,7 +767,7 @@
     <div class="kpi-row reveal" id="h3-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:0 0 var(--sp-4)"></div>
     <figure class="viz reveal">
       <div class="viz-head"><div class="viz-title">비례율은 무엇에 끌려가는가 — 지렛대 계수</div><div class="viz-unit">종전자산 시나리오별 · %p</div></div>
-      <div style="overflow-x:auto"><table id="h3-levers" style="width:100%"></table></div>
+      <div style="overflow-x:auto"><table id="h3-levers" style="width:100%;max-width:880px"></table></div>
       <figcaption id="h3-levers-cap"></figcaption>
     </figure>
   </div>
@@ -775,7 +775,7 @@
   <div class="col-read reveal">
     <p><b>판정.</b> 한남3의 구조적 특징은 <b>일반분양이 전체 5,988세대의 13.9%(831세대)에 불과</b>하다는 것이다 —
     분양가를 1,000만원 올려도 늘어나는 수입은 약 2,111억원으로, <b>공사비 10% 증액(-1,733억원)과 거의 정확히 상쇄</b>된다.
-    비례율 100.195%는 여유가 아니라 균형점이며, 그 균형은 분양가 상승과 공사비 방어의 줄다리기 위에 있다.
+    본 시나리오 분석(종전자산 비공개로 4~6조 가정)에서 비례율 100.195%는 충분한 완충이라기보다 분양가와 공사비 변화에 민감한 균형점으로 나타난다.
     2023년 반영 공사비(546만원/평)는 이후 물가 기준으로 증액 협상 압력에 노출돼 있고,
     <b>2026년 분상제 심사가격이 이 리포트의 사후검증 이벤트</b>다 — 결과가 나오면 확정값으로 갱신한다.</p>
   </div>
