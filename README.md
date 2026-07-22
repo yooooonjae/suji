@@ -13,7 +13,7 @@
 ## 라이브
 
 - **사이트**: https://yoonjae.pages.dev (링크트리 경유)
-- **30초 사업성 검토**: Ⅲ장 수지 계산기 — 입력 즉시 재계산, [투자심의표 인쇄]로 A4 1쪽 요약 출력
+- **30초 사업성 검토**: Ⅲ장 수지 계산기 — 입력 즉시 재계산, [투자심의표 인쇄]로 A4 1~2쪽 요약 출력
 - 검색 노출은 기본 차단(noindex). 모든 데이터가 로컬 내장이라 페이지는 외부 요청이 없다.
 
 ## 출처
@@ -44,7 +44,9 @@
 
 ```bash
 make setup            # 가상환경(venv) + requirements.txt
-cp .env.example .env  # 키 이름 확인용 — 실제 값은 config.json 에 채운다
+cp .env.example .env  # 선택(경로 변수)
+# API 키는 config.json에 넣는다:
+cp config.example.json config.json 2>/dev/null || true  # 키 이름 확인용 — 실제 값은 config.json 에 채운다
 ```
 
 `config.json`(API 키)은 커밋되지 않는다. 키 이름은 `.env.example` 참조,
