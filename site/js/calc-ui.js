@@ -15,7 +15,7 @@
   const st = { // 입력 상태 (UI 단위: 억원·평당만원 등 실무 단위, 계산 직전 원·㎡ 변환)
     land_area: 10000, zone: "R2", nb_ratio: 0,                        // 토지
     asset: "apt",                                                     // 자산유형: apt·office·retail
-    avg_supply: 84.9, price_py: 2400, sell_through: 95,               // 분양 (평당만원)
+    avg_supply: 84.9, price_py: 2400, sell_through: 95, units_override: 0,  // 분양 (평당만원)
     rent_py: 11, vacancy: 5, opex: 27, cap: 4.2, eff_ratio: 65,       // 수익형(오피스·상업)
     land_eok: 800, unit_cost_py: 780, months: 36,                     // 원가 (평당만원 공사비)
     indirect: 6, marketing: 3.5, contingency: 1,                      // 요율 %
@@ -52,6 +52,7 @@
     ],
     분양: [
       ["avg_supply", "평균 공급면적", "㎡", 40, 160, 0.1],
+      ["units_override", "세대수 직접 입력(0=자동)", "세대", 0, 6000, 10],
       ["price_py", "평당 분양가", "만원", 800, 6500, 10],
       ["sell_through", "분양률", "%", 0, 100, 1],
     ],
@@ -170,7 +171,8 @@
         units.push({ name: s.asset === "office" ? "오피스" : "상업시설", count: 1, supply_m2: 1, price_per_m2: exit_value });
         income = { noi, exit_value, nra_py };
       } else {
-        units.push({ name: "주거", count: zi.units_est, supply_m2: s.avg_supply, price_per_m2: pyman_to_wonm2(s.price_py) });
+        units.push({ name: "주거", count: s.units_override > 0 ? s.units_override : zi.units_est,
+                     supply_m2: s.avg_supply, price_per_m2: pyman_to_wonm2(s.price_py) });
         if (zi.neighborhood_gfa_m2 > 0) {
           units.push({ name: "근생", count: 1, supply_m2: zi.neighborhood_gfa_m2 * 0.6, price_per_m2: pyman_to_wonm2(s.price_py) * 1.15 });
         }
@@ -306,7 +308,7 @@
           zEl.innerHTML = `${zoning.zone_name} · 용적률 <b class="num">${fmt.pct(zoning.far_applied, 0)}</b> → 연면적 <b class="num">${fmt.num(zoning.buildable_gfa_m2, 0)}㎡</b> · 임대면적 <b class="num">${fmt.num(income.nra_py, 0)}평</b> · cap <b class="num">${st.cap}%</b>`;
         } else {
           zEl.innerHTML = mode === "신축분양"
-            ? `${zoning.zone_name} · 용적률 <b class="num">${fmt.pct(zoning.far_applied, 0)}</b> → 연면적 <b class="num">${fmt.num(zoning.buildable_gfa_m2, 0)}㎡</b> · 추정 <b class="num">${zoning.units_est}세대</b>`
+            ? `${zoning.zone_name} · 용적률 <b class="num">${fmt.pct(zoning.far_applied, 0)}</b> → 연면적 <b class="num">${fmt.num(zoning.buildable_gfa_m2, 0)}㎡</b> · ${st.units_override > 0 ? `직접 입력 <b class="num">${st.units_override}세대</b>` : `이론 추정 <b class="num">${zoning.units_est}세대</b> <small>(용적률 기준 — 일조·주차·심의 등 설계 조건 미반영)</small>`}`
             : `정비사업 모드 — 연면적 <b class="num">${fmt.num(zoning.buildable_gfa_m2, 0)}㎡</b> 기준 공사비 산정`;
         }
       }

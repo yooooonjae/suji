@@ -89,12 +89,17 @@
     공개 데이터를 모아 검증된 재무 모델로 분석했다. 시행사·자산운용사·컨설턴트가
     사업성 초기 검토에 쓸 수 있는 도구로 만들었다.
   </p>
+  <div class="hero-cta stagger">
+    <a class="cta main" href="#/ch3">직접 계산해 보기 →</a>
+    <a class="cta" href="#/ch1">핵심 연구 결과</a>
+    <a class="cta" href="#/ch8">방법론·한계</a>
+  </div>
   <div class="hero-stats stagger">
-    <div class="hero-stat"><div class="v num-hero"><span data-count="236388">0</span><small>건</small></div><div class="k">아파트 실거래 수집</div></div>
-    <div class="hero-stat"><div class="v num-hero"><span data-count="77">0</span><small>계열</small></div><div class="k">시장 시계열 (10년)</div></div>
-    <div class="hero-stat"><div class="v num-hero"><span data-count="14">0</span><small>종</small></div><div class="k">공공 데이터셋 연동</div></div>
-    <div class="hero-stat"><div class="v num-hero"><span data-count="6">0</span><small>모델</small></div><div class="k">예측 벤치마크</div></div>
-    <div class="hero-stat"><div class="v num-hero"><span data-count="162">0</span><small>개</small></div><div class="k">자동화 검증 테스트</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="236388">236,388</span><small>건</small></div><div class="k">아파트 실거래 수집</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="77">77</span><small>계열</small></div><div class="k">시장 시계열 (10년)</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="14">14</span><small>종</small></div><div class="k">공공 데이터셋 연동</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="6">6</span><small>모델</small></div><div class="k">예측 벤치마크</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="162">162</span><small>개</small></div><div class="k">자동화 검증 테스트</div></div>
   </div>
 </header>
 
@@ -129,7 +134,8 @@
 
   <div class="col-read reveal">
     <p class="lede">부동산 개발의 첫 질문은 "어디서, 언제"다. 전국 17개 시도의 아파트 매매가격지수를
-    한 화면에 펼치면, 같은 나라 안에서 전혀 다른 흐름을 그리는 시장들이 보인다.
+    한 화면에 펼치면, 같은 나라 안에서 전혀 다른 흐름을 그리는 시장들이 보인다. 행정구역은 2026-07 전남·광주
+    통합 이후에도 시계열 연속성을 위해 통합 이전의 17개 시도 단위를 유지한다(방법론 참조).
     시도를 선택하면 아래 상세와 예측이 함께 바뀐다.</p>
   </div>
 
@@ -195,8 +201,8 @@
     <h3 class="reveal">데이터 탐색 — 예측에 앞서 본 시장의 구조</h3>
     <div class="col-read reveal" style="padding-inline:0">
       <p>예측에 앞서, 수집한 시계열 2만4천 포인트와 실거래 20만여 건이 그리는 구조를
-      통계로 먼저 확인했다. 결론부터: <b>집값을 가장 앞서 예고하는 지표는 미분양</b>이고, 금리는 3개월
-      선행에서 가장 강하게 작용하며, 계절성은 추세에 비해 무시할 수 있는 수준이다.
+      통계로 먼저 확인했다. 결론부터: <b>집값과의 선행상관이 가장 높은 지표는 미분양</b>이고, 금리는 3개월
+      선행값에서 상관계수가 가장 컸으며, 계절성은 추세에 비해 무시할 수 있는 수준이다.
       전 분석은 <code>src/analysis/eda.py</code> 한 번의 실행으로 재현된다. 상관은 인과가 아니다 —
       각 그림의 해석 단서를 함께 읽어야 한다.</p>
     </div>
@@ -266,7 +272,7 @@
         <div class="tblock-eyebrow">Anatomy</div>
         <h2 class="tblock-title">구조 — 수지표는 어떻게 짜이는가</h2>
       </div>
-      <div class="tblock-meta"><span>모델 검증 <b>152 테스트</b></span><span>Python↔JS <b>|Δ|&lt;1e-6</b></span></div>
+      <div class="tblock-meta"><span>모델 검증 <b>162 테스트</b></span><span>Python↔JS <b>|Δ|&lt;1e-6</b></span></div>
     </div>
   </header>
 
@@ -494,7 +500,7 @@
     <h3 style="margin-top:0">정비사업 7단계 — 각 단계가 품은 리스크</h3>
     <div class="timeline">
       <div class="tl-step"><div class="tl-no">01</div><div><h5>정비구역 지정</h5><p>도시·주거환경정비 기본계획 → 구역 지정. 수년이 걸리는 관문.</p><div class="risk">리스크: 지정 지연·해제, 규제 변경</div></div></div>
-      <div class="tl-step"><div class="tl-no">02</div><div><h5>조합 설립</h5><p>토지등소유자 3/4 동의. 동의율이 사업 속도의 제1 변수.</p><div class="risk">리스크: 동의율 미달, 비대위 갈등</div></div></div>
+      <div class="tl-step"><div class="tl-no">02</div><div><h5>조합 설립</h5><p>재개발: 토지등소유자 ¾ 이상 + 토지면적 ½ 이상 · 재건축: 동별 과반수 + 전체 70% 이상(2026-02 완화 시행). 동의율이 사업 속도의 제1 변수 — 세부 요건은 구역·유형별 법령 확인.</p><div class="risk">리스크: 동의율 미달, 비대위 갈등</div></div></div>
       <div class="tl-step"><div class="tl-no">03</div><div><h5>사업시행인가</h5><p>건축심의·각종 영향평가를 통과한 설계가 확정된다.</p><div class="risk">리스크: 인허가 조건 부담, 설계 변경</div></div></div>
       <div class="tl-step"><div class="tl-no">04</div><div><h5>관리처분인가</h5><p>종전자산 감정평가와 분담금이 확정되는 순간 — 비례율의 시험대.</p><div class="risk">리스크: 비례율 하락 → 분담금 급증 → 조합 내홍</div></div></div>
       <div class="tl-step"><div class="tl-no">05</div><div><h5>이주·철거</h5><p>이주비 대여가 시작되고 금융비가 본격적으로 쌓인다.</p><div class="risk">리스크: 명도 소송 지연, 이주비 금리</div></div></div>
@@ -554,7 +560,7 @@
       <thead><tr><th>출처</th><th>내용</th><th>비고</th></tr></thead>
       <tbody>
         <tr><td>한국부동산원 R-ONE</td><td>아파트 매매·전세가격지수, ㎡당 평균 분양가격 (시도별 월간 10년) + 상업용부동산 임대동향 — 오피스·중대형상가 임대지수·공실률·투자수익률 (시도별 분기 10년)</td><td>OpenAPI</td></tr>
-        <tr><td>국토교통부 실거래가(RTMS)</td><td>아파트 매매 220,465건·분양권 15,923건(시도별 대표 시군구 표본) + 서울 25개 구 아파트 전수 195,863건 + 상업·업무용 22,994건·오피스텔 17,773건·토지 112,518건(최근 3년, 시도별 표본)</td><td>광주·전남은 2026-07 행정구역 통폐합(전남광주통합특별시) 신 법정동코드로 재수집. 상업 3종은 ㎡당가 물리 범위 게이트로 이상치 4,122건 제외</td></tr>
+        <tr><td>국토교통부 실거래가(RTMS)</td><td>아파트 매매 220,465건·분양권 15,923건(시도별 대표 시군구 표본) + 서울 25개 구 아파트 전수 195,863건 + 상업·업무용 22,994건·오피스텔 17,773건·토지 112,518건(최근 3년, 시도별 표본)</td><td>광주·전남은 2026-07 행정구역 통폐합(전남광주통합특별시) 신 법정동코드로 재수집하되, 전 계열의 지역 구분은 시계열 연속성을 위해 통합 이전 17개 시도 단위로 유지·표기한다. 상업 3종은 ㎡당가 물리 범위 게이트로 이상치 4,122건 제외</td></tr>
         <tr><td>KOSIS(국토부·KICT)</td><td>미분양·준공후 미분양·착공·준공(월간)·인허가(연간)·건설공사비지수</td><td>OpenAPI</td></tr>
         <tr><td>국토교통부 건축HUB</td><td>건축 인허가 기본개요 — 공동주택 신축·증축 세대수(대표 시군구 동 단위 월별 표본)</td><td>OpenAPI · Accept 헤더 필수·발코니변경 중복 제외</td></tr>
         <tr><td>한국은행 ECOS</td><td>기준금리(일별→월말)·주택담보/기업대출 가중평균금리</td><td>OpenAPI</td></tr>
@@ -574,7 +580,7 @@
       <li>정비사업: 비례율 = (총수입−총사업비)/종전자산평가액(현금청산 발생 시에도 분모는 전체 종전자산 — 잔존 조합원 기준보다 보수적), 분담금 = 조합원분양가 − 권리가액. 재개발 임대의무는 일반분양 수입 차감으로 반영(기본 15% — 서울 최저는 10%로 보수적).</li>
       <li>미반영 항목(세전 모델): 법인세·재건축부담금(재초과이익환수)·보유세. 재건축 대상 단지는 부담금을 별도 원가로 검토해야 한다. 공사비는 지역 기준단가(서울 890·수도권 721·지방 682만원/평, 2025 정비사업 평균 실측)를 CCI로 시점보정.</li>
       <li>용도지역: 국토계획법 시행령 §84·§85 + 서울시 도시계획조례 §54·§55 기준값. 용적률은 지상 연면적 기준(지하 제외), 인센티브는 직접 지정 가능.</li>
-      <li>Python 코어 ↔ 웹 JS: 무작위 70건 입력 전 출력 일치(|Δ|&lt;1e-6) 테스트 강제. 모델 전체 162개 단위테스트.</li>
+      <li>Python 코어 ↔ 웹 JS: 무작위 입력 전 출력 일치(|Δ|&lt;1e-6) 테스트 강제. 모델 전체 162개 단위테스트 — 이 테스트들이 보증하는 것은 <b>계산 로직의 일관성과 회귀 방지</b>다. 실제 사업성의 정확도는 개별 사업의 설계·세무·금융·법률 조건과 입력 가정에 좌우된다.</li>
     </ul>
 
     <h4>탐색적 분석(EDA) 방법론</h4>

@@ -445,3 +445,13 @@ section.chapter::after {
   .hero-stat .v small { font-size: 12.5px; }
   .hero-eyebrow::after { display: none; }  /* 좁은 폭에서 괘선 생략 — 3줄 랩 방지 */
 }
+
+/* 히어로 CTA — 첫 화면 3경로 (입력·결과·방법론) */
+.hero-cta { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: var(--sp-5); }
+.hero-cta .cta {
+  padding: 11px 20px; border-radius: var(--radius); font-weight: 800; font-size: 14.5px;
+  border: 1.5px solid var(--hairline-2); color: var(--ink-2); transition: all .2s ease;
+}
+.hero-cta .cta:hover { border-color: var(--blueprint); color: var(--blueprint); transform: translateY(-1px); }
+.hero-cta .cta.main { background: var(--blueprint); border-color: var(--blueprint); color: #fff; }
+.hero-cta .cta.main:hover { background: var(--blueprint-2); color: #fff; }

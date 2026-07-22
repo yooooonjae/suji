@@ -115,7 +115,8 @@ def build_inputs_from_state(s: dict, mode: str) -> dict:
                           "count": 1, "supply_m2": 1, "price_per_m2": exit_value})
             income = {"noi": noi, "exit_value": exit_value, "nra_py": nra_py}
         else:
-            units.append({"name": "주거", "count": zi["units_est"],
+            n_units = s.get("units_override", 0) or zi["units_est"]
+            units.append({"name": "주거", "count": n_units,
                           "supply_m2": s["avg_supply"],
                           "price_per_m2": pyman_to_wonm2(s["price_py"])})
             if zi["neighborhood_gfa_m2"] > 0:
