@@ -116,7 +116,8 @@ def test_zone_table_is_single_source():
 # --------------------------------------------------------------------------- #
 # Python ↔ JS 패리티 (node 교차검증)
 # --------------------------------------------------------------------------- #
-NODE = "/opt/homebrew/bin/node"
+import shutil
+NODE = shutil.which("node") or "/opt/homebrew/bin/node"
 JS_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "site", "js", "zoning.js")
 )

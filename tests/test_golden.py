@@ -247,7 +247,8 @@ def test_irr_001_annualized_golden():
 # JS 교차구현 골든 — 동일 골든 리터럴을 site/js/feasibility.js 로도 대조
 # (패리티가 아니라 절대값: JS 도 옳은지 확인)
 # =========================================================================== #
-NODE = "/opt/homebrew/bin/node"
+import shutil
+NODE = shutil.which("node") or "/opt/homebrew/bin/node"
 JS_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "site", "js", "feasibility.js")
 )

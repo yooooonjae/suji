@@ -21,7 +21,8 @@ import pytest
 
 from src.analysis.feasibility import run_feasibility
 
-NODE = "/opt/homebrew/bin/node"
+import shutil
+NODE = shutil.which("node") or "/opt/homebrew/bin/node"
 JS_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "site", "js", "feasibility.js")
 )
