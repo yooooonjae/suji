@@ -80,6 +80,8 @@
   function seriesOf(dict, name) { return (dict && dict[name]) || []; }
 
   function renderMarket() {
+    // 지역 지도 (발산 채색) — 시도 스몰멀티플·국면과 동일한 선택 허브에 물린다
+    renderKoreaMap();
     // 스몰 멀티플 (매매지수)
     C.smallMultiples($("#sm-sale"), M.sale_index, {
       order: SIDO_ORDER.filter(n => M.sale_index[n]),
@@ -174,6 +176,32 @@
       { name: "주담대", color: "--s4", points: mk(M.mortgage_rate) },
       { name: "기업대출", color: "--s2", points: mk(M.corp_loan_rate) },
     ], { aria: "금리 추이", yFmt: v => v.toFixed(1) + "%", width: 560, height: 330, rightPad: 72 });
+  }
+
+  /* ---------- 지역 지도 (발산 채색 choropleth) ----------
+     채색값 = 스몰멀티플 시도 카드와 동일한 최근 1년 매매지수 변동률(last / t-13 − 1)을 재사용 →
+     지도 색과 옆 시도 카드 델타가 정확히 일치. 클릭은 기존 selSido 선택 허브(국면 차트와 동일 파이프라인)에 물린다. */
+  function renderKoreaMap() {
+    const K = window.__DATA_KOREA;
+    const root = $("#korea-map");
+    if (!K || !root) return;
+    const values = {};
+    K.forEach(r => {
+      const ser = M.sale_index[r.name];
+      if (!ser || !ser.length) return;
+      const last = ser[ser.length - 1].value;
+      const yi = ser.length - 13;
+      const yoy = yi >= 0 ? (last / ser[yi].value - 1) : (last / ser[0].value - 1);
+      values[r.name] = { index: last, yoy };
+    });
+    C.koreaMap(root, K, values, {
+      selected: selSido,
+      onSelect: n => {
+        if (!M.sale_index[n]) return;
+        selSido = n; selSub = null; renderMarket(); renderForecast();
+        revealEl($("#chart-detail").closest("figure"));
+      },
+    });
   }
 
   /* ---------- 예측 ---------- */

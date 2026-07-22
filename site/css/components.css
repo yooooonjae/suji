@@ -110,6 +110,20 @@ figure.viz figcaption {
 .sm-cell .sm-delta.up { color: var(--pos); }
 .sm-cell .sm-delta.down { color: var(--neg); }
 
+/* 대한민국 시도 지도 (발산 채색) */
+.korea-map-wrap { display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); }
+.korea-map { width: 100%; max-width: 420px; }
+.korea-svg { display: block; width: 100%; height: auto; }
+.korea-svg path { transition: fill-opacity .15s, stroke-width .15s, stroke .15s; outline: none; }
+.korea-svg path:focus-visible { stroke: var(--ink); stroke-width: 2.4; }
+.korea-map-legend { display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: 6px 14px; font-size: var(--t-caption); color: var(--ink-2); }
+.korea-map-legend .km-leg-item { display: inline-flex; align-items: center; gap: 5px; }
+.korea-map-legend .km-sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.korea-map-legend .km-sw-na { background: var(--surface-2); border: 1px dashed var(--hairline-2); }
+.korea-map-legend .km-leg-grad { width: 108px; height: 10px; border-radius: 5px; border: 1px solid var(--hairline);
+  background: linear-gradient(90deg, var(--s2), var(--surface-2) 50%, var(--s1)); }
+
 /* ---------- 계산기 (인스트루먼트 패널) ---------- */
 .calc {
   max-width: var(--col-wide); margin-inline: auto; padding-inline: var(--sp-4);

@@ -782,5 +782,52 @@
     return svg;
   }
 
-  global.Charts = { line, smallMultiples, waterfall, tornado, heatmap, gauge, fan, hbars, phase, fmt, tipHide };
+  /* ---------- 대한민국 시도 지도 (발산 채색 choropleth) ---------- */
+  // regions: [{name, d}] — SVG path, viewBox 0 0 520 690
+  // values: {시도명: {index(최근 지수), yoy(최근 1년 변동률, 소수)}}
+  // opts: {selected, onSelect(시도명), aria} — 클릭·호버/탭 파이프라인은 phase와 동일 관행
+  function koreaMap(root, regions, values, opts) {
+    opts = opts || {};
+    root.innerHTML = "";
+    const svg = el("svg", { viewBox: "0 0 520 690", role: "img",
+      class: "korea-svg", "aria-label": opts.aria || "시도별 최근 1년 매매가격지수 변동률 지도" }, root);
+    const finite = regions.map(r => values[r.name]).filter(v => v && Number.isFinite(v.yoy));
+    const maxAbs = Math.max(0.001, ...finite.map(v => Math.abs(v.yoy))); // 발산 스케일 정규화 기준
+    let selPath = null;
+    regions.forEach(r => {
+      const v = values[r.name];
+      let fill, op;
+      if (!v || !Number.isFinite(v.yoy)) { fill = css("--surface-2"); op = 1; }          // 결측 = 중성
+      else if (v.yoy >= 0) { fill = css("--s1"); op = 0.18 + 0.72 * Math.min(1, v.yoy / maxAbs); }        // 상승 = 주황 농도
+      else { fill = css("--s2"); op = 0.18 + 0.72 * Math.min(1, Math.abs(v.yoy) / maxAbs); }               // 하락 = 청 농도
+      const sel = opts.selected === r.name;
+      const path = el("path", {
+        d: r.d, fill, "fill-opacity": op.toFixed(3),
+        stroke: sel ? css("--ink") : css("--surface"),
+        "stroke-width": sel ? 2.4 : 0.8, "stroke-linejoin": "round",
+        role: "button", tabindex: "0",
+        "aria-label": r.name + (v && Number.isFinite(v.yoy)
+          ? " 최근 1년 " + (v.yoy >= 0 ? "+" : "") + (v.yoy * 100).toFixed(1) + "%" : " 자료 없음"),
+      }, svg);
+      path.style.cursor = "pointer";
+      if (sel) selPath = path;
+      bindTip(path, () => `<div class="t-title">${r.name}</div>` +
+        (v && Number.isFinite(v.yoy)
+          ? `매매지수 <b class="num">${fmt.num(v.index, 1)}</b><br>최근 1년 <b class="num" style="color:var(${v.yoy >= 0 ? "--s1" : "--s2"})">${v.yoy >= 0 ? "+" : ""}${(v.yoy * 100).toFixed(1)}%</b>`
+          : "자료 없음") +
+        (opts.onSelect ? '<br><span style="opacity:.7">클릭: 상세·예측 전환</span>' : ""));
+      if (opts.onSelect) {
+        const pick = () => opts.onSelect(r.name);
+        path.addEventListener("click", pick);
+        path.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); pick(); } });
+      }
+      // 호버 강조 (선택 지역은 이미 진한 외곽선이라 제외)
+      path.addEventListener("pointerenter", () => { if (!sel) { path.setAttribute("stroke", css("--blueprint")); path.setAttribute("stroke-width", "1.8"); } });
+      path.addEventListener("pointerleave", () => { if (!sel) { path.setAttribute("stroke", css("--surface")); path.setAttribute("stroke-width", "0.8"); } });
+    });
+    if (selPath) svg.appendChild(selPath); // 선택 지역을 최상단으로 — 진한 외곽선이 이웃에 덮이지 않게
+    return svg;
+  }
+
+  global.Charts = { line, smallMultiples, waterfall, tornado, heatmap, gauge, fan, hbars, phase, koreaMap, fmt, tipHide };
 })(typeof window !== "undefined" ? window : globalThis);
