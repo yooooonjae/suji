@@ -413,6 +413,37 @@
     return { xs: px.map(v => (v > 0 ? "+" : "") + v + "%"), ys: cy.map(v => (v > 0 ? "+" : "") + v + "%"), cells };
   }
 
+  /* ---------- 대상지 검토 카드 (디지털트윈국토 빌드타임 실조회) ---------- */
+  function renderSiteCards() {
+    const host = $("#site-cards");
+    const SITES = global.__DATA_SITES;
+    if (!host || !SITES) return;
+    const byName = {};
+    Object.entries(Z.ZONES).forEach(([code, z]) => { byName[z.name] = { code, ...z }; });
+    host.innerHTML = Object.values(SITES).map(site => {
+      const zoneName = (site.zones || [])[0] || "";
+      const z = byName[zoneName];
+      const ppm = site.land_price_won_m2;
+      const rows = [
+        ["지번(지오코딩)", site.jibun || "―"],
+        ["용도지역", zoneName || "―"],
+        z ? ["법정 건폐/용적률", (z.bcr_legal * 100).toFixed(0) + "% / " + (z.far_seoul * 100).toFixed(0) + "% (서울 조례)"] : null,
+        ppm ? ["개별공시지가", ppm.toLocaleString() + "원/㎡ · 평당 " + (ppm * 3.305785 >= 1e8 ? fmt.eok(ppm * 3.305785) : Math.round(ppm * 3.305785 / 1e4).toLocaleString() + "만원") + " (" + site.land_price_year + ")"] : null,
+      ].filter(Boolean);
+      return `<div class="site-card"><h5>${site.name}</h5>` +
+        rows.map(([k, v]) => `<div class="row"><span>${k}</span><b>${v}</b></div>`).join("") +
+        (z ? `<button type="button" data-site-zone="${z.code}">이 용도지역(${zoneName})으로 계산기 설정</button>` : "") +
+        `</div>`;
+    }).join("");
+    host.querySelectorAll("[data-site-zone]").forEach(btn => btn.addEventListener("click", () => {
+      st.zone = btn.dataset.siteZone;
+      clearPresetActive();
+      syncInputs(); recalc(); renderSensitivity();
+      const zi = document.getElementById("calc-zoning");
+      if (zi) zi.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+    }));
+  }
+
   /* ---------- 초기화 ---------- */
   function init(presetData) {
     presets = presetData || {};
@@ -453,6 +484,7 @@
       renderAB(global.__calcLast);
     });
     $("#btn-sens").addEventListener("click", renderSensitivity);
+    renderSiteCards();
     // 부팅 기본값: 실데이터 기반 수도권 프리셋 (있으면) — 첫 화면부터 성립하는 딜
     if (presets["수도권아파트"]) Object.assign(st, presets["수도권아파트"]);
     renderInputs(); recalc(); renderSensitivity();

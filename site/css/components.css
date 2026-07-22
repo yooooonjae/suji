@@ -455,3 +455,21 @@ section.chapter::after {
 .hero-cta .cta:hover { border-color: var(--blueprint); color: var(--blueprint); transform: translateY(-1px); }
 .hero-cta .cta.main { background: var(--blueprint); border-color: var(--blueprint); color: #fff; }
 .hero-cta .cta.main:hover { background: var(--blueprint-2); color: #fff; }
+
+/* 대상지 검토 카드 (Ⅲ장 계산기 도입부) */
+.site-start { margin: var(--sp-3) 0 var(--sp-4); }
+#site-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--sp-3); margin-top: var(--sp-2); }
+.site-card {
+  background: var(--surface); border: 1.5px solid var(--hairline-2); border-radius: var(--radius);
+  padding: 16px 18px; box-shadow: var(--shadow);
+}
+.site-card h5 { font-size: 15px; margin-bottom: 6px; }
+.site-card .row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; border-bottom: 1px dashed var(--hairline); }
+.site-card .row:last-of-type { border-bottom: 0; }
+.site-card .row b { font-family: var(--font-num); }
+.site-card button {
+  margin-top: 10px; width: 100%; font: inherit; font-size: 13px; font-weight: 700;
+  padding: 8px 0; border-radius: var(--radius-sm); cursor: pointer;
+  border: 1.5px solid var(--blueprint); background: none; color: var(--blueprint);
+}
+.site-card button:hover { background: var(--blueprint); color: #fff; }

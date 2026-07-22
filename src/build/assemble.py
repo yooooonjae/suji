@@ -30,6 +30,7 @@ DATA_MAP = {
     "DATA_RTMSCOM": ("rtmscom", ROOT / "data" / "rtms_commercial.json"),
     "DATA_REPORT": ("report", OUT / "report_wirye.json"),
     "DATA_REPORT2": ("report2", OUT / "report_signature.json"),
+    "DATA_SITES": ("sites", ROOT / "data" / "sites.json"),
 }
 CSS_FILES = ["tokens.css", "base.css", "components.css", "flourish.css"]
 JS_FILES = ["guard.js", "feasibility.js", "zoning.js", "charts.js", "calc-ui.js", "app.js"]
