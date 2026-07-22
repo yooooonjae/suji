@@ -1,0 +1,28 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: 의존성 설치
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      # data/ 는 .gitignore 라 CI 체크아웃에 없다 → 데이터 의존 test_market 만 제외(147건 실행).
+      # 나머지(패리티·골든·타당성·용도지역·재개발·백테스트)는 외부 자료 불필요.
+      - name: pytest
+        run: python -m pytest -q --ignore=tests/test_market.py
+      # test_market(데이터 의존) 대체 스모크: 전체 src 구문 검사 + JS 구문 검사.
+      - name: 데이터 의존 모듈 스모크
+        run: |
+          find src -name '*.py' -exec python -m py_compile {} +
+          for f in site/js/*.js; do node --check "$f"; done
