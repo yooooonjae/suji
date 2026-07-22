@@ -37,7 +37,7 @@
   letter-spacing: -.02em; color: var(--ink); line-height: 1.15; white-space: nowrap;
 }
 .hero-stat .v small { font-size: 15px; font-weight: 400; color: var(--ink-3); margin-left: 2px; }
-.hero-stat .k { font-size: var(--t-caption); color: var(--ink-3); margin-top: 4px; letter-spacing: .04em; }
+.hero-stat .k { font-size: var(--t-caption); color: var(--ink-label); margin-top: 4px; letter-spacing: .04em; }
 /* 인장 스탬프 — 절제된 단 한 곳 */
 .stamp {
   position: absolute; right: var(--sp-4); bottom: var(--sp-6);
@@ -185,7 +185,7 @@ figure.viz figcaption {
 .kpi .v { font-family: var(--font-num); font-size: 28px; font-weight: 700; line-height: 1.2; }
 .kpi .v.pos { color: var(--pos); } .kpi .v.neg { color: var(--neg); }
 .kpi .v small { font-size: 13px; color: var(--ink-3); font-weight: 400; }
-.kpi .k { font-size: var(--t-caption); color: var(--ink-3); margin-top: 2px; }
+.kpi .k { font-size: var(--t-caption); color: var(--ink-label); margin-top: 2px; }
 
 /* 수지표 */
 table.ledger { width: 100%; border-collapse: collapse; font-size: var(--t-small); }
@@ -260,7 +260,7 @@ table.sources td:first-child { font-weight: 700; white-space: nowrap; }
 footer.colophon {
   border-top: 1.5px solid var(--hairline-2);
   margin-top: var(--sp-7); padding: var(--sp-5) 0 var(--sp-6);
-  text-align: center; font-size: var(--t-small); color: var(--ink-3);
+  text-align: center; font-size: var(--t-small); color: var(--ink-label);
 }
 
 /* ============================================================
@@ -288,20 +288,27 @@ nav.appbar .tabs a {
 }
 nav.appbar .tabs a:hover { color: var(--blueprint-2); background: var(--blueprint-wash); text-decoration: none; }
 nav.appbar .tabs a.active { color: #fff; background: var(--blueprint); }
-nav.appbar .theme-mini {
-  margin-left: auto; font: inherit; font-size: 12px; cursor: pointer;
-  border: 1px solid var(--hairline-2); background: var(--surface); color: var(--ink-2);
-  padding: 5px 12px; border-radius: 99px;
+/* 테마 토글 — 히어로·앱바 공용 원형 아이콘 (8차: 텍스트 2줄 깨짐 해소) */
+.theme-toggle {
+  margin-left: auto; width: 40px; height: 40px; padding: 0; flex: 0 0 auto;
+  display: inline-grid; place-items: center; font: inherit; font-size: 18px; line-height: 1;
+  cursor: pointer; border: 1px solid var(--hairline-2); background: var(--surface);
+  color: var(--ink-2); border-radius: 50%;
+  transition: border-color .2s, color .2s, transform .2s;
 }
+.theme-toggle:hover { border-color: var(--blueprint); color: var(--blueprint); transform: translateY(-1px); }
+.theme-toggle .ico { pointer-events: none; }
 body[data-view]:not([data-view="home"]) .wrap { padding-top: 54px; }
 body[data-view="home"] nav.appbar { display: none; }
 
 /* 홈 챕터 카드 */
-#home-cards { padding-bottom: var(--sp-7); }
+#home-cards { padding-bottom: calc(var(--sp-7) / 2); }  /* 8차: 푸터 위 공백 절반으로 */
 .chapter-cards {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  display: grid; grid-template-columns: repeat(4, 1fr);  /* 8차: 8개 장 4×2 고정 + Ⅸ 전폭 */
   gap: var(--sp-3);
 }
+@media (max-width: 1080px) { .chapter-cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .chapter-cards { grid-template-columns: 1fr; } }
 a.ch-card {
   display: grid; grid-template-rows: auto auto 1fr auto; gap: 6px;
   background: var(--surface); border: 1px solid var(--hairline);
@@ -318,12 +325,41 @@ a.ch-card .n {
   font-family: var(--font-num); font-size: 26px; font-weight: 700; color: var(--blueprint);
 }
 a.ch-card h4 { font-size: 17px; font-weight: 800; }
-a.ch-card p { font-size: var(--t-small); color: var(--ink-2); line-height: 1.6; margin: 0; }
+a.ch-card p { font-size: calc(var(--t-small) + 1px); color: var(--ink); line-height: 1.6; margin: 0; }
 a.ch-card .go {
   font-size: var(--t-caption); font-weight: 800; color: var(--blueprint);
   letter-spacing: .06em; justify-self: end;
 }
 a.ch-card:hover .go { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Ⅸ 대표 리포트 — 전폭 카드 (8차: 4×2 하단 Ⅸ 승격) */
+.ch-card-ix {
+  grid-column: 1 / -1;
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: var(--radius); box-shadow: var(--shadow); padding: var(--sp-4);
+}
+.ch-card-ix .ix-head { display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-3); }
+.ch-card-ix .ix-head .n { font-family: var(--font-num); font-size: 26px; font-weight: 700; color: var(--blueprint); }
+.ch-card-ix .ix-head-t h4 { font-size: 17px; font-weight: 800; }
+.ch-card-ix .ix-head-t p { font-size: calc(var(--t-small) + 1px); color: var(--ink); line-height: 1.55; margin: 3px 0 0; }
+a.ix-more { margin-left: auto; font-size: var(--t-caption); font-weight: 800; color: var(--blueprint); letter-spacing: .06em; white-space: nowrap; }
+a.ix-more:hover { text-decoration: underline; text-underline-offset: 3px; }
+.ix-reports { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); }
+a.ix-report {
+  display: flex; flex-direction: column; gap: 5px;
+  background: var(--surface-2); border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm); padding: var(--sp-3); color: var(--ink);
+  transition: transform .2s cubic-bezier(.2,.7,.2,1), border-color .2s, box-shadow .2s;
+}
+a.ix-report:hover {
+  transform: translateY(-3px); text-decoration: none; border-color: var(--blueprint-2);
+  box-shadow: 0 2px 4px rgba(22,32,43,.06), 0 14px 34px rgba(30,93,149,.14);
+}
+a.ix-report h5 { font-size: 15.5px; font-weight: 800; }
+a.ix-report p { font-size: calc(var(--t-small) + 1px); color: var(--ink); line-height: 1.5; margin: 0; flex: 1; }
+a.ix-report .go { font-size: var(--t-caption); font-weight: 800; color: var(--blueprint); letter-spacing: .06em; margin-top: auto; }
+a.ix-report:hover .go { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 700px) { .ix-reports { grid-template-columns: 1fr; } }
 
 /* 계산기 출력부 재배치 */
 .calc-out .caption#calc-zoning { margin-bottom: var(--sp-2); }
@@ -462,6 +498,14 @@ section.chapter::after {
 .hero-cta .cta:hover { border-color: var(--blueprint); color: var(--blueprint); transform: translateY(-1px); }
 .hero-cta .cta.main { background: var(--blueprint); border-color: var(--blueprint); color: #fff; }
 .hero-cta .cta.main:hover { background: var(--blueprint-2); color: #fff; }
+
+/* 8차 모바일: 히어로 상단 여백 축소 + CTA 1+2 (주 1줄 · 보조 반반) */
+@media (max-width: 600px) {
+  .hero { padding-top: 64px; }
+  .hero-cta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hero-cta .cta { text-align: center; }
+  .hero-cta .cta.main { grid-column: 1 / -1; }
+}
 
 /* 대상지 검토 카드 (Ⅲ장 계산기 도입부) */
 .site-start { margin: var(--sp-3) 0 var(--sp-4); }

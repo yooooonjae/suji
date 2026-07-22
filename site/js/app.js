@@ -481,7 +481,11 @@
     const syncPressed = () => {
       const dark = (document.documentElement.dataset.theme ||
         (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark";
-      document.querySelectorAll(".theme-toggle").forEach(b => b.setAttribute("aria-pressed", String(dark)));
+      document.querySelectorAll(".theme-toggle").forEach(b => {
+        b.setAttribute("aria-pressed", String(dark));
+        const ico = b.querySelector(".ico");
+        if (ico) ico.textContent = dark ? "☾" : "☀";
+      });
     };
     document.querySelectorAll(".theme-toggle").forEach(btn => btn.addEventListener("click", () => {
       const r = document.documentElement;

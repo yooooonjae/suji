@@ -10,7 +10,8 @@
   --surface-2: #f0edea;       /* 함몰 지면 (입력부·코드) */
   --ink: #221c16;             /* 먹 — 본문 */
   --ink-2: #5c5348;           /* 보조 먹 */
-  --ink-3: #99897b;           /* 옅은 먹 (캡션·축) */
+  --ink-3: #99897b;           /* 옅은 먹 (캡션·차트 축 라벨 공용 — 변경 금지) */
+  --ink-label: #6a5f52;       /* UI 소자 라벨 (KPI·푸터) — WCAG 4.5:1 확보 (8차 리뷰) */
   --hairline: #e0d9d1;        /* 헤어라인 */
   --hairline-2: #cbc2b7;      /* 진한 헤어라인 (도곽) */
 
@@ -70,6 +71,7 @@
     --ink: #f0e9e2;
     --ink-2: #c0b3a5;
     --ink-3: #8d7d6d;
+    --ink-label: #a99a89;
     --hairline: #352d25;
     --hairline-2: #463c31;
     --blueprint: #ef8432;
@@ -89,7 +91,7 @@
 :root[data-theme="dark"] {
   --seq-100: #3a281a; --seq-200: #5f3a1c; --seq-300: #8f5420; --seq-400: #c07128; --seq-500: #e2903f; --seq-600: #f2ae66; --seq-700: #ffcf97;
   --ground: #171310; --surface: #201b16; --surface-2: #1a1511;
-  --ink: #f0e9e2; --ink-2: #c0b3a5; --ink-3: #8d7d6d;
+  --ink: #f0e9e2; --ink-2: #c0b3a5; --ink-3: #8d7d6d; --ink-label: #a99a89;
   --hairline: #352d25; --hairline-2: #463c31;
   --blueprint: #ef8432; --blueprint-2: #f5a06a; --blueprint-wash: #33231a;
   --seal: #6aa3d8; --pos: #3fae6d; --neg: #e06a5c;
@@ -101,7 +103,7 @@
 :root[data-theme="light"] {
   --seq-100: #fde3d3; --seq-200: #f9c39e; --seq-300: #f19d64; --seq-400: #e57728; --seq-500: #c25a12; --seq-600: #97430c; --seq-700: #6b2e06;
   --ground: #f6f4f1; --surface: #fdfcfb; --surface-2: #f0edea;
-  --ink: #221c16; --ink-2: #5c5348; --ink-3: #99897b;
+  --ink: #221c16; --ink-2: #5c5348; --ink-3: #99897b; --ink-label: #6a5f52;
   --hairline: #e0d9d1; --hairline-2: #cbc2b7;
   --blueprint: #c2410c; --blueprint-2: #e05910; --blueprint-wash: #fbe9dd;
   --seal: #1e5d95; --pos: #0e7a3c; --neg: #c23b2e;
