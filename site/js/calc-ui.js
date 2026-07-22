@@ -223,6 +223,12 @@
       [lastIncome ? "매각가치(총수입)" : "총수입", fmt.eok(r.revenue_total), ""],
       ["총지출", fmt.eok(r.cost_total), ""],
     ];
+    // Peak Funding Gap — 누적 현금흐름 최저점 (자기자본·차입 유입 前 사업 자체 현금흐름 기준)
+    if (r.cashflow_quarterly && r.cashflow_quarterly.length) {
+      let cum = 0, minCum = 0;
+      r.cashflow_quarterly.forEach(c => { cum += c; if (cum < minCum) minCum = cum; });
+      kpis.push(["최대 자금부족", minCum < 0 ? fmt.eok(-minCum) : "0억", minCum < 0 ? "neg" : "pos"]);
+    }
     if (lastIncome) {
       kpis.splice(3, 0, ["연 NOI", fmt.eok(lastIncome.noi), ""],
         ["총사업비 대비 수익률(YoC)", r.cost_total ? fmt.pct(lastIncome.noi / r.cost_total) : "―",
@@ -334,6 +340,23 @@
     // 게이지
     C.gauge($("#g-margin"), out.margin_on_revenue || 0, { label: "마진율(수입)", min: -0.1, max: 0.35, target: 0.1 });
     C.gauge($("#g-irr"), out.irr_annual == null ? 0 : out.irr_annual, { label: "IRR(연)", min: -0.2, max: 0.6, target: 0.15, fmt: v => out.irr_annual == null ? "―" : fmt.pct(v, 1) });
+    // 분기 현금흐름 + 누적 잔액 (리뷰 반영: Peak Funding Gap 시각화)
+    const cfEl = $("#calc-cf");
+    if (cfEl && out.cashflow_quarterly) {
+      const cf = out.cashflow_quarterly;
+      let acc = 0;
+      const cumPts = cf.map((c, i) => { acc += c; return { x: i, label: "Q" + (i + 1), y: acc / EOK }; });
+      const cfPts = cf.map((c, i) => ({ x: i, label: "Q" + (i + 1), y: c / EOK }));
+      C.line(cfEl, [
+        { name: "누적", color: "--s1", emph: true, points: cumPts },
+        { name: "분기", color: "--s2", points: cfPts },
+      ], { aria: "분기 현금흐름·누적 잔액", yFmt: v => fmt.num(v, 0) + "억", width: 1160, height: 300, rightPad: 64, interactive: false });
+      let minCum = 0, minQ = 0; acc = 0;
+      cf.forEach((c, i) => { acc += c; if (acc < minCum) { minCum = acc; minQ = i + 1; } });
+      $("#calc-cf-cap").textContent = minCum < 0
+        ? `누적 현금흐름 최저점 = Q${minQ}에 ${fmt.eok(-minCum)} 부족 — 자기자본·차입으로 메워야 하는 최대 규모(Peak Funding Gap)다. 분양 잔금(마지막 분기)이 들어와야 누적이 이익으로 돌아선다.`
+        : "전 구간 누적 현금흐름이 양(+) — 초기 유입(계약금 등)이 지출을 앞선다.";
+    }
     // A/B 표시
     renderAB(out);
     global.__calcLast = out;
