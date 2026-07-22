@@ -578,6 +578,32 @@
     }, 900);
   }
 
+  /* ---------- 장내 하위 탭 (Ⅰ 시장·Ⅴ 상권) ----------
+     차트는 부팅 시 renderAll에서 이미 렌더됨. 차트 엔진은 viewBox 기반이라
+     display:none 상태에서 렌더돼도 크기 0 함정이 없다(측정 대신 고정 좌표). */
+  function initSubtabs() {
+    document.querySelectorAll(".subtabs[data-tabs]").forEach(bar => {
+      const group = bar.dataset.tabs;
+      const btns = Array.from(bar.querySelectorAll("[data-tab]"));
+      const panels = Array.from(document.querySelectorAll('[data-tabpanel^="' + group + ':"]'));
+      const select = key => {
+        btns.forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === key)));
+        panels.forEach(p => { p.hidden = p.dataset.tabpanel !== group + ":" + key; });
+      };
+      btns.forEach((b, i) => {
+        b.addEventListener("click", () => select(b.dataset.tab));
+        b.addEventListener("keydown", e => {
+          if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+          e.preventDefault();
+          const ni = (i + (e.key === "ArrowRight" ? 1 : btns.length - 1)) % btns.length;
+          btns[ni].focus(); select(btns[ni].dataset.tab);
+        });
+      });
+      const cur = btns.find(b => b.getAttribute("aria-selected") === "true") || btns[0];
+      if (cur) select(cur.dataset.tab);
+    });
+  }
+
   function renderAll() {
     renderMarket(); renderForecast(); renderEda(); renderCommerce(); renderCases(); renderReport(); renderReport2(); renderReport3();
   }
@@ -586,6 +612,7 @@
   addEventListener("DOMContentLoaded", () => {
     initChrome(); initTheme(); counters();
     renderAll();
+    initSubtabs();
     window.CalcUI.init(CS.presets || {});
     addEventListener("hashchange", route);
     route();

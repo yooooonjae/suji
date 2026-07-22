@@ -118,7 +118,14 @@ figure.viz figcaption {
   display: grid; grid-template-columns: minmax(320px, 400px) 1fr; gap: var(--sp-3);
   align-items: start;
 }
-@media (max-width: 900px) { .calc-panel { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .calc-panel { grid-template-columns: 1fr; } }
+/* 데스크톱(≥1101px): 결과 패널 sticky — 긴 입력 폼을 스크롤해도 결과가 따라온다 */
+@media (min-width: 1101px) {
+  .calc-out {
+    position: sticky; top: 62px; align-self: start;
+    max-height: calc(100vh - 74px); overflow-y: auto; overscroll-behavior: contain;
+  }
+}
 .calc-in { background: var(--surface-2); padding: var(--sp-4); border: 1px solid var(--hairline-2); border-radius: var(--radius); }
 .calc-out { background: var(--surface); padding: var(--sp-4); min-width: 0; border: 1px solid var(--hairline-2); border-radius: var(--radius); box-shadow: var(--shadow); }
 
@@ -473,3 +480,56 @@ section.chapter::after {
   border: 1.5px solid var(--blueprint); background: none; color: var(--blueprint);
 }
 .site-card button:hover { background: var(--blueprint); color: #fff; }
+
+/* ============================================================
+   장내 하위 탭 (Ⅰ 시장·Ⅴ 상권) — 도면 세그먼트 스위치
+   ============================================================ */
+.subtabs {
+  display: inline-flex; gap: 4px; flex-wrap: wrap;
+  margin: var(--sp-3) 0 0;
+  padding: 4px; border: 1px solid var(--hairline-2);
+  border-radius: var(--radius); background: var(--surface-2);
+}
+.subtabs button {
+  font: inherit; font-size: var(--t-small); font-weight: 700;
+  padding: 8px 18px; cursor: pointer; color: var(--ink-2);
+  background: transparent; border: 0; border-radius: var(--radius-sm);
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.subtabs button:hover { color: var(--blueprint-2); }
+.subtabs button[aria-selected="true"] {
+  background: var(--blueprint); color: #fff;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--blueprint) 32%, transparent);
+}
+[data-tabpanel][hidden] { display: none; }
+@media (max-width: 520px) {
+  .subtabs { display: flex; width: 100%; }
+  .subtabs button { flex: 1; padding: 8px 6px; text-align: center; }
+}
+
+/* ============================================================
+   방법론 접이식 상세 (details) — 요약은 보이고 상세 표는 접힘
+   ============================================================ */
+details.method-details {
+  border: 1px solid var(--hairline-2); border-radius: var(--radius);
+  background: var(--surface); box-shadow: var(--shadow);
+  margin-bottom: var(--sp-2);
+}
+details.method-details > summary {
+  list-style: none; cursor: pointer;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px;
+  padding: var(--sp-3) var(--sp-4);
+}
+details.method-details > summary::-webkit-details-marker { display: none; }
+details.method-details > summary::after {
+  content: "펼치기 ▾"; margin-left: auto; white-space: nowrap;
+  font-size: var(--t-caption); font-weight: 800; letter-spacing: .04em;
+  color: var(--blueprint); align-self: center;
+}
+details.method-details[open] > summary::after { content: "접기 ▴"; }
+details.method-details > summary:hover .md-h { color: var(--blueprint-2); }
+.md-h { font-size: var(--t-h3); font-weight: 800; color: var(--ink); }
+.md-sum { font-size: var(--t-small); color: var(--ink-3); }
+.md-body { padding: 0 var(--sp-4) var(--sp-4); }
+.md-body > *:first-child { margin-top: 0; }
+.md-body table.sources, .md-body ul { margin-top: 0; }
