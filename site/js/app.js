@@ -451,6 +451,26 @@
       "CBD 프라임의 명목 임대료 호가·관리비 수익을 감안하면 12만원대 실질수익은 도달 가능권이나, 무상임대(rent-free) 관행이 변수다.";
   }
 
+  /* ---------- Ⅸ-3. 리포트 №3 (한남3) ---------- */
+  function renderReport3() {
+    const R = window.__DATA_REPORT3;
+    if (!R || !$("#h3-kpis")) return;
+    $("#h3-kpis").innerHTML = [
+      [fmt.eok(R.cost_total_eok * 1e8), "반영 공사비 총액 (546만원/3.3㎡)"],
+      [R.general_share_pct + "%", "일반분양 비중 (831/5,988세대) — 지렛대가 약한 이유"],
+      ["+" + fmt.eok(R.d_rev_per_1000_eok * 1e8), "분양가 +1,000만원/3.3㎡의 추가 수입"],
+      ["−" + fmt.eok(R.d_cost_10pct_eok * 1e8), "공사비 +10%의 추가 비용 — 거의 상쇄"],
+    ].map(([v, k]) => `<div class="kpi"><div class="v num">${v}</div><div class="k">${k}</div></div>`).join("");
+    $("#h3-levers").innerHTML = "<thead><tr><th style='width:160px'>종전자산 가정</th><th class='num'>분양가 +1,000만원 → Δ비례율</th><th class='num'>공사비 +10% → Δ비례율</th><th class='num'>평균 권리가액(근사)</th></tr></thead><tbody>" +
+      R.levers.map((l, i) => `<tr${i === 1 ? ' style="font-weight:800"' : ""}>
+        <td>${l.prior_jo}조원${i === 1 ? " (중간)" : ""}</td>
+        <td class="num" style="color:var(--pos)">+${l.d_rate_per_price1000}%p</td>
+        <td class="num" style="color:var(--neg)">${l.d_rate_cost10}%p</td>
+        <td class="num">${l.avg_rights_eok}억</td></tr>`).join("") + "</tbody>";
+    $("#h3-levers-cap").textContent = "지렛대 계수 = Δ(수입·비용) ÷ 종전자산. 종전자산이 클수록 같은 변수 변화가 비례율을 덜 움직인다. " +
+      "분양가와 공사비의 힘이 비슷한 크기로 맞서는 구조 — 어느 쪽이 먼저 움직이느냐의 문제다.";
+  }
+
   /* ---------- 테마 토글 (히어로·앱바 공용) ---------- */
   function initTheme() {
     const syncPressed = () => {
@@ -554,7 +574,7 @@
   }
 
   function renderAll() {
-    renderMarket(); renderForecast(); renderEda(); renderCommerce(); renderCases(); renderReport(); renderReport2();
+    renderMarket(); renderForecast(); renderEda(); renderCommerce(); renderCases(); renderReport(); renderReport2(); renderReport3();
   }
 
   /* ---------- 부팅 ---------- */

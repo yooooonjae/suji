@@ -31,6 +31,7 @@ DATA_MAP = {
     "DATA_REPORT": ("report", OUT / "report_wirye.json"),
     "DATA_REPORT2": ("report2", OUT / "report_signature.json"),
     "DATA_SITES": ("sites", ROOT / "data" / "sites.json"),
+    "DATA_REPORT3": ("report3", OUT / "report_hannam.json"),
 }
 CSS_FILES = ["tokens.css", "base.css", "components.css", "flourish.css"]
 JS_FILES = ["guard.js", "feasibility.js", "zoning.js", "charts.js", "calc-ui.js", "app.js"]
