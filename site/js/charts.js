@@ -78,6 +78,38 @@
   }
   function tipHide() { if (tipEl) tipEl.classList.remove("on"); }
 
+  // 이산 마크(히트맵·워터폴·토네이도·수평바·산점) 툴팁 바인딩 공통화 — 데스크톱 hover +
+  // 모바일 탭 동시 지원. html: () => string. pointer 이벤트라 마우스·터치 동일 경로.
+  let tipDocBound = false;
+  function bindTip(node, html) {
+    const show = ev => { const p = (ev.touches && ev.touches[0]) || ev; tipShow(html(), p.clientX, p.clientY); };
+    node.addEventListener("pointerenter", show);
+    node.addEventListener("pointermove", show);
+    node.addEventListener("click", show);
+    node.addEventListener("pointerleave", tipHide);
+    if (!tipDocBound) { // 차트 밖을 탭하면 툴팁 닫기 (1회 등록)
+      tipDocBound = true;
+      document.addEventListener("pointerdown", ev => {
+        if (!(ev.target && ev.target.closest && ev.target.closest("svg"))) tipHide();
+      });
+    }
+  }
+
+  // 다계열 라인 정렬 — 계열을 라벨 합집합(정렬) 기준으로 재색인해 툴팁·수직선의 인덱스 i가
+  // 전 계열에서 같은 날짜를 가리키게 한다. 결측은 NaN(엔진의 Number.isFinite 가드가 갭 처리).
+  function alignByLabel(series) {
+    const labels = [...new Set(series.flatMap(s => s.points.map(p => p.label)))].sort();
+    return series.map(s => {
+      const byLabel = new Map(s.points.map(p => [p.label, p.y]));
+      return { ...s, points: labels.map((label, x) => ({ x, label, y: byLabel.has(label) ? byLabel.get(label) : NaN })) };
+    });
+  }
+  // 이미 동일 라벨 시퀀스면 정렬 불필요 — 사전순 정렬이 오히려 깨뜨리는 라벨(예: "Q10"<"Q2")을 보호.
+  function labelsAligned(series) {
+    const a = series[0].points;
+    return series.every(s => s.points.length === a.length && s.points.every((p, i) => p.label === a[i].label));
+  }
+
   function extent(arr) {
     let lo = Infinity, hi = -Infinity;
     for (const v of arr) { if (!Number.isFinite(v)) continue; if (v < lo) lo = v; if (v > hi) hi = v; }
@@ -150,6 +182,8 @@
       root.innerHTML = '<p class="caption" style="padding:12px 0">표시할 자료가 없다.</p>';
       return null;
     }
+    // 다계열이 라벨 불일치면 라벨 기준 조인 (툴팁·수직선 인덱스 정합). 이미 정렬됐으면 무해하게 건너뜀.
+    if (series.length > 1 && !labelsAligned(series)) series = alignByLabel(series);
     const isYm = series[0].points.length > 0 &&
       series.every(s => s.points.every(p => /^\d{4}\.\d{2}$/.test(p.label || "")));
     const interactive = opts.interactive !== false;
@@ -243,8 +277,10 @@
           el("path", { d: area, fill: grad(svg, col, "v", 0, 0, 0.14, 0), "pointer-events": "none" }, svg);
         }
         el("path", { d, fill: "none", stroke: col, "stroke-width": s.emph ? 2.6 : 2, "stroke-linejoin": "round", opacity: s.dim ? 0.35 : 1 }, svg);
-        const last = s.points[s.points.length - 1];
-        ends.push({ name: s.name, col, ty: y(last.y) + 4 });
+        // 라벨 앵커는 마지막 유한점 (라벨 조인으로 말단이 결측일 수 있음 — NaN 위치 방지)
+        let last = null;
+        for (let li = s.points.length - 1; li >= 0; li--) { if (Number.isFinite(s.points[li].y)) { last = s.points[li]; break; } }
+        if (last) ends.push({ name: s.name, col, ty: y(last.y) + 4 });
       });
       // 직접 라벨 — 세로 충돌 회피(위→아래 정렬 후 최소 15px 간격 보장)
       ends.sort((a, b) => a.ty - b.ty);
@@ -374,8 +410,7 @@
         .textContent = s.name;
       el("text", { x: tx, y: H - 22, "text-anchor": "middle", "font-size": 11.5, "font-weight": 700, fill: col, "font-family": "var(--font-num)" }, svg)
         .textContent = fmt.eok(isSum ? s.y1 : s.value);
-      r.addEventListener("mousemove", ev => tipShow(`<div class="t-title">${s.name}</div><b class="num">${fmt.eok(isSum ? s.y1 : s.value)}원</b>`, ev.clientX, ev.clientY));
-      r.addEventListener("mouseleave", tipHide);
+      bindTip(r, () => `<div class="t-title">${s.name}</div><b class="num">${fmt.eok(isSum ? s.y1 : s.value)}원</b>`);
     });
     // 0 기준선
     el("line", { x1: M.l, x2: W - M.r, y1: y(0), y2: y(0), stroke: css("--axis"), "stroke-width": 1.2 }, svg);
@@ -403,11 +438,8 @@
       const pos = el("rect", { x: x(base), y: cy - 9, width: Math.abs(x(Math.max(it.high, base)) - x(base)) || 1, height: 18, fill: css("--s1"), opacity: .85, rx: 5 }, svg);
       el("text", { x: xl - 6, y: cy + 4, "text-anchor": "end", "font-size": 11.5, fill: css("--ink-3"), "font-family": "var(--font-num)" }, svg).textContent = fmt.eok(it.low);
       el("text", { x: xr + 6, y: cy + 4, "font-size": 11.5, fill: css("--ink-3"), "font-family": "var(--font-num)" }, svg).textContent = fmt.eok(it.high);
-      [neg, pos].forEach(r2 => {
-        r2.addEventListener("mousemove", ev => tipShow(
-          `<div class="t-title">${it.name}</div>나빠질 때 <b class="num">${fmt.eok(it.low)}</b> · 현재 기준 <b class="num">${fmt.eok(base)}</b> · 좋아질 때 <b class="num">${fmt.eok(it.high)}</b>`, ev.clientX, ev.clientY));
-        r2.addEventListener("mouseleave", tipHide);
-      });
+      [neg, pos].forEach(r2 => bindTip(r2, () =>
+        `<div class="t-title">${it.name}</div>나빠질 때 <b class="num">${fmt.eok(it.low)}</b> · 현재 기준 <b class="num">${fmt.eok(base)}</b> · 좋아질 때 <b class="num">${fmt.eok(it.high)}</b>`));
     });
     el("line", { x1: x(base), x2: x(base), y1: M.t, y2: H - M.b, stroke: css("--ink"), "stroke-width": 1.4 }, svg);
     el("text", { x: x(base), y: H - 12, "text-anchor": "middle", "font-size": 12, "font-weight": 700, fill: css("--ink-2"), "font-family": "var(--font-num)" }, svg)
@@ -438,9 +470,8 @@
           const miss = el("rect", { x: M.l + c * cw + 1, y: M.t + r * cellH + 1,
             width: cw - 2, height: cellH - 2, fill: css("--surface-2"), rx: 5,
             stroke: css("--hairline"), "stroke-dasharray": "3 3" }, svg);
-          miss.addEventListener("mousemove", ev => tipShow(
-            `<div class="t-title">${opts.xName || "X"} ${xv} · ${opts.yName || "Y"} ${yv}</div>자료 없음`, ev.clientX, ev.clientY));
-          miss.addEventListener("mouseleave", tipHide);
+          bindTip(miss, () =>
+            `<div class="t-title">${opts.xName || "X"} ${xv} · ${opts.yName || "Y"} ${yv}</div>자료 없음`);
           return;
         }
         // 발산형 파랑↔주황: 음수 = 파랑(강도 비례), 양수 = 주황 램프 (한국 관행: 하락=파랑)
@@ -457,9 +488,8 @@
             "font-size": 11.5, "font-weight": 700, "font-family": "var(--font-num)", "pointer-events": "none",
             fill: strong ? "#fff" : css("--ink-2") }, svg).textContent = (opts.cellFmt || vFmt)(v);
         }
-        rect.addEventListener("mousemove", ev => tipShow(
-          `<div class="t-title">${opts.xName || "X"} ${xv} · ${opts.yName || "Y"} ${yv}</div>${opts.vLabel || "이익"} <b class="num">${vFmt(v)}</b>`, ev.clientX, ev.clientY));
-        rect.addEventListener("mouseleave", tipHide);
+        bindTip(rect, () =>
+          `<div class="t-title">${opts.xName || "X"} ${xv} · ${opts.yName || "Y"} ${yv}</div>${opts.vLabel || "이익"} <b class="num">${vFmt(v)}</b>`);
       });
       el("text", { x: M.l - 8, y: M.t + r * cellH + cellH / 2 + 4, "text-anchor": "end", "font-size": 11.5, fill: css("--ink-2"), "font-family": "var(--font-num)" }, svg).textContent = yv;
     });
@@ -661,8 +691,7 @@
         fill: grad(svg, barCol, "h", -0.18, 0.16), rx: 6, opacity: isSel ? 1 : .95 }, svg);
       el("text", { x: M.l + Math.max(2, w2) + 9, y: cy + rowH / 2 + 5, "font-size": 13, fill: css("--ink-2"), "font-family": "var(--font-num)", "font-weight": 700 }, svg)
         .textContent = opts.fmt ? opts.fmt(d.value) : fmt.num(d.value, 0);
-      bar.addEventListener("mousemove", ev => tipShow(`<div class="t-title">${d.name}</div><b class="num">${opts.fmt ? opts.fmt(d.value) : fmt.num(d.value, 0)}</b>${opts.onSelect ? '<br><span style="opacity:.7">클릭: 상세 보기</span>' : ""}`, ev.clientX, ev.clientY));
-      bar.addEventListener("mouseleave", tipHide);
+      bindTip(bar, () => `<div class="t-title">${d.name}</div><b class="num">${opts.fmt ? opts.fmt(d.value) : fmt.num(d.value, 0)}</b>${opts.onSelect ? '<br><span style="opacity:.7">클릭: 상세 보기</span>' : ""}`);
       if (opts.onSelect) {
         [bar, lab].forEach(nd => {
           nd.style.cursor = "pointer";
@@ -748,8 +777,7 @@
       }
       placed.push(pickBox);
       el("text", { x: pick.x, y: pick.y, "text-anchor": pick.anchor, "font-size": 11.5, "font-weight": 700, fill: css("--ink-2") }, svg).textContent = p.name;
-      c.addEventListener("mousemove", ev => tipShow(`<div class="t-title">${p.name}</div>매매지수 1년 변동 <b class="num">${p.y >= 0 ? "+" : ""}${p.y.toFixed(1)}%</b><br>미분양 1년 증감 <b class="num">${p.x >= 0 ? "+" : ""}${p.x.toFixed(0)}%</b>`, ev.clientX, ev.clientY));
-      c.addEventListener("mouseleave", tipHide);
+      bindTip(c, () => `<div class="t-title">${p.name}</div>매매지수 1년 변동 <b class="num">${p.y >= 0 ? "+" : ""}${p.y.toFixed(1)}%</b><br>미분양 1년 증감 <b class="num">${p.x >= 0 ? "+" : ""}${p.x.toFixed(0)}%</b>`);
     });
     return svg;
   }

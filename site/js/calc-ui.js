@@ -12,6 +12,8 @@
   /* ---------- 상태 ---------- */
   let mode = "신축분양";
   let snapshotA = null;
+  let snapshotAKey = null; // 스냅샷 시점의 사업유형 (mode/asset) — 다른 모드로 바뀌면 비교 무효
+  let abNotice = "";       // 1회성 A/B 리셋 안내 (renderAB가 소비)
   const st = { // 입력 상태 (UI 단위: 억원·평당만원 등 실무 단위, 계산 직전 원·㎡ 변환)
     land_area: 10000, zone: "R2", nb_ratio: 0,                        // 토지
     asset: "apt",                                                     // 자산유형: apt·office·retail
@@ -120,7 +122,7 @@
         const k = inp.dataset.k;
         st[k] = inp.tagName === "SELECT" ? inp.value : parseFloat(inp.value);
         clearPresetActive();
-        if (k === "asset") { renderInputs(); recalc(); renderSensitivity(); return; } // 그룹 구조 전환
+        if (k === "asset") { guardSnapshot(); renderInputs(); recalc(); renderSensitivity(); return; } // 그룹 구조 전환 + A 비교 초기화
         updateLabel(k); // 라벨 실시간 갱신
         scheduleRecalc();
       });
@@ -362,9 +364,19 @@
     global.__calcLast = out;
   }
 
+  // 사업유형 키 (mode + asset) — 분양/수익형/정비는 수입 구조가 달라 이익 비교가 무의미하므로 구분자로 삼는다
+  function snapKey() { return mode + "/" + st.asset; }
+  // 사업유형·자산·프리셋 변경 시: 스냅샷이 다른 모드면 비우고 A/B를 리셋(1줄 안내)
+  function guardSnapshot() {
+    if (snapshotA && snapshotAKey !== snapKey()) {
+      snapshotA = null; snapshotAKey = null;
+      abNotice = "사업유형이 바뀌어 A 비교를 초기화했다.";
+    }
+  }
+
   function renderAB(cur) {
     const host = $("#ab-result");
-    if (!snapshotA) { host.innerHTML = ""; return; }
+    if (!snapshotA) { host.innerHTML = abNotice || ""; abNotice = ""; return; } // 스냅샷 없으면 1회성 안내 표시 후 비움
     const d = cur.profit - snapshotA.profit;
     host.innerHTML = `<span class="ab-badge">A 대비</span> 이익 <b class="num" style="color:var(${d >= 0 ? "--pos" : "--neg"})">${d >= 0 ? "+" : ""}${fmt.eok(d)}</b>
       · 마진 <b class="num">${fmt.pct((cur.margin_on_revenue || 0) - (snapshotA.margin_on_revenue || 0), 1)}p</b>`;
@@ -378,13 +390,30 @@
       const c = JSON.parse(JSON.stringify(inputs));
       mut(c); return F.run(c).profit;
     };
-    const items = [
-      { name: (isIncome() ? "임대료·매각가치" : "분양가") + " ±10%", low: vary(c => scalePrice(c, 0.9)), high: vary(c => scalePrice(c, 1.1)) },
-      { name: "공사비 ±10%", low: vary(c => { c.cost.construction.unit_cost_per_m2 *= 1.1; }), high: vary(c => { c.cost.construction.unit_cost_per_m2 *= 0.9; }) },
-      { name: "분양률 ±10%p", low: vary(c => { c.revenue.sell_through = Math.max(0, c.revenue.sell_through - 0.1); }), high: vary(c => { c.revenue.sell_through = Math.min(1, c.revenue.sell_through + 0.1); }) },
-      { name: "금리 ±2%p", low: vary(c => { c.finance.pf.rate += 0.02; c.finance.bridge.rate += 0.02; }), high: vary(c => { c.finance.pf.rate = Math.max(0, c.finance.pf.rate - 0.02); c.finance.bridge.rate = Math.max(0, c.finance.bridge.rate - 0.02); }) },
-      { name: "사업기간 ±6개월", low: vary(c => { c.schedule.months_total += 6; c.finance.pf.months += 5; }), high: vary(c => { c.schedule.months_total = Math.max(6, c.schedule.months_total - 6); c.finance.pf.months = Math.max(1, c.finance.pf.months - 5); }) },
-    ];
+    // 수익형 변수(임대료·공실·환원율)는 buildInputs로 exit_value를 재계산해야 엔진에 반영된다(실경로).
+    const varyIn = (override) => F.run(buildInputs({ ...st, ...override }).inputs).profit;
+    // 공통 항목 — 분양·수익형 모두 동일 (공사비·금리·기간은 공통 유지)
+    const priceItem = { name: (isIncome() ? "임대료·매각가치" : "분양가") + " ±10%", low: vary(c => scalePrice(c, 0.9)), high: vary(c => scalePrice(c, 1.1)) };
+    const costItem = { name: "공사비 ±10%", low: vary(c => { c.cost.construction.unit_cost_per_m2 *= 1.1; }), high: vary(c => { c.cost.construction.unit_cost_per_m2 *= 0.9; }) };
+    const rateItem = { name: "금리 ±2%p", low: vary(c => { c.finance.pf.rate += 0.02; c.finance.bridge.rate += 0.02; }), high: vary(c => { c.finance.pf.rate = Math.max(0, c.finance.pf.rate - 0.02); c.finance.bridge.rate = Math.max(0, c.finance.bridge.rate - 0.02); }) };
+    const periodItem = { name: "사업기간 ±6개월", low: vary(c => { c.schedule.months_total += 6; c.finance.pf.months += 5; }), high: vary(c => { c.schedule.months_total = Math.max(6, c.schedule.months_total - 6); c.finance.pf.months = Math.max(1, c.finance.pf.months - 5); }) };
+    let items;
+    if (isIncome()) {
+      // 수익형: 분양률(sell_through 고정 1이라 무의미)을 제거하고, 엔진이 실제 계산하는 공실률·환원율로 교체
+      items = [
+        priceItem,
+        { name: "공실률 ±10%p", low: varyIn({ vacancy: Math.min(100, st.vacancy + 10) }), high: varyIn({ vacancy: Math.max(0, st.vacancy - 10) }) },
+        { name: "매각 환원율 ±0.5%p", low: varyIn({ cap: st.cap + 0.5 }), high: varyIn({ cap: Math.max(0.1, st.cap - 0.5) }) },
+        costItem, rateItem, periodItem,
+      ];
+    } else {
+      // 분양·정비: 현행 유지 (분양률 ±10%p 포함)
+      items = [
+        priceItem, costItem,
+        { name: "분양률 ±10%p", low: vary(c => { c.revenue.sell_through = Math.max(0, c.revenue.sell_through - 0.1); }), high: vary(c => { c.revenue.sell_through = Math.min(1, c.revenue.sell_through + 0.1); }) },
+        rateItem, periodItem,
+      ];
+    }
     items.sort((a, b2) => (Math.abs(b2.high - b2.low)) - (Math.abs(a.high - a.low)));
     return { items, base };
     function scalePrice(c, k) {
@@ -461,6 +490,7 @@
       b.addEventListener("click", () => {
         mode = b.dataset.mode;
         document.querySelectorAll(".mode-tabs button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+        guardSnapshot(); // 사업유형 변경 → 다른 모드면 A 비교 초기화
         renderInputs(); recalc(); renderSensitivity();
       });
     });
@@ -471,7 +501,8 @@
         if (p) {
           mode = p.__mode || "신축분양"; syncModeTabs();
           if (p.asset === undefined) st.asset = "apt"; // 주거 프리셋은 자산유형 복원
-          Object.assign(st, p); renderInputs(); recalc(); renderSensitivity();
+          Object.assign(st, p); guardSnapshot(); // 프리셋이 모드를 바꾸면 A 비교 초기화
+          renderInputs(); recalc(); renderSensitivity();
           document.querySelectorAll("[data-preset]").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
         }
       });
@@ -479,6 +510,7 @@
     // A/B
     $("#btn-snap").addEventListener("click", () => {
       snapshotA = global.__calcLast;
+      snapshotAKey = snapKey(); // 스냅샷 시점 사업유형 기록
       $("#btn-snap").textContent = "A 저장됨 ✓";
       setTimeout(() => $("#btn-snap").textContent = "현재를 A로 저장", 1600);
       renderAB(global.__calcLast);

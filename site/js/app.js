@@ -181,8 +181,14 @@
   const MODEL_NAMES = { sarima: "SARIMA", chronos: "Chronos-Bolt (제로샷)", naive: "Naive", lightgbm: "LightGBM",
                         seasonal_naive: "계절 Naive", lstm: "LSTM (시도 풀링)" };
   function renderForecast() {
-    const f = FC.forecasts[selSido] || FC.forecasts["전국"];
-    const model = f.models[selModel] || Object.values(f.models)[0];
+    const f = FC.forecasts[selSido];
+    const model = f && f.models[selModel];
+    if (!f || !model) {
+      // 폴백 제거 — 전국 값·타 모델로 위장하지 않고 없음을 명시하고 종료 (은폐 방지)
+      $("#fan-title").textContent = selSido + " — 예측 자료 없음";
+      $("#chart-fan").innerHTML = '<p class="caption" style="padding:12px 0">' + selSido + " 예측 자료를 불러오지 못했다.</p>";
+      return;
+    }
     const hist = seriesOf(M.sale_index, selSido).slice(-36).map(p => ({ label: fmt.ym(p.ym), y: p.value }));
     const labels = model.median.map((_, i) => "+" + (i + 1) + "M");
     C.fan($("#chart-fan"), hist, { median: model.median, q10: model.q10, q90: model.q90, labels }, { aria: selSido + " 12개월 예측" });
@@ -565,11 +571,23 @@
       [...root.querySelectorAll(".unit-seg button")].find(b => b.textContent === "월").click();
       root.querySelector(".zoom-reset").click();
       out.push(`reset:${segCount() === before ? "PASS" : "FAIL"}`);
-      // ④ 온도 진단 점 클릭 → 시도 전환
-      const dots = [...document.querySelectorAll("#chart-phase circle")];
-      const busan = dots.find(d => d.style.cursor === "pointer");
-      if (busan) busan.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      out.push(`phase클릭:${busan ? "PASS" : "FAIL"}(fan=${$("#fan-title").textContent.slice(0, 6)})`);
+      // ④ 지역 매핑 전수 검증 — 17개 시도 각각 클릭 후 상세·예측 제목과 데이터 정합 assert
+      const testSidos = SIDO_ORDER.filter(n => n !== "전국");
+      const fdata = window.__DATA_FORECAST.forecasts;
+      let mapped = 0; const mapFail = [];
+      testSidos.forEach(name => {
+        // phase 점(aria-label="<시도> 상세 보기") → 폴백: 스몰멀티플 시도 카드(.sm-name)
+        let node = document.querySelector(`#chart-phase circle[aria-label^="${name} "]`);
+        if (!node) node = [...document.querySelectorAll("#sm-sale .sm-cell")].find(cell => {
+          const nm = cell.querySelector(".sm-name span"); return nm && nm.textContent.trim() === name;
+        });
+        if (!node) { mapFail.push(name + "(노드없음)"); return; }
+        node.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        const dT = $("#detail-title").textContent, fT = $("#fan-title").textContent;
+        if (dT.indexOf(name) === 0 && fT.indexOf(name) === 0 && !!fdata[name]) mapped++;
+        else mapFail.push(`${name}(d=${dT.slice(0, 2)},f=${fT.slice(0, 2)},data=${!!fdata[name]})`);
+      });
+      out.push(`지역매핑:${mapped}/${testSidos.length} ${mapped === testSidos.length ? "PASS" : "FAIL"}${mapFail.length ? "[" + mapFail.slice(0, 3).join(",") + "]" : ""}`);
       // ⑤ 벤치마크 행 클릭 → 모델 전환
       const row = [...document.querySelectorAll("#bench-body tr")].find(t => t.dataset.model === "chronos");
       row.click();
