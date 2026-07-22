@@ -57,6 +57,8 @@
     pct(v, d) { const t = (v * 100).toFixed(d == null ? 1 : d); return (parseFloat(t) === 0 ? t.replace("-", "") : t) + "%"; },
     num(v, d) { return Number(v).toLocaleString(undefined, { maximumFractionDigits: d == null ? 1 : d }); },
     ym(ym) { return ym.slice(0, 4) + "." + ym.slice(4); },
+    // 한글 단위(억·조·만·세대…)를 .u로 감싼다 — Charter 미지원 폴백의 기준선 혼용 방지. innerHTML 전용.
+    u(s) { return String(s).replace(/[가-힣]+/g, '<span class="u">$&</span>'); },
   };
 
   /* ---------- 툴팁 (싱글턴) ---------- */

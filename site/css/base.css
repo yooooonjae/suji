@@ -37,6 +37,9 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 /* ---------- 수치 서체 ---------- */
 .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
 .num-hero { font-family: var(--font-num); font-weight: 700; letter-spacing: -.02em; }
+/* 한글 단위 — .num(Charter, 한글 미지원) 밖으로 빼 본문 고딕으로 렌더 → 폴백 기준선 혼용 방지 */
+.u { font-family: var(--font-body); font-variant-numeric: normal;
+     font-weight: 600; font-size: .8em; letter-spacing: normal; opacity: .72; }
 
 /* ---------- 레이아웃 골격 ---------- */
 .wrap { position: relative; z-index: 1; }
@@ -135,6 +138,10 @@ header.tblock {
   font-size: 19px; line-height: 1.85; color: var(--ink-2);
 }
 .chapter ul, .chapter ol { margin: 0 0 var(--sp-3) 1.2em; max-width: none; }
+/* 본문 산문은 편안한 측정(72ch)으로 — col-read 직계 문단·목록만. 차트·표·계산기(col-wide)는 전폭 유지.
+   전폭이 필요한 산문(차트 설명 등)은 .col-full 예외 클래스로 해제. (뒤 규칙이 .chapter ul/ol none을 이겨야 함) */
+.col-read > p, .col-read > ul, .col-read > ol { max-width: 72ch; }
+.col-read > .col-full { max-width: none; }
 .chapter li { margin-bottom: var(--sp-1); }
 .caption { font-size: var(--t-caption); color: var(--ink-3); line-height: 1.6; }
 .footnote {

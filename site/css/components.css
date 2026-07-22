@@ -288,9 +288,9 @@ footer.colophon {
    SPA 라우팅 — 앱바·홈 챕터 카드·상세 뷰
    ============================================================ */
 nav.appbar {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 15;
+  position: sticky; top: 0; left: 0; right: 0; z-index: 15;
   display: flex; align-items: center; gap: var(--sp-3);
-  padding: 0 var(--sp-4); height: 54px;
+  padding: 0 var(--sp-4); height: 56px;
   background: color-mix(in srgb, var(--ground) 88%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--hairline);
@@ -319,7 +319,7 @@ nav.appbar .tabs a.active { color: #fff; background: var(--blueprint); }
 }
 .theme-toggle:hover { border-color: var(--blueprint); color: var(--blueprint); transform: translateY(-1px); }
 .theme-toggle .ico { pointer-events: none; }
-body[data-view]:not([data-view="home"]) .wrap { padding-top: 54px; }
+/* sticky 앱바는 흐름에 자리를 차지하므로 .wrap 보정 패딩 불필요 (fixed 시절 54px 패딩 제거) */
 body[data-view="home"] nav.appbar { display: none; }
 
 /* 홈 챕터 카드 */
@@ -338,7 +338,7 @@ a.ch-card {
   transition: transform .2s cubic-bezier(.2,.7,.2,1), border-color .2s, box-shadow .2s;
 }
 a.ch-card:hover {
-  transform: translateY(-4px); text-decoration: none;
+  transform: translateY(-2px); text-decoration: none;
   border-color: var(--blueprint-2);
   box-shadow: 0 2px 4px rgba(22,32,43,.06), 0 18px 46px rgba(30,93,149,.16);
 }
@@ -373,7 +373,7 @@ a.ix-report {
   transition: transform .2s cubic-bezier(.2,.7,.2,1), border-color .2s, box-shadow .2s;
 }
 a.ix-report:hover {
-  transform: translateY(-3px); text-decoration: none; border-color: var(--blueprint-2);
+  transform: translateY(-2px); text-decoration: none; border-color: var(--blueprint-2);
   box-shadow: 0 2px 4px rgba(22,32,43,.06), 0 14px 34px rgba(30,93,149,.14);
 }
 a.ix-report h5 { font-size: 15.5px; font-weight: 800; }

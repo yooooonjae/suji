@@ -441,7 +441,7 @@
       [fmt.eok(B.profit_eok * 1e8), "개발이익 (예정가 낙찰 가정)"],
       [B.margin_pct + "%", "수입 대비 마진 — 경계 구간"],
       [R.breakeven_price_py.toLocaleString() + "만", "손익분기 분양가 (3.3㎡당)"],
-    ].map(([v, k]) => `<div class="kpi"><div class="v num">${v}</div><div class="k">${k}</div></div>`).join("");
+    ].map(([v, k]) => `<div class="kpi"><div class="v num">${fmt.u(v)}</div><div class="k">${k}</div></div>`).join("");
     const be = $("#w-be"); if (be) be.textContent = R.breakeven_price_py.toLocaleString();
 
     const s4 = R.scenarios.find(x => x.price_py === R.base_price_py) || R.scenarios[1];
@@ -475,7 +475,7 @@
       [`연 ${H.total_return_ann}%`, `직전 소유자 8년 성과 근사 (가격 ${H.price_cagr}% + 운영 ${H.avg_yield_on_prev}%)`],
       [`${S2.ltv_pct}%`, "매입가 대비 대출 (후순위 포함 LTV)"],
       [`${R.cap_scenarios[1].noi_eok}억`, `시장 수익률 성립에 필요한 연 NOI`],
-    ].map(([v, k], i) => `<div class="kpi"><div class="v num${i === 0 ? "" : ""}">${v}</div><div class="k">${k}</div></div>`).join("");
+    ].map(([v, k], i) => `<div class="kpi"><div class="v num${i === 0 ? "" : ""}">${fmt.u(v)}</div><div class="k">${k}</div></div>`).join("");
     $("#s2-scen").innerHTML = "<thead><tr><th style='width:160px'>요구수익률</th><th class='num'>필요 연 NOI</th><th class='num'>필요 실질 임대수익 (평·월)</th><th>해석</th></tr></thead><tbody>" +
       R.cap_scenarios.map((x, i) => `<tr${i === 1 ? ' style="font-weight:800"' : ""}>
         <td>${x.yield_pct.toFixed(2)}%${i === 1 ? " (시장 평균)" : ""}</td>
@@ -494,7 +494,7 @@
       [R.general_share_pct + "%", "일반분양 비중 (831/5,988세대) — 지렛대가 약한 이유"],
       ["+" + fmt.eok(R.d_rev_per_1000_eok * 1e8), "분양가 +1,000만원/3.3㎡의 추가 수입"],
       ["−" + fmt.eok(R.d_cost_10pct_eok * 1e8), "공사비 +10%의 추가 비용 — 거의 상쇄"],
-    ].map(([v, k]) => `<div class="kpi"><div class="v num">${v}</div><div class="k">${k}</div></div>`).join("");
+    ].map(([v, k]) => `<div class="kpi"><div class="v num">${fmt.u(v)}</div><div class="k">${k}</div></div>`).join("");
     $("#h3-levers").innerHTML = "<thead><tr>" +
       "<th style='width:150px'>종전자산 가정</th>" +
       "<th class='num' style='text-align:right'>분양가 +1,000만원<br><span style='font-weight:400'>→ Δ비례율</span></th>" +

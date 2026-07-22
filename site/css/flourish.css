@@ -9,8 +9,8 @@
   content: ""; position: absolute; inset: -10% -20% auto;
   height: 90%; z-index: -1; pointer-events: none;
   background:
-    radial-gradient(46% 60% at 24% 30%, color-mix(in srgb, var(--blueprint-2) 14%, transparent), transparent 70%),
-    radial-gradient(30% 40% at 78% 62%, color-mix(in srgb, var(--seal) 7%, transparent), transparent 70%);
+    radial-gradient(46% 60% at 24% 30%, color-mix(in srgb, var(--blueprint-2) 9%, transparent), transparent 70%),
+    radial-gradient(30% 40% at 78% 62%, color-mix(in srgb, var(--seal) 4.5%, transparent), transparent 70%);
   filter: blur(2px);
 }
 :root[data-theme="dark"] .hero::before,
@@ -60,19 +60,12 @@ section.chapter::before {
 }
 :root[data-theme="dark"] section.chapter::before { opacity: .07; }
 
-/* ---------- 카드·figure 호버 리프트 + 글로우 ---------- */
-figure.viz, .case-card, .hero-stat, .calc-panel {
+/* ---------- 카드 호버 전이 (클릭 가능한 카드만) ----------
+   정적 차트(figure.viz)·통계 타일(.hero-stat)은 리프트 제거 — 상호작용 없는 표면은 뜨지 않는다.
+   -2px 리프트는 클릭 가능한 카드(a.ch-card·case-card·ix-report·sm-cell)에만 유지. */
+.case-card {
   transition: transform .22s cubic-bezier(.2,.7,.2,1), box-shadow .22s, border-color .22s;
 }
-figure.viz:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 2px 4px rgba(22,32,43,.06), 0 16px 44px rgba(30,93,149,.13);
-  border-color: color-mix(in srgb, var(--blueprint-2) 45%, var(--hairline));
-}
-:root[data-theme="dark"] figure.viz:hover {
-  box-shadow: 0 2px 4px rgba(0,0,0,.4), 0 16px 48px rgba(106,163,216,.14);
-}
-.hero-stat:hover { transform: translateY(-3px); border-color: var(--blueprint-2); }
 
 /* ---------- 리빌 스태거 (그리드 자식 시차) ---------- */
 .smallmult .sm-cell { transition: border-color .15s, transform .18s; }
@@ -125,15 +118,13 @@ html:not([data-theme="light"]) body.dark-ambient::after { content: none; }
    기존 제도지 정체성 위에 깊이·광택·괘선 정밀도만 더한다.
    ============================================================ */
 
-/* 지면 카드: 상단 은은한 광택 + 층진 그림자 */
-.viz, .kpi, .case-card, .calc, .tblock-frame {
+/* 지면 카드 상단 광택: 계산기 결과 카드·Ⅸ 대표 카드에만 — 나머지 표면(차트·KPI·사례·도곽)은 무광 마감 */
+.calc-out, .ch-card-ix {
   background-image: linear-gradient(180deg,
     color-mix(in srgb, var(--surface) 88%, #fff) 0,
     var(--surface) 64px);
 }
-:root[data-theme="dark"] .viz, :root[data-theme="dark"] .kpi,
-:root[data-theme="dark"] .case-card, :root[data-theme="dark"] .calc,
-:root[data-theme="dark"] .tblock-frame {
+:root[data-theme="dark"] .calc-out, :root[data-theme="dark"] .ch-card-ix {
   background-image: linear-gradient(180deg,
     color-mix(in srgb, var(--surface) 90%, #fff) 0,
     var(--surface) 64px);
@@ -143,13 +134,8 @@ html:not([data-theme="light"]) body.dark-ambient::after { content: none; }
 /* 도곽(표제란): 이중 괘선 — 도면 표제란의 정밀 마감 */
 .tblock-frame { outline: 1px solid var(--hairline); outline-offset: -6px; box-shadow: var(--shadow); }
 
-/* 히어로 통계 수치: 제도펜 그라데이션 잉크 */
-.hero-stat .v {
-  background: linear-gradient(135deg, var(--blueprint) 0%, var(--blueprint-2) 55%, color-mix(in srgb, var(--blueprint-2) 72%, #fff) 100%);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: var(--blueprint);
-}
-.hero-stat .v small { -webkit-text-fill-color: var(--ink-3); }
+/* 히어로 통계 수치: 단색 주황 (그라데이션 잉크 → 감산) */
+.hero-stat .v { color: var(--blueprint); }
 
 /* KPI 타일: 함몰 지면 + 수치 위계 */
 .kpi { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 60%, #fff), 0 1px 2px rgba(0,0,0,.04); }

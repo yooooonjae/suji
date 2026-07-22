@@ -245,7 +245,7 @@
       kpis.push(["세대당 분담금", mc == null ? "―" : mc < 0 ? "환급 " + fmt.eok(-mc) : fmt.eok(mc), mc != null && mc < 0 ? "pos" : ""]);
     }
     return kpis.map(([k, v, cls, hero]) =>
-      `<div class="kpi${hero ? " kpi-hero" : ""}"><div class="v ${cls}">${v}</div><div class="k">${k}</div></div>`).join("");
+      `<div class="kpi${hero ? " kpi-hero" : ""}"><div class="v ${cls}">${fmt.u(v)}</div><div class="k">${k}</div></div>`).join("");
   }
 
   // 판정 문장 — 지표를 실무 기준선과 비교해 한 줄로 해석
