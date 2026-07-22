@@ -196,6 +196,13 @@ table.ledger td.num { font-family: var(--font-num); }
 table.ledger tr.sum td { font-weight: 800; border-top: 2px solid var(--ink); border-bottom: none; }
 table.ledger tr.sub td { color: var(--ink-2); }
 
+/* 리포트 시나리오 표(#w-scen) — bare table이라 .num에 정렬 규칙이 없어
+   헤더는 th 기본 center, 본문 숫자는 td 기본 left로 어긋난다(숫자가 앞으로 댕겨짐).
+   .ledger와 동일하게 숫자열 우측정렬·첫 열(분양가) 좌측정렬. 표시 정렬만, 로직 불변. */
+#w-scen th, #w-scen td, #s2-scen th, #s2-scen td { text-align: right; }
+#w-scen th:first-child, #w-scen td:first-child,
+#s2-scen th:first-child, #s2-scen td:first-child { text-align: left; }
+
 /* 시나리오 A/B */
 .ab-row { display: flex; gap: var(--sp-2); align-items: center; margin: var(--sp-3) 0; flex-wrap: wrap; }
 .ab-row button {
