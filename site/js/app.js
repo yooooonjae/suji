@@ -419,7 +419,7 @@
     ], { color: "--s2", emph: ["SH 예정가"], fmt: v => fmt.num(v, 0) + "억",
          labelW: 110, width: 1160, rowH: 40, aria: "토지 상한 vs 예정가" });
 
-    $("#w-scen").innerHTML = "<thead><tr><th>분양가(3.3㎡)</th><th class='num'>총수입</th><th class='num'>개발이익</th><th class='num'>마진</th><th class='num'>연 IRR</th><th class='num'>토지상한(마진10%)</th></tr></thead><tbody>" +
+    $("#w-scen").innerHTML = "<thead><tr><th style='width:120px'>분양가(3.3㎡)</th><th class='num'>총수입</th><th class='num'>개발이익</th><th class='num'>마진</th><th class='num'>연 IRR</th><th class='num'>토지상한(마진10%)</th></tr></thead><tbody>" +
       R.scenarios.map(x => `<tr${x.price_py === R.base_price_py ? ' style="font-weight:800"' : ""}>
         <td>${x.price_py.toLocaleString()}만원</td><td class="num">${x.revenue_eok.toLocaleString()}억</td>
         <td class="num" style="color:var(${x.profit_eok >= 0 ? "--pos" : "--neg"})">${x.profit_eok.toLocaleString()}억</td>
