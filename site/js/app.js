@@ -431,6 +431,26 @@
       "억 — 공사비 10% 증액이면 마진 10% 토지 상한도 " + cs[2].ceiling_10.toLocaleString() + "억으로 내려간다.";
   }
 
+  /* ---------- Ⅸ-2. 리포트 №2 (시그니쳐타워) ---------- */
+  function renderReport2() {
+    const R = window.__DATA_REPORT2;
+    if (!R || !$("#s2-kpis")) return;
+    const M = R.market, H = R.hold, S2 = R.structure;
+    $("#s2-kpis").innerHTML = [
+      [`${M.spread_market}%p`, `시장 소득수익률(${M.seoul_income_ann}%) − 국고10y(${M.t10}%) — 음의 스프레드`],
+      [`연 ${H.total_return_ann}%`, `직전 소유자 8년 성과 근사 (가격 ${H.price_cagr}% + 운영 ${H.avg_yield_on_prev}%)`],
+      [`${S2.ltv_pct}%`, "매입가 대비 대출 (후순위 포함 LTV)"],
+      [`${R.cap_scenarios[1].noi_eok}억`, `시장 수익률 성립에 필요한 연 NOI`],
+    ].map(([v, k], i) => `<div class="kpi"><div class="v num${i === 0 ? "" : ""}">${v}</div><div class="k">${k}</div></div>`).join("");
+    $("#s2-scen").innerHTML = "<thead><tr><th style='width:160px'>요구수익률</th><th class='num'>필요 연 NOI</th><th class='num'>필요 실질 임대수익 (평·월)</th><th>해석</th></tr></thead><tbody>" +
+      R.cap_scenarios.map((x, i) => `<tr${i === 1 ? ' style="font-weight:800"' : ""}>
+        <td>${x.yield_pct.toFixed(2)}%${i === 1 ? " (시장 평균)" : ""}</td>
+        <td class="num">${x.noi_eok.toLocaleString()}억</td><td class="num">${x.rent_py_month}만원</td>
+        <td>${i === 0 ? "프라임 프리미엄 감수" : i === 1 ? "서울 평균 수준 수익률" : "보수적 요구수익률"}</td></tr>`).join("") + "</tbody>";
+    $("#s2-scen-cap").textContent = "임대료를 추정해 cap을 계산하는 대신, 수익률이 요구하는 수익을 역산 — 추정 단위 오류(전용/임대면적·명목/실질)를 구조적으로 회피한다. " +
+      "CBD 프라임의 명목 임대료 호가·관리비 수익을 감안하면 12만원대 실질수익은 도달 가능권이나, 무상임대(rent-free) 관행이 변수다.";
+  }
+
   /* ---------- 테마 토글 (히어로·앱바 공용) ---------- */
   function initTheme() {
     const syncPressed = () => {
@@ -534,7 +554,7 @@
   }
 
   function renderAll() {
-    renderMarket(); renderForecast(); renderEda(); renderCommerce(); renderCases(); renderReport();
+    renderMarket(); renderForecast(); renderEda(); renderCommerce(); renderCases(); renderReport(); renderReport2();
   }
 
   /* ---------- 부팅 ---------- */
