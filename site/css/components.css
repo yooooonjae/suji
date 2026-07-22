@@ -435,3 +435,13 @@ section.chapter::after {
   #eda-corr svg, #eda-corr-sido svg, #sens-heat svg { min-width: 760px; }
   #chart-seoul-gu svg { min-width: 640px; }
 }
+
+/* 모바일 히어로 카운터: 첫 타일(최대 숫자) 전폭 → 1+2+2 균형, 숫자는 타일 안에 (실기기 검증 반영) */
+@media (max-width: 700px) {
+  .hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero-stat { padding: 15px 14px; }
+  .hero-stat:first-child { grid-column: 1 / -1; }
+  .hero-stat .v { font-size: clamp(20px, 6.2vw, 27px); }
+  .hero-stat .v small { font-size: 12.5px; }
+  .hero-eyebrow::after { display: none; }  /* 좁은 폭에서 괘선 생략 — 3줄 랩 방지 */
+}
