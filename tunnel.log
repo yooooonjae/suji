@@ -40,3 +40,4 @@ SUMMARY: Environment is healthy. cloudflared will use 'quic' as primary protocol
 2026-07-21T01:55:34Z INF precheck component="TCP Connectivity" details="HTTP/2 connection successful" run_id=65fd6b6b-7830-4f4a-a71f-72cb42457324 status=pass target=region2.v2.argotunnel.com
 2026-07-21T01:55:34Z INF precheck component="Cloudflare API" details="API is reachable" run_id=65fd6b6b-7830-4f4a-a71f-72cb42457324 status=pass target=api.cloudflare.com:443
 2026-07-21T01:55:34Z INF precheck complete hard_fail=false run_id=65fd6b6b-7830-4f4a-a71f-72cb42457324 suggested_protocol=quic
+2026-07-22T01:55:29Z WRN Your version 2026.5.1 is outdated. We recommend upgrading it to 2026.7.2

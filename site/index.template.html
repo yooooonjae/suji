@@ -38,6 +38,7 @@
     <a href="#/ch6" data-view="ch6">Ⅵ 사례</a>
     <a href="#/ch7" data-view="ch7">Ⅶ 컨설팅</a>
     <a href="#/ch8" data-view="ch8">Ⅷ 방법론</a>
+    <a href="#/ch9" data-view="ch9">Ⅸ 리포트</a>
   </div>
   <button class="theme-mini theme-toggle" aria-label="테마 전환(라이트/다크)">라이트/다크</button>
 </nav>
@@ -115,6 +116,7 @@
     <a class="ch-card" href="#/ch6"><div class="n">Ⅵ</div><h4>사례 — 네 개의 표준 사업</h4><p>실제 데이터에서 뽑은 입력값으로 계산한 신축 3건 + 재건축 1건의 수지 구조.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch7"><div class="n">Ⅶ</div><h4>컨설팅 — 절차·리스크·전략</h4><p>정비사업 7단계 타임라인과 시장 상황 × 사업유형 전략 매트릭스.</p><span class="go">상세보기 →</span></a>
     <a class="ch-card" href="#/ch8"><div class="n">Ⅷ</div><h4>방법론 — 출처·가정·한계</h4><p>7개 기관 14종 데이터셋 출처, 모델 가정, 검증 체계와 한계의 투명한 고지.</p><span class="go">상세보기 →</span></a>
+    <a class="ch-card" href="#/ch9"><div class="n">Ⅸ</div><h4>리포트 — 실전 딜 검토</h4><p>№1 위례 E1-1(반도건설 낙찰): 수지가 허용하는 토지 상한의 역산.</p><span class="go">상세보기 →</span></a>
   </div>
 </section>
 
@@ -605,6 +607,68 @@
     </ul>
   </div>
 </section>
+
+<div class="dim-rule">제 Ⅸ 장</div>
+<section class="chapter" id="ch9" data-sheet="Ⅸ" data-num="Ⅸ">
+  <header class="tblock reveal">
+    <div class="tblock-frame">
+      <div class="tblock-no">Ⅸ</div>
+      <div><div class="tblock-kicker">REPORT</div>
+        <h2 class="tblock-title">리포트 №1 — 위례 E1-1, 그 땅의 값은 정당한가</h2></div>
+      <div class="tblock-meta"><span>유형 <b>실전 딜 검토</b></span><span>방법 <b>토지 잔여가치 역산</b></span></div>
+    </div>
+  </header>
+
+  <p class="prose reveal">2025년 12월, 반도건설이 SH 위례 복합용지 E1-1(송파 권역 북위례)을 낙찰받았다.
+  이 땅의 이력이 흥미롭다 — <b>사업성 미흡으로 유찰되었다가, 지구단위계획 변경으로 조건을 손질해 재공급된 필지</b>다.
+  낙찰가는 공개되지 않았다. 그래서 이 리포트는 질문을 뒤집는다: 얼마에 샀는지 맞히는 대신,
+  <b>수지가 허용하는 토지 가격의 상한을 역산</b>한다 — 시행 실무에서 쓰는 토지 잔여가치(Land Residual) 접근이다.</p>
+
+  <figure class="viz reveal">
+    <div class="viz-head"><div class="viz-title">공개 팩트</div><div class="viz-unit">SH 공고·언론 보도 (2025-12)</div></div>
+    <div style="overflow-x:auto"><table>
+      <tbody>
+        <tr><td>대지면적</td><td class="num">20,631㎡ (약 6,241평)</td><td>위치</td><td>송파 권역 북위례 · 주상복합용지</td></tr>
+        <tr><td>공급 규모</td><td class="num">공동주택 656세대 (전용 60~85)</td><td>부대</td><td>상업·문화 복합시설</td></tr>
+        <tr><td>SH 예정가격</td><td class="num"><b>2,613.1억원</b> (입찰 하한)</td><td>공급 방식</td><td>최고가 경쟁입찰 → 반도건설 낙찰 (낙찰가 미공개)</td></tr>
+        <tr><td>총사업비</td><td class="num">약 6,000억원 (보도)</td><td>이력</td><td>유찰 → 지구단위계획 변경 → 재공급</td></tr>
+      </tbody>
+    </table></div>
+  </figure>
+
+  <div class="kpi-row reveal" id="w-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:0 0 var(--sp-4)"></div>
+
+  <figure class="viz reveal">
+    <div class="viz-head"><div class="viz-title">이 땅에 얼마까지 쓸 수 있는가 — 토지 상한 역산</div><div class="viz-unit">분양가 4,000만원/3.3㎡ 가정 · 억원</div></div>
+    <div id="w-ceiling"></div>
+    <figcaption>이익 목표별 토지비 상한을 이분법으로 역산. <b>주황 = SH 예정가(입찰 하한)</b> —
+    예정가가 이미 "마진 10% 상한"을 웃돈다. 예정가로 낙찰해도 통상 목표(마진 10~15%)에 못 미치고,
+    경쟁입찰에서 예정가보다 높게 썼다면 그 격차만큼 분양가 상승에 베팅한 셈이다.</figcaption>
+  </figure>
+
+  <figure class="viz reveal">
+    <div class="viz-head"><div class="viz-title">분양가 시나리오 — 예정가 낙찰 가정</div><div class="viz-unit">3.3㎡당 분양가별 · 억원</div></div>
+    <div style="overflow-x:auto"><table id="w-scen"></table></div>
+    <figcaption id="w-scen-cap"></figcaption>
+  </figure>
+
+  <p class="prose reveal"><b>판정.</b> 이 필지의 성패는 딱 하나의 숫자에 걸려 있다 — 분양가.
+  예정가 낙찰을 가정한 <b>손익분기 분양가는 3.3㎡당 <span id="w-be">3,704</span>만원</b>이다.
+  참고로 자체 청약 DB 기준 위례권 최근 민간 분양(2024 남위례)은 4,245만원, 2020년 위례 공공분양은 2,700만원대였다.
+  4,000만원이면 마진 6.9%의 "경계", 4,500만원이면 16.7%의 "우량" — 결국
+  <b>이 땅은 분양 시점(2027~28 추정)의 분상제 심사가격이 4,000만원을 넘는다고 믿는 사람의 땅</b>이다.
+  유찰 이력이 말해주듯 애초에 여유가 많은 필지가 아니었고, 조건 변경 후에도 예정가 자체가 타이트하다.</p>
+
+  <figure class="viz reveal">
+    <div class="viz-head"><div class="viz-title">가정과 한계 — 이 리포트를 읽는 법</div></div>
+    <div style="padding:4px 2px;font-size:13.5px;line-height:1.85;color:var(--ink-2)">
+      · 연면적(공사비 산정용, 지하 포함) 95,000㎡·평당 공사비 920만원(서울 실측 890 × 주상복합 할증)은 <b>총사업비 6,000억 보도와의 정합으로 보정한 추정</b>이다 — 실제 설계 확정 시 달라진다.<br>
+      · 상업·문화시설 수입은 180억(보수)으로 별도 처리. 금융 구조(자본 800억·브릿지 1,500억 7.5%·PF 3,500억 6.0%)는 표준 가정.<br>
+      · 분양가는 공공택지 분양가상한제 심사를 전제 — 시나리오(3,500/4,000/4,500만원)로 그 불확실성을 감쌌다.<br>
+      · 본 리포트는 공개 정보와 표준 가정에 기반한 <b>초기 검토용 추정</b>이며, 특정 회사의 실제 수지와 다를 수 있다.
+      낙찰가 공개 시(계약 공고) 실측치로 갱신한다 — 이것이 예상치와 실적치를 대조하는 이 시리즈의 목적이다.</div>
+  </figure>
+
 
 <footer class="colophon">
   <div style="font-weight:800;color:var(--ink-2);margin-bottom:6px">수지(收支) — 대한민국 부동산 개발의 손익 구조</div>

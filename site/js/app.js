@@ -38,7 +38,7 @@
   /* ---------- 라우터 (홈 ↔ 챕터 상세 뷰) ---------- */
   function route() {
     const h = location.hash.replace(/^#\/?/, "");
-    const view = /^ch[1-8]$/.test(h) ? h : "home";
+    const view = /^ch[1-9]$/.test(h) ? h : "home";
     document.body.dataset.view = view;
     // 전 섹션·구분선 숨김 후 대상만 표시
     document.querySelectorAll("section.chapter, .wrap > .dim-rule").forEach(n => { n.style.display = "none"; });
@@ -397,6 +397,40 @@
     }
   }
 
+  /* ---------- Ⅸ. 리포트 (위례 E1-1) ---------- */
+  function renderReport() {
+    const R = window.__DATA_REPORT;
+    if (!R || !$("#w-kpis")) return;
+    const B = R.base, F = R.fact;
+    $("#w-kpis").innerHTML = [
+      [fmt.eok(B.revenue_eok * 1e8), "총수입 (분양가 " + R.base_price_py.toLocaleString() + "만/평)"],
+      [fmt.eok(B.profit_eok * 1e8), "개발이익 (예정가 낙찰 가정)"],
+      [B.margin_pct + "%", "수입 대비 마진 — 경계 구간"],
+      [R.breakeven_price_py.toLocaleString() + "만", "손익분기 분양가 (3.3㎡당)"],
+    ].map(([v, k]) => `<div class="kpi"><div class="v num">${v}</div><div class="k">${k}</div></div>`).join("");
+    const be = $("#w-be"); if (be) be.textContent = R.breakeven_price_py.toLocaleString();
+
+    const s4 = R.scenarios.find(x => x.price_py === R.base_price_py) || R.scenarios[1];
+    C.hbars($("#w-ceiling"), [
+      { name: "손익분기 상한", value: s4.ceiling_0 },
+      { name: "마진 10% 상한", value: s4.ceiling_10 },
+      { name: "마진 15% 상한", value: s4.ceiling_15 },
+      { name: "SH 예정가", value: F.reserve_price_eok },
+    ], { color: "--s2", emph: ["SH 예정가"], fmt: v => fmt.num(v, 0) + "억",
+         labelW: 110, width: 1160, rowH: 40, aria: "토지 상한 vs 예정가" });
+
+    $("#w-scen").innerHTML = "<thead><tr><th>분양가(3.3㎡)</th><th class='num'>총수입</th><th class='num'>개발이익</th><th class='num'>마진</th><th class='num'>연 IRR</th><th class='num'>토지상한(마진10%)</th></tr></thead><tbody>" +
+      R.scenarios.map(x => `<tr${x.price_py === R.base_price_py ? ' style="font-weight:800"' : ""}>
+        <td>${x.price_py.toLocaleString()}만원</td><td class="num">${x.revenue_eok.toLocaleString()}억</td>
+        <td class="num" style="color:var(${x.profit_eok >= 0 ? "--pos" : "--neg"})">${x.profit_eok.toLocaleString()}억</td>
+        <td class="num">${x.margin_pct}%</td><td class="num">${x.irr_pct != null ? x.irr_pct + "%" : "―"}</td>
+        <td class="num">${x.ceiling_10.toLocaleString()}억</td></tr>`).join("") + "</tbody>";
+    const cs = R.cost_sens;
+    $("#w-scen-cap").textContent = "공사비 민감도(분양가 4,000만 기준): ±10% 변동 시 이익 " +
+      cs[0].profit_eok.toLocaleString() + "억 ~ " + cs[2].profit_eok.toLocaleString() +
+      "억 — 공사비 10% 증액이면 마진 10% 토지 상한도 " + cs[2].ceiling_10.toLocaleString() + "억으로 내려간다.";
+  }
+
   /* ---------- 테마 토글 (히어로·앱바 공용) ---------- */
   function initTheme() {
     const syncPressed = () => {
@@ -500,7 +534,7 @@
   }
 
   function renderAll() {
-    renderMarket(); renderForecast(); renderEda(); renderCommerce(); renderCases();
+    renderMarket(); renderForecast(); renderEda(); renderCommerce(); renderCases(); renderReport();
   }
 
   /* ---------- 부팅 ---------- */
