@@ -53,7 +53,7 @@
 /* ---------- 차트 figure ---------- */
 figure.viz {
   background: var(--surface); border: 1px solid var(--hairline);
-  border-radius: var(--radius); box-shadow: var(--shadow);
+  border-radius: var(--radius); box-shadow: var(--shadow-1);
   padding: var(--sp-4) var(--sp-4) var(--sp-3);
   margin: var(--sp-4) 0;
 }
@@ -111,7 +111,11 @@ figure.viz figcaption {
 .sm-cell .sm-delta.down { color: var(--neg); }
 
 /* 대한민국 시도 지도 (발산 채색) */
-.korea-map-wrap { display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); }
+#fig-korea-map { box-shadow: var(--shadow); } /* 지도 figure는 깊은 그림자 유지 — 계산기 결과와 동급 위계 */
+.korea-map-wrap { display: flex; flex-direction: column; align-items: center; gap: var(--sp-3); }
+.korea-map-body { display: flex; align-items: flex-start; justify-content: center; flex-wrap: wrap;
+  gap: var(--sp-4); width: 100%; }
+.korea-map-figure { display: flex; flex-direction: column; gap: var(--sp-2); flex: 0 1 420px; min-width: 260px; }
 .korea-map { width: 100%; max-width: 420px; }
 .korea-svg { display: block; width: 100%; height: auto; }
 .korea-svg path { transition: fill-opacity .15s, stroke-width .15s, stroke .15s; outline: none; }
@@ -123,6 +127,44 @@ figure.viz figcaption {
 .korea-map-legend .km-sw-na { background: var(--surface-2); border: 1px dashed var(--hairline-2); }
 .korea-map-legend .km-leg-grad { width: 108px; height: 10px; border-radius: 5px; border: 1px solid var(--hairline);
   background: linear-gradient(90deg, var(--s2), var(--surface-2) 50%, var(--s1)); }
+
+/* 색 원칙 범례 1줄 (지도 위) — 색 의미 충돌 해설: 시장 변화·사업 손익·선택 */
+.color-key { display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: 4px 12px; margin-bottom: var(--sp-3); padding: 7px 12px;
+  font-size: var(--t-caption); color: var(--ink-2);
+  background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--radius-sm); }
+.color-key .ck-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.color-key .ck-item b { font-weight: 700; color: var(--ink); }
+.color-key .ck-sep { color: var(--ink-3); }
+.color-key .ck-sw { width: 22px; height: 10px; border-radius: 3px; display: inline-block; flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); }
+.color-key .ck-market { background: linear-gradient(90deg, var(--s2), var(--s1)); }
+.color-key .ck-pnl { background: linear-gradient(90deg, var(--pos), var(--neg)); }
+.color-key .ck-sel { background: var(--blueprint); border-color: var(--blueprint); }
+
+/* 지도 판독 패널 (지도 옆·아래 고정) — 지역/기준월/1년 변동/표본/한 줄 해석 */
+.km-read { flex: 1 1 280px; min-width: 240px; max-width: 340px; align-self: flex-start;
+  background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--radius);
+  padding: var(--sp-3) var(--sp-3) var(--sp-2); }
+/* 좁은 폭(지도 아래로 접힘)에서는 전폭 카드로 */
+@media (max-width: 560px) { .km-read { max-width: none; width: 100%; } }
+.km-read .km-read-region { font-size: 17px; font-weight: 800; color: var(--ink);
+  padding-bottom: 6px; margin-bottom: 8px; border-bottom: 1px solid var(--hairline); }
+.km-read dl { display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; margin: 0; }
+.km-read dt { font-size: var(--t-caption); color: var(--ink-label); }
+.km-read dd { font-size: var(--t-small); font-weight: 700; text-align: right; margin: 0; }
+.km-read dd.num { font-family: var(--font-num); }
+.km-read .km-read-interp { margin: 10px 0 0; padding-top: 8px; border-top: 1px solid var(--hairline);
+  font-size: var(--t-caption); line-height: 1.6; color: var(--ink-2); }
+
+/* 소형 광역시 보조 선택 버튼 (지도 아래) — onSelect 허브 공유, 지도와 동기 강조 */
+.km-metros { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: 100%; }
+.km-metros .btn { font: inherit; font-size: var(--t-caption); font-weight: 700; cursor: pointer;
+  padding: 6px 12px; border-radius: 99px; white-space: nowrap;
+  border: 1px solid var(--hairline-2); background: var(--surface); color: var(--ink-2);
+  transition: border-color .15s, color .15s, background .15s; }
+.km-metros .btn:hover { border-color: var(--blueprint-2); color: var(--blueprint-2); }
+.km-metros .btn[aria-pressed="true"] { background: var(--blueprint); border-color: var(--blueprint); color: #fff; }
 
 /* ---------- 계산기 (인스트루먼트 패널) ---------- */
 .calc {
@@ -235,7 +277,7 @@ table.ledger tr.sub td { color: var(--ink-2); }
 .case-card {
   background: var(--surface); border: 1px solid var(--hairline);
   border-top: 3px solid var(--blueprint);
-  border-radius: var(--radius); box-shadow: var(--shadow);
+  border-radius: var(--radius); box-shadow: var(--shadow-2);
   padding: var(--sp-3); cursor: pointer; transition: transform .15s, border-color .15s;
 }
 .case-card:hover { transform: translateY(-2px); border-color: var(--blueprint-2); }
@@ -333,7 +375,7 @@ body[data-view="home"] nav.appbar { display: none; }
 a.ch-card {
   display: grid; grid-template-rows: auto auto 1fr auto; gap: 6px;
   background: var(--surface); border: 1px solid var(--hairline);
-  border-radius: var(--radius); box-shadow: var(--shadow);
+  border-radius: var(--radius); box-shadow: var(--shadow-2);
   padding: var(--sp-3); color: var(--ink); min-height: 168px;
   transition: transform .2s cubic-bezier(.2,.7,.2,1), border-color .2s, box-shadow .2s;
 }
@@ -357,7 +399,7 @@ a.ch-card:hover .go { text-decoration: underline; text-underline-offset: 3px; }
 .ch-card-ix {
   grid-column: 1 / -1;
   background: var(--surface); border: 1px solid var(--hairline);
-  border-radius: var(--radius); box-shadow: var(--shadow); padding: var(--sp-4);
+  border-radius: var(--radius); box-shadow: var(--shadow-2); padding: var(--sp-4);
 }
 .ch-card-ix .ix-head { display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-3); }
 .ch-card-ix .ix-head .n { font-family: var(--font-num); font-size: 26px; font-weight: 700; color: var(--blueprint); }
@@ -533,7 +575,7 @@ section.chapter::after {
 #site-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--sp-3); margin-top: var(--sp-2); }
 .site-card {
   background: var(--surface); border: 1.5px solid var(--hairline-2); border-radius: var(--radius);
-  padding: 16px 18px; box-shadow: var(--shadow);
+  padding: 16px 18px; box-shadow: var(--shadow-1);
 }
 .site-card h5 { font-size: 15px; margin-bottom: 6px; }
 .site-card .row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; border-bottom: 1px dashed var(--hairline); }
@@ -577,7 +619,7 @@ section.chapter::after {
    ============================================================ */
 details.method-details {
   border: 1px solid var(--hairline-2); border-radius: var(--radius);
-  background: var(--surface); box-shadow: var(--shadow);
+  background: var(--surface); box-shadow: none;
   margin-bottom: var(--sp-2);
 }
 details.method-details > summary {

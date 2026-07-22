@@ -79,6 +79,52 @@
   let selSub = null; // 하위지역(구·시군) 선택 — 특별·광역시도 드릴다운
   function seriesOf(dict, name) { return (dict && dict[name]) || []; }
 
+  /* 시도 선택 허브 — 지도·국면·보조 광역시 버튼이 공유하는 단일 경로 */
+  function selectSido(name, reveal) {
+    if (!M.sale_index[name]) return;
+    selSido = name; selSub = null;
+    renderMarket(); renderForecast();
+    if (reveal) revealEl($("#chart-detail").closest("figure"));
+  }
+
+  /* 지도 판독 패널 — 지역/기준월/1년 변동/표본/한 줄 해석 (툴팁·캡션 정보 재구성) */
+  function updateMapReadout(values) {
+    const region = $("#km-read-region");
+    if (!region) return;
+    const ser = seriesOf(M.sale_index, selSido);
+    const v = values[selSido], nat = values["전국"];
+    region.textContent = selSido;
+    const lastYm = ser.length ? ser[ser.length - 1].ym : null;
+    $("#km-read-month").textContent = lastYm ? fmt.ym(lastYm) : "자료 없음";
+    const yoyEl = $("#km-read-yoy");
+    if (v && Number.isFinite(v.yoy)) {
+      const p = v.yoy * 100;
+      yoyEl.textContent = (p >= 0 ? "+" : "") + p.toFixed(1) + "%";
+      yoyEl.style.color = "var(" + (p >= 0 ? "--s1" : "--s2") + ")"; // 지도와 동일 색계 (상승 주황·하락 청)
+    } else {
+      yoyEl.textContent = "자료 없음"; yoyEl.style.color = "var(--ink-3)";
+    }
+    $("#km-read-sample").textContent = (ser.length ? ser.length + "개월 · " : "") + "한국부동산원";
+    // 한 줄 해석 — 사실 기반(은유 배제), 지수 수준 + 전국 대비
+    let interp;
+    if (!v || !Number.isFinite(v.yoy)) {
+      interp = selSido + " — 지도 표본에 매매가격지수 자료가 없다.";
+    } else {
+      const p = v.yoy * 100;
+      const move = p >= 0.05 ? "지수가 " + p.toFixed(1) + "% 올랐다"
+                 : p <= -0.05 ? "지수가 " + Math.abs(p).toFixed(1) + "% 내렸다"
+                 : "지수가 사실상 제자리다(보합)";
+      let s = "매매가격지수 " + fmt.num(v.index, 1) + " · 최근 1년 " + move + ".";
+      if (selSido !== "전국" && nat && Number.isFinite(nat.yoy)) {
+        const np = nat.yoy * 100;
+        const rel = p > np + 0.05 ? "높은" : p < np - 0.05 ? "낮은" : "비슷한";
+        s += " 전국 평균(" + (np >= 0 ? "+" : "") + np.toFixed(1) + "%) 대비 " + rel + " 흐름이다.";
+      }
+      interp = s;
+    }
+    $("#km-read-interp").textContent = interp;
+  }
+
   function renderMarket() {
     // 지역 지도 (발산 채색) — 시도 스몰멀티플·국면과 동일한 선택 허브에 물린다
     renderKoreaMap();
@@ -159,11 +205,7 @@
     // 시장 온도 진단 — 점 클릭 시 해당 시도로 전환 (유기적 연결, 상세 차트로 스크롤)
     C.phase($("#chart-phase"), M.phase_points, {
       selected: selSido,
-      onSelect: n => {
-        if (!M.sale_index[n]) return;
-        selSido = n; selSub = null; renderMarket(); renderForecast();
-        revealEl($("#chart-detail").closest("figure"));
-      },
+      onSelect: n => selectSido(n, true),
     });
     // 마진 스퀴즈: 분양가지수 vs 공사비지수 (전국) — 주황 vs 파랑 대비
     C.line($("#chart-squeeze"), [
@@ -194,14 +236,20 @@
       const yoy = yi >= 0 ? (last / ser[yi].value - 1) : (last / ser[0].value - 1);
       values[r.name] = { index: last, yoy };
     });
+    // 전국(지도 도형 없음) — 판독 "전국 평균 대비" 비교용으로만 계산 (지도 렌더는 K만 순회 → 무영향)
+    const ns = seriesOf(M.sale_index, "전국");
+    if (ns.length) {
+      const last = ns[ns.length - 1].value, yi = ns.length - 13;
+      values["전국"] = { index: last, yoy: yi >= 0 ? (last / ns[yi].value - 1) : (last / ns[0].value - 1) };
+    }
     C.koreaMap(root, K, values, {
       selected: selSido,
-      onSelect: n => {
-        if (!M.sale_index[n]) return;
-        selSido = n; selSub = null; renderMarket(); renderForecast();
-        revealEl($("#chart-detail").closest("figure"));
-      },
+      onSelect: n => selectSido(n, true),
     });
+    // 판독 패널 갱신 + 보조 광역시 버튼 강조 동기화 (지도와 같은 선택 허브)
+    updateMapReadout(values);
+    document.querySelectorAll(".km-metros .btn[data-metro]").forEach(b =>
+      b.setAttribute("aria-pressed", String(b.dataset.metro === selSido)));
   }
 
   /* ---------- 예측 ---------- */
@@ -620,6 +668,16 @@
       const row = [...document.querySelectorAll("#bench-body tr")].find(t => t.dataset.model === "chronos");
       row.click();
       out.push(`bench클릭:${$("#fan-title").textContent.includes("Chronos") ? "PASS" : "FAIL"}`);
+      // ⑥ 광역시 보조 버튼 — 클릭 시 지도·상세 동기화 + 버튼 강조
+      const busanBtn = document.querySelector('.km-metros .btn[data-metro="부산"]');
+      busanBtn.click();
+      const busanSync = $("#detail-title").textContent.indexOf("부산") === 0
+        && busanBtn.getAttribute("aria-pressed") === "true";
+      out.push(`광역버튼:${busanSync ? "PASS" : "FAIL"}`);
+      // ⑦ 판독 패널 — 선택 지역·변동 반영
+      const readOk = $("#km-read-region").textContent === "부산"
+        && /%|자료/.test($("#km-read-yoy").textContent);
+      out.push(`판독:${readOk ? "PASS" : "FAIL"}`);
       const badge = document.createElement("div");
       badge.id = "selftest-result";
       badge.textContent = "CHARTTEST " + out.join(" | ");
@@ -654,6 +712,12 @@
     });
   }
 
+  /* 소형 광역시 보조 선택 버튼 (지도 아래) — onSelect 허브 공유 */
+  function initMetroButtons() {
+    document.querySelectorAll(".km-metros .btn[data-metro]").forEach(b =>
+      b.addEventListener("click", () => selectSido(b.dataset.metro, true)));
+  }
+
   function renderAll() {
     renderMarket(); renderForecast(); renderEda(); renderCommerce(); renderCases(); renderReport(); renderReport2(); renderReport3();
   }
@@ -663,6 +727,7 @@
     initChrome(); initTheme(); counters();
     renderAll();
     initSubtabs();
+    initMetroButtons();
     window.CalcUI.init(CS.presets || {});
     addEventListener("hashchange", route);
     route();

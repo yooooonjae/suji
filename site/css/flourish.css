@@ -129,10 +129,11 @@ html:not([data-theme="light"]) body.dark-ambient::after { content: none; }
     color-mix(in srgb, var(--surface) 90%, #fff) 0,
     var(--surface) 64px);
 }
-.viz { box-shadow: var(--shadow); }
+/* 일반 차트: 얕은 그림자 — 지도·계산기 결과(깊은 --shadow)와 위계 분리 */
+.viz { box-shadow: var(--shadow-1); }
 
-/* 도곽(표제란): 이중 괘선 — 도면 표제란의 정밀 마감 */
-.tblock-frame { outline: 1px solid var(--hairline); outline-offset: -6px; box-shadow: var(--shadow); }
+/* 도곽(표제란): 이중 괘선만으로 마감 — 표제/설명 plate는 무그림자(지면에 인쇄된 표제란) */
+.tblock-frame { outline: 1px solid var(--hairline); outline-offset: -6px; box-shadow: none; }
 
 /* 히어로 통계 수치: 단색 주황 (그라데이션 잉크 → 감산) */
 .hero-stat .v { color: var(--blueprint); }
@@ -168,8 +169,8 @@ table.ledger thead th, table.sources thead th, table.matrix thead th {
   border-bottom: 1.5px solid var(--hairline-2);
 }
 
-/* 선택 스몰멀티플 타일: 잉크 링 */
-.sm-cell.sel { box-shadow: 0 0 0 1.5px var(--blueprint), var(--shadow); }
+/* 선택 스몰멀티플 타일: 잉크 링 + 중간 그림자 (지도만큼 뜨지 않게) */
+.sm-cell.sel { box-shadow: 0 0 0 1.5px var(--blueprint), var(--shadow-2); }
 
 /* ---------- 애플 곡률 마감 (2026-07-21) ---------- */
 button:not(.theme-toggle):not(.theme-mini), select, input[type="number"] {

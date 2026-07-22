@@ -156,16 +156,46 @@
   <div class="col-wide reveal" role="tabpanel" id="ch1panel-market" aria-labelledby="ch1tab-market" data-tabpanel="ch1:market">
     <figure class="viz" id="fig-korea-map">
       <div class="viz-head"><div class="viz-title">지역 지도 — 시도를 눌러 상세·예측 전환</div><div class="viz-unit">채색 = 최근 1년 매매가격지수 변동률 · 클릭·탭하여 선택</div></div>
+      <div class="color-key" role="note" aria-label="색 사용 원칙">
+        <span class="ck-item"><span class="ck-sw ck-market"></span>시장 변화 지도 <b>주황↔청</b></span>
+        <span class="ck-sep">·</span>
+        <span class="ck-item"><span class="ck-sw ck-pnl"></span>사업 손익 <b>녹↔적</b></span>
+        <span class="ck-sep">·</span>
+        <span class="ck-item"><span class="ck-sw ck-sel"></span>선택 <b>주황</b></span>
+      </div>
       <div class="korea-map-wrap">
-        <div id="korea-map" class="korea-map"></div>
-        <div class="korea-map-legend" aria-hidden="true">
-          <span class="km-leg-item"><span class="km-sw" style="background:var(--s2)"></span>하락</span>
-          <span class="km-leg-grad"></span>
-          <span class="km-leg-item"><span class="km-sw" style="background:var(--s1)"></span>상승</span>
-          <span class="km-leg-item"><span class="km-sw km-sw-na"></span>자료 없음</span>
+        <div class="korea-map-body">
+          <div class="korea-map-figure">
+            <div id="korea-map" class="korea-map"></div>
+            <div class="korea-map-legend" aria-hidden="true">
+              <span class="km-leg-item"><span class="km-sw" style="background:var(--s2)"></span>하락</span>
+              <span class="km-leg-grad"></span>
+              <span class="km-leg-item"><span class="km-sw" style="background:var(--s1)"></span>상승</span>
+              <span class="km-leg-item"><span class="km-sw km-sw-na"></span>자료 없음</span>
+            </div>
+          </div>
+          <aside class="km-read" id="km-read" aria-label="선택 지역 판독">
+            <div class="km-read-region" id="km-read-region">서울</div>
+            <dl>
+              <dt>기준월</dt><dd class="num" id="km-read-month">—</dd>
+              <dt>1년 변동</dt><dd class="num" id="km-read-yoy">—</dd>
+              <dt>표본</dt><dd id="km-read-sample">—</dd>
+            </dl>
+            <p class="km-read-interp" id="km-read-interp" aria-live="polite">—</p>
+          </aside>
+        </div>
+        <div class="km-metros" role="group" aria-label="주요 광역시 바로가기">
+          <button type="button" class="btn" data-metro="서울" aria-pressed="false">서울</button>
+          <button type="button" class="btn" data-metro="부산" aria-pressed="false">부산</button>
+          <button type="button" class="btn" data-metro="대구" aria-pressed="false">대구</button>
+          <button type="button" class="btn" data-metro="인천" aria-pressed="false">인천</button>
+          <button type="button" class="btn" data-metro="광주" aria-pressed="false">광주</button>
+          <button type="button" class="btn" data-metro="대전" aria-pressed="false">대전</button>
+          <button type="button" class="btn" data-metro="울산" aria-pressed="false">울산</button>
+          <button type="button" class="btn" data-metro="세종" aria-pressed="false">세종</button>
         </div>
       </div>
-      <figcaption>지도 채색 = 최근 1년 매매가격지수 변동률 · 시도를 누르면 아래 상세·예측이 바뀐다. 주황이 진할수록 상승, 파랑이 진할수록 하락, 회색은 자료 없음.</figcaption>
+      <figcaption>지도 채색 = 최근 1년 매매가격지수 변동률 · 시도를 누르면 옆 판독과 아래 상세·예측이 함께 바뀐다. 주황이 진할수록 상승, 파랑이 진할수록 하락, 회색은 자료 없음. 지도 아래 광역시 버튼으로도 선택할 수 있다.</figcaption>
     </figure>
 
     <figure class="viz">

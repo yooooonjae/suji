@@ -59,6 +59,9 @@
   --col-wide: 1360px;         /* 차트·계산기 컬럼 */
   --radius: 12px;             /* 카드·패널 — 애플 곡률 (2026-07-21 지시: 살짝 둥글게) */
   --radius-sm: 8px;           /* 버튼·입력 필드 */
+  /* 그림자 위계 3단 (shadow-0=none은 인라인) — 얕게(차트)·중간(카드)·깊게(지도·계산기 결과) */
+  --shadow-1: 0 1px 2px rgba(43, 32, 22, .05), 0 3px 8px rgba(43, 32, 22, .05);
+  --shadow-2: 0 1px 2px rgba(43, 32, 22, .06), 0 6px 18px rgba(43, 32, 22, .07);
   --shadow: 0 1px 2px rgba(43, 32, 22, .06), 0 10px 32px rgba(43, 32, 22, .08), 0 28px 72px rgba(43, 32, 22, .05);
 }
 
@@ -84,6 +87,8 @@
     --s5: #2b95b5; --s6: #e66767; --s7: #c76684; --s8: #b5762f;
     --grid: #2b241d;
     --axis: #50453a;
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, .30), 0 3px 8px rgba(0, 0, 0, .24);
+    --shadow-2: 0 1px 2px rgba(0, 0, 0, .34), 0 6px 18px rgba(0, 0, 0, .34);
     --shadow: 0 1px 2px rgba(0, 0, 0, .32), 0 10px 32px rgba(0, 0, 0, .36), 0 28px 72px rgba(0, 0, 0, .28);
   }
 }
@@ -98,6 +103,8 @@
   --s1: #d06712; --s2: #3987e5; --s3: #b8830f; --s4: #c4586a;
   --s5: #2b95b5; --s6: #e66767; --s7: #c76684; --s8: #b5762f;
   --grid: #2b241d; --axis: #50453a;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .30), 0 3px 8px rgba(0, 0, 0, .24);
+  --shadow-2: 0 1px 2px rgba(0, 0, 0, .34), 0 6px 18px rgba(0, 0, 0, .34);
   --shadow: 0 1px 2px rgba(0, 0, 0, .32), 0 10px 32px rgba(0, 0, 0, .36), 0 28px 72px rgba(0, 0, 0, .28);
 }
 :root[data-theme="light"] {
@@ -110,5 +117,7 @@
   --s1: #e05910; --s2: #2a78d6; --s3: #c98a00; --s4: #b03a48;
   --s5: #0f7f9e; --s6: #e34948; --s7: #d16b8a; --s8: #a05a1f;
   --grid: #ece6df; --axis: #c2b6a8;
+  --shadow-1: 0 1px 2px rgba(43, 32, 22, .05), 0 3px 8px rgba(43, 32, 22, .05);
+  --shadow-2: 0 1px 2px rgba(43, 32, 22, .06), 0 6px 18px rgba(43, 32, 22, .07);
   --shadow: 0 1px 2px rgba(43, 32, 22, .06), 0 10px 32px rgba(43, 32, 22, .08), 0 28px 72px rgba(43, 32, 22, .05);
 }
