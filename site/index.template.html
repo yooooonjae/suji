@@ -7,22 +7,23 @@
 <meta property="og:url" content="https://yoonjae.pages.dev/">
 <meta property="og:title" content="수지(收支) — 대한민국 부동산 개발의 손익 구조">
 <meta property="og:description" content="전국 시장 데이터 · 4모드 수지 계산기 · 6모델 예측 벤치마크 — 부동산 개발 수지분석 연구">
-<meta property="og:image" content="https://yoonjae.pages.dev/og.jpg">
-<meta property="og:image:secure_url" content="https://yoonjae.pages.dev/og.jpg">
-<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image" content="https://yoonjae.pages.dev/og.png">
+<meta property="og:image:secure_url" content="https://yoonjae.pages.dev/og.png">
+<meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="수지(收支) — 부동산 개발 수지분석 리서치 플랫폼">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="수지(收支) — 대한민국 부동산 개발의 손익 구조">
 <meta name="twitter:description" content="전국 시장 데이터 · 4모드 수지 계산기 · 6모델 예측 벤치마크">
-<meta name="twitter:image" content="https://yoonjae.pages.dev/og.jpg">
+<meta name="twitter:image" content="https://yoonjae.pages.dev/og.png">
 <title>수지(收支) — 대한민국 부동산 개발 수지분석 리서치 | 시장·계산기·예측·EDA</title>
 <style>
 {{CSS:tokens.css}}
 {{CSS:base.css}}
 {{CSS:components.css}}
 {{CSS:flourish.css}}
+{{CSS:print.css}}
 </style>
 
 <div id="progress"></div>
@@ -95,7 +96,7 @@
   </div>
   <div class="hero-stats stagger">
     <div class="hero-stat"><div class="v num-hero"><span data-count="236388">236,388</span></div><div class="k">아파트·분양권 실거래</div></div>
-    <div class="hero-stat"><div class="v num-hero"><span data-count="162">162</span></div><div class="k">자동화 검증 테스트</div></div>
+    <div class="hero-stat"><div class="v num-hero"><span data-count="176">176</span></div><div class="k">자동화 검증 테스트</div></div>
     <div class="hero-stat"><div class="v num-hero"><span data-count="3">3</span></div><div class="k">실전 딜 분석 리포트</div></div>
   </div>
 </header>
@@ -337,7 +338,7 @@
         <div class="tblock-eyebrow">Model Structure</div>
         <h2 class="tblock-title">구조 — 수지표는 어떻게 짜이는가</h2>
       </div>
-      <div class="tblock-meta"><span>모델 검증 <b>162 테스트</b></span><span>Python↔JS <b>|Δ|&lt;1e-6</b></span></div>
+      <div class="tblock-meta"><span>모델 검증 <b>176 테스트</b></span><span>Python↔JS <b>|Δ|&lt;1e-6</b></span></div>
     </div>
   </header>
 
@@ -411,6 +412,7 @@
             <div id="g-irr"></div>
             <div class="ab-col">
               <button id="btn-snap" class="primary">현재를 A로 저장</button>
+              <button id="btn-print" type="button" class="ghost">🖶 투자심의표 인쇄</button>
               <span id="ab-result" class="caption"></span>
             </div>
           </aside>
@@ -661,6 +663,17 @@
       </div>
     </details>
 
+    <details class="method-details" open>
+      <summary><span class="md-h">데이터 상태 — 관측월·수집일 원장</span><span class="md-sum">원천별 최신 관측월과 수집일을 분리 기록 · 신뢰 기준월 {{DATA_CUTOFF}}</span></summary>
+      <div class="md-body">
+    <p class="lede" style="margin-top:0">데이터가 실제 관측하는 마지막 시점(<b>관측월</b>)과 API로 받아온 날짜(<b>수집일</b>)는 다르다. 둘의 간격이 곧 데이터 지연이며, 이를 뭉뚱그리지 않고 원천별로 나눠 적는다.</p>
+    <div class="viz-scroll">
+    {{DATA_STATUS_TABLE}}
+    </div>
+    <p class="footnote">관측월 = 데이터의 마지막 관측 시점 · 수집일 = 수집 실행 날짜. 표는 <code>src/build/manifest.py</code>가 <code>data/</code> 원천에서 자동 생성한 <code>DATA_MANIFEST.json</code>을 빌드 시 렌더한 것이다 — 값은 원자료에서 직접 산출되어 손입력이 없다. 실거래(RTMS)·상가업소는 건수가 거래·업소 수, 지수 계열은 관측치(지역×월) 수다. 사이트 하단 <b>Data cutoff</b>는 부분 관측인 현재 달을 제외한 마지막 완결월이다.</p>
+      </div>
+    </details>
+
     <details class="method-details">
       <summary><span class="md-h">수지모델 핵심 가정</span><span class="md-sum">단위·금융비·분양 스케줄·정비사업·미반영 세목 등 7개 가정</span></summary>
       <div class="md-body">
@@ -671,7 +684,7 @@
       <li>정비사업: 비례율 = (총수입−총사업비)/종전자산평가액(현금청산 발생 시에도 분모는 전체 종전자산 — 잔존 조합원 기준보다 보수적), 분담금 = 조합원분양가 − 권리가액. 재개발 임대의무는 일반분양 수입 차감으로 반영(기본 15% — 서울 최저는 10%로 보수적).</li>
       <li>미반영 항목(세전 모델): 법인세·재건축부담금(재초과이익환수)·보유세. 재건축 대상 단지는 부담금을 별도 원가로 검토해야 한다. 공사비는 지역 기준단가(서울 890·수도권 721·지방 682만원/평, 2025 정비사업 평균 실측)를 CCI로 시점보정.</li>
       <li>용도지역: 국토계획법 시행령 §84·§85 + 서울시 도시계획조례 §54·§55 기준값. 용적률은 지상 연면적 기준(지하 제외), 인센티브는 직접 지정 가능.</li>
-      <li>Python 코어 ↔ 웹 JS: 무작위 입력 전 출력 일치(|Δ|&lt;1e-6) 테스트 강제. 모델 전체 162개 단위테스트 — 이 테스트들이 보증하는 것은 <b>계산 로직의 일관성과 회귀 방지</b>다. 실제 사업성의 정확도는 개별 사업의 설계·세무·금융·법률 조건과 입력 가정에 좌우된다.</li>
+      <li>Python 코어 ↔ 웹 JS: 무작위 입력 전 출력 일치(|Δ|&lt;1e-6) 테스트 강제. 모델 전체 176개 단위테스트 — 이 테스트들이 보증하는 것은 <b>계산 로직의 일관성과 회귀 방지</b>다. 실제 사업성의 정확도는 개별 사업의 설계·세무·금융·법률 조건과 입력 가정에 좌우된다.</li>
     </ul>
       </div>
     </details>
@@ -889,8 +902,9 @@
 
 <footer class="colophon">
   <div style="font-weight:800;color:var(--ink-2);margin-bottom:6px">수지(收支) — 대한민국 부동산 개발의 손익 구조</div>
-  개인 연구 포트폴리오 · 데이터 기준일 {{BUILT_AT}} · 매주 월요일 자동 갱신 · 공공 데이터셋 14종 수집(7개 기관 API) · 모델 162 테스트 검증<br>
+  개인 연구 포트폴리오 · 데이터 기준월 {{DATA_CUTOFF}} · 매주 월요일 자동 갱신 · 공공 데이터셋 14종 수집(7개 기관 API) · 모델 176 테스트 검증<br>
   본 페이지는 로컬 정적 사이트로 빌드되었고, 모든 데이터가 로컬에 내장되어 외부 네트워크 요청이 없다.
+  <div class="build-stamp">{{BUILD_STAMP}}</div>
 <div style="max-width:var(--maxw,1180px);margin:0 auto;padding:14px 28px 0;border-top:1px solid var(--hairline,#e5e0d8)">
   <p style="font-size:12px;letter-spacing:.16em;color:var(--ink-3,#8a8177);margin-bottom:6px">부동산 연구 시리즈</p>
   <p style="font-size:13.5px">收支 수지 — 개별 사업의 손익 · <a href="https://sunhwan.pages.dev" target="_blank" rel="noopener">循環 순환 — 시장과 자본의 구조</a> · <a href="https://sicha.pages.dev" target="_blank" rel="noopener">時差 시차 — 신호의 전달시간</a></p>
@@ -898,6 +912,10 @@
 </footer>
 
 </div><!-- /wrap -->
+
+<!-- 투자심의표(A4) — 화면에서는 숨김, [투자심의표 인쇄] 클릭 시 calc-ui.js 가 채우고 window.print().
+     body 직계 자식으로 두어 @media print 에서 이 노드만 남기고 전부 숨긴다(print.css). -->
+<section id="review-sheet" aria-label="투자심의표"></section>
 
 <script>
 window.__DATA_MARKET = {{DATA_MARKET}};

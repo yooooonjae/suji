@@ -318,6 +318,10 @@ table.sources { width: 100%; border-collapse: collapse; font-size: var(--t-small
 table.sources th, table.sources td { padding: 9px 12px; border-bottom: 1px solid var(--hairline); text-align: left; }
 table.sources th { font-size: var(--t-caption); letter-spacing: .06em; color: var(--ink-3); }
 table.sources td:first-child { font-weight: 700; white-space: nowrap; }
+/* 데이터 상태 원장 — 관측월·수집일·건수는 우측정렬 수치, 커버리지·데이터셋은 줄바꿈 허용 */
+table.datastatus td:first-child { white-space: normal; min-width: 150px; }
+table.datastatus th.num, table.datastatus td.num { text-align: right; font-family: var(--font-num); white-space: nowrap; }
+table.datastatus td.cov { color: var(--ink-2); font-size: var(--t-caption); white-space: normal; min-width: 200px; line-height: 1.5; }
 
 /* ---------- 푸터 ---------- */
 footer.colophon {
@@ -448,6 +452,10 @@ a.ix-report:hover .go { text-decoration: underline; text-underline-offset: 3px; 
   background: var(--blueprint); border: 1px solid var(--blueprint); color: #fff;
 }
 .ab-col button:hover { filter: brightness(1.08); }
+/* 보조(고스트) 버튼 — 투자심의표 인쇄: 저장(주 버튼)과 시각 구분 */
+.ab-col button.ghost { background: var(--surface); border-color: var(--hairline-2); color: var(--blueprint); }
+.ab-col button.ghost:hover { background: var(--blueprint-wash); filter: none; }
+.build-stamp { margin-top: 8px; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .04em; color: var(--ink-3); }
 table.ledger td, table.ledger th { white-space: nowrap; }
 table.ledger tbody tr:hover td { background: var(--blueprint-wash); }
 

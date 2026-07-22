@@ -10,6 +10,7 @@ import datetime
 import json
 import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -17,6 +18,10 @@ ROOT = Path(__file__).resolve().parents[2]
 SITE = ROOT / "site"
 OUT = ROOT / "out"
 WEB = ROOT / "web"
+
+# 같은 디렉토리의 manifest 모듈 (스크립트 실행 시 sys.path[0]=src/build)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import manifest  # noqa: E402  — DATA_MANIFEST.json 생성기
 
 DATA_MAP = {
     "DATA_MARKET": ("market", OUT / "market.json"),
@@ -34,7 +39,7 @@ DATA_MAP = {
     "DATA_REPORT3": ("report3", OUT / "report_hannam.json"),
     "DATA_KOREA": ("korea", SITE / "assets_korea.json"),
 }
-CSS_FILES = ["tokens.css", "base.css", "components.css", "flourish.css"]
+CSS_FILES = ["tokens.css", "base.css", "components.css", "flourish.css", "print.css"]
 JS_FILES = ["guard.js", "feasibility.js", "zoning.js", "charts.js", "calc-ui.js", "app.js"]
 STATIC = SITE / "static"  # robots.txt, og.png 등 → web/ 루트로 복사
 
@@ -56,6 +61,55 @@ def _robots_tag() -> str:
     return '<meta name="robots" content="noindex, nofollow, noarchive">'
 
 
+def _git_commit() -> str:
+    """빌드 스탬프용 커밋 短해시. git 없거나 실패 시 'nogit' (빌드는 계속)."""
+    try:
+        r = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
+                           cwd=ROOT, capture_output=True, text=True, timeout=5)
+        if r.returncode == 0 and r.stdout.strip():
+            return r.stdout.strip()
+    except Exception:
+        pass
+    return "nogit"
+
+
+def _esc(s) -> str:
+    return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
+def _data_status_table(man: dict) -> str:
+    """DATA_MANIFEST.json → 방법론 「데이터 상태」 표 HTML.
+    관측월(observed_through)과 수집일(collected_at)을 별도 열로 분리 렌더한다."""
+    head = ("<thead><tr><th>데이터셋</th><th>출처</th>"
+            "<th>관측월</th><th>수집일</th><th class=\"num\">건수</th>"
+            "<th>커버리지</th></tr></thead>")
+    body = []
+    for s in man["sources"]:
+        obs = s["observed_through"] or "스냅샷"
+        body.append(
+            f"<tr><td>{_esc(s['dataset'])}</td><td>{_esc(s['institution'])}</td>"
+            f"<td class=\"num\">{_esc(obs)}</td><td class=\"num\">{_esc(s['collected_at'])}</td>"
+            f"<td class=\"num\">{s['rows']:,}</td>"
+            f"<td class=\"cov\">{_esc(s['coverage'])}</td></tr>")
+    return (f"<table class=\"sources datastatus\">{head}"
+            f"<tbody>{''.join(body)}</tbody></table>")
+
+
+def _dynamic_subs() -> dict:
+    """빌드 시점 치환값 — 매니페스트 생성 + 빌드 스탬프 + 데이터 상태 표.
+    모든 값은 실데이터(DATA_MANIFEST.json)·git·시스템시계에서 유도한다."""
+    man = manifest.build_manifest(write=True)          # data/DATA_MANIFEST.json 갱신
+    cutoff = man.get("data_cutoff") or "―"
+    cutoff_dot = cutoff.replace("-", ".")               # 2026-06 → 2026.06
+    built = datetime.date.today().isoformat()
+    stamp = f"Commit {_git_commit()} · Data cutoff {cutoff_dot} · Built {built}"
+    return {
+        "{{DATA_CUTOFF}}": cutoff_dot,
+        "{{BUILD_STAMP}}": stamp,
+        "{{DATA_STATUS_TABLE}}": _data_status_table(man),
+    }
+
+
 def build_dist() -> Path:
     """web/ 멀티파일 산출 — index.html은 링크 참조, 데이터는 JS 래핑."""
     tpl = (SITE / "index.template.html").read_text()
@@ -70,6 +124,8 @@ def build_dist() -> Path:
     tpl = re.sub(r"<script>\s*(?:\{\{JS:[\w.\-]+\}\}\s*)+</script>", js_tags, tpl)
     tpl = tpl.replace("{{BUILT_AT}}", datetime.date.today().isoformat())
     tpl = tpl.replace("{{ROBOTS}}", _robots_tag())
+    for ph, val in _dynamic_subs().items():  # 스탬프·데이터 상태 표·기준월
+        tpl = tpl.replace(ph, val)
 
 
     # 조사 분리 검사 — 강조 태그 닫힘과 조사 사이 공백/개행은 실화면 띄어쓰기가 된다 (5차 리뷰 채택)
@@ -150,6 +206,8 @@ def build_single() -> Path:
         html = html.replace("{{" + key + "}}", _minify_json(path))
     html = html.replace("{{BUILT_AT}}", datetime.date.today().isoformat())
     html = html.replace("{{ROBOTS}}", _robots_tag())
+    for ph, val in _dynamic_subs().items():  # 스탬프·데이터 상태 표·기준월
+        html = html.replace(ph, val)
     OUT.mkdir(exist_ok=True)
     out_path = OUT / "site.html"
     out_path.write_text(html)

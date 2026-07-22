@@ -382,6 +382,113 @@
       · 마진 <b class="num">${fmt.pct((cur.margin_on_revenue || 0) - (snapshotA.margin_on_revenue || 0), 1)}p</b>`;
   }
 
+  /* ---------- 투자심의표 (A4 인쇄) ---------- */
+  // 현재 입력·결과를 인쇄용 1~2쪽 문서(#review-sheet)로 조립하고 window.print() 호출.
+  // 값은 화면과 동일한 경로(buildInputs→F.run·sensitivity)로 재산출해 인쇄본이 화면과 일치한다.
+  function _assetLabel() {
+    if (mode !== "신축분양") return mode + " (정비사업)";
+    return st.asset === "office" ? "오피스 · 임대 후 매각(수익형)"
+      : st.asset === "retail" ? "상업시설 · 임대 후 매각(수익형)" : "공동주택 · 분양";
+  }
+  function _row(k, v) { return `<div class="rs-row"><span class="rs-k">${k}</span><span class="rs-v">${v}</span></div>`; }
+
+  function buildReviewSheet() {
+    const { inputs, zoning, income } = buildInputs();
+    lastIncome = income;                 // verdictHTML·kpi 판정이 참조하는 전역 동기화
+    const out = F.run(inputs);
+    const t = new Date();
+    const dstr = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
+
+    // 1. 사업 개요
+    const ov = [_row("사업 유형", _assetLabel()), _row("용도지역", zoning.zone_name),
+      _row("대지면적", `${fmt.num(st.land_area, 0)}㎡ (약 ${fmt.num(st.land_area / PY, 0)}평)`),
+      _row("연면적(지상)", `${fmt.num(zoning.buildable_gfa_m2, 0)}㎡ · 용적률 ${fmt.pct(zoning.far_applied, 0)}`)];
+    if (income) ov.push(_row("임대 가능 면적", `${fmt.num(income.nra_py, 0)}평 (효율 ${st.eff_ratio}%)`));
+    else if (mode === "신축분양") ov.push(_row("세대수", `${st.units_override > 0 ? st.units_override : zoning.units_est}세대${st.units_override > 0 ? " (직접 입력)" : " (용적률 이론 추정)"}`));
+    else ov.push(_row("공급 규모", `조합원 ${st.members}명 · 일반분양 ${st.gen_units}세대`));
+    ov.push(_row("사업 기간", `${st.months}개월`));
+
+    // 2. 핵심 가정
+    const asm = [];
+    if (income) {
+      asm.push(_row("월 임대료", `${st.rent_py}만원/평 · 공실 ${st.vacancy}%`));
+      asm.push(_row("운영경비율", `${st.opex}% (임대수입 대비)`));
+      asm.push(_row("매각 환원율", `${st.cap}% (cap rate)`));
+    } else {
+      asm.push(_row(mode === "신축분양" ? "분양가" : "일반분양가", `${fmt.num(st.price_py, 0)}만원/평 · 분양률 ${st.sell_through}%`));
+      if (mode !== "신축분양") asm.push(_row("조합원 분양가", `${fmt.num(st.mem_price_py, 0)}만원/평`));
+    }
+    asm.push(_row("공사비", `${fmt.num(st.unit_cost_py, 0)}만원/평`));
+    asm.push(_row("금융 조건", `브릿지 ${st.bridge_rate}% · PF ${st.pf_rate}% (인출 ${st.pf_draw}%)`));
+    if (mode === "신축분양" && st.asset === "apt") asm.push(_row("토지비", `${fmt.eok(st.land_eok * EOK)} (취득세 4.6% 별도)`));
+    if (mode !== "신축분양") asm.push(_row("종전자산 평가액", fmt.eok(st.prior_eok * EOK)));
+    asm.push(_row("NPV 할인율", "8% (분기 현금흐름 기준)"));
+
+    // 4. 수익성 지표
+    const M = [];
+    M.push(["개발이익", fmt.eok(out.profit), out.profit >= 0]);
+    M.push(["수입 대비 이익률", out.margin_on_revenue == null ? "―" : fmt.pct(out.margin_on_revenue), (out.margin_on_revenue || 0) >= 0]);
+    M.push(["IRR (연)", out.irr_annual == null ? "―" : fmt.pct(out.irr_annual), (out.irr_annual || 0) >= 0]);
+    M.push(["NPV (할인율 8%)", fmt.eok(out.npv), out.npv >= 0]);
+    M.push(["자기자본이익률 ROE", out.roe == null ? "―" : fmt.pct(out.roe), (out.roe || 0) >= 0]);
+    if (income) {
+      M.push(["연 NOI", fmt.eok(income.noi), true]);
+      const yoc = out.cost_total ? income.noi / out.cost_total : 0;
+      M.push(["총사업비 대비 수익률 YoC", out.cost_total ? fmt.pct(yoc) : "―", yoc >= st.cap / 100]);
+    }
+    if (mode !== "신축분양") {
+      const pr = out.proportion_rate;
+      M.push(["비례율", pr == null ? "―" : fmt.pct(pr, 1), pr != null && pr >= 0.8 && pr <= 1.3]);
+      const mc = out.member_contribution;
+      M.push(["세대당 분담금", mc == null ? "―" : (mc < 0 ? "환급 " + fmt.eok(-mc) : fmt.eok(mc)), mc != null && mc < 0]);
+    }
+    const metricRows = M.map(([k, v, pos]) => `<tr><td>${k}</td><td class="num ${pos ? "pos" : "neg"}">${v}</td></tr>`).join("");
+
+    // 최대 자금부족 (Peak Funding Gap)
+    let cum = 0, minCum = 0, minQ = 0;
+    (out.cashflow_quarterly || []).forEach((c, i) => { cum += c; if (cum < minCum) { minCum = cum; minQ = i + 1; } });
+    const gap = minCum < 0 ? `${fmt.eok(-minCum)} · Q${minQ}에 최저 — 자기자본·차입으로 메워야 하는 최대 규모` : "없음 — 전 구간 누적 현금흐름 양(+)";
+
+    // 5. 민감도 요약 (영향 큰 순 상위 4)
+    const { items } = sensitivity();
+    const sensRows = items.slice(0, 4).map(it =>
+      `<tr><td>${it.name}</td><td class="num">${fmt.eok(it.low)}</td><td class="num">${fmt.eok(it.high)}</td><td class="num">${fmt.eok(Math.abs(it.high - it.low))}</td></tr>`).join("");
+
+    return `<div class="rs-doc">
+  <header class="rs-head">
+    <div class="rs-brand"><span class="rs-hanja">收支</span> 투자심의표 <span class="rs-en">Feasibility Review</span></div>
+    <div class="rs-meta">작성일 ${dstr} · 초기 사업성 검토 · 수지(收支) 수지분석 계산기</div>
+  </header>
+  ${verdictHTML(out)}
+  <div class="rs-two">
+    <section class="rs-block"><h3>1. 사업 개요</h3>${ov.join("")}</section>
+    <section class="rs-block"><h3>2. 핵심 가정</h3>${asm.join("")}</section>
+  </div>
+  <div class="rs-two">
+    <section class="rs-block rs-wide"><h3>3. 사업 수지</h3>${ledgerHTML(out)}</section>
+    <section class="rs-block"><h3>4. 수익성 지표</h3>
+      <table class="rs-metrics"><tbody>${metricRows}</tbody></table>
+      <div class="rs-fund"><span class="rs-fund-k">최대 자금부족 (Peak Funding Gap)</span> ${gap}</div>
+    </section>
+  </div>
+  <section class="rs-block"><h3>5. 민감도 요약 <span class="rs-note">개발이익 변동 · 영향 큰 순</span></h3>
+    <table class="rs-sens"><thead><tr><th>변수</th><th class="num">나빠질 때</th><th class="num">좋아질 때</th><th class="num">변동폭</th></tr></thead><tbody>${sensRows}</tbody></table>
+  </section>
+  <footer class="rs-foot">
+    <p class="rs-basis"><b>기준일</b> ${dstr} · 단위 억원·평당 만원(1평 = 3.3058㎡) · 세전 모델.</p>
+    <p class="rs-disc">본 심의표는 공개·표준 가정에 기반한 <b>초기 사업성 검토용 추정</b>이며, 감정평가·회계·세무·법률 자문을 대체하지 않는다. 법인세·재건축부담금·보유세는 미반영이며, 실제 사업성은 개별 설계·금융·인허가 조건과 입력 가정에 좌우된다. 산출 근거·한계는 방법론(Ⅷ장)을 참조.</p>
+  </footer>
+</div>`;
+  }
+
+  function printReview() {
+    const host = document.getElementById("review-sheet");
+    if (!host) return;
+    try { host.innerHTML = buildReviewSheet(); }
+    catch (e) { host.innerHTML = `<div class="rs-doc"><p>심의표 생성 오류: ${String(e && e.message || e)}</p></div>`; }
+    window.print();
+  }
+
   /* ---------- 민감도 (Ⅳ장에서 사용) ---------- */
   function sensitivity() {
     const { inputs } = buildInputs();
@@ -516,6 +623,8 @@
       renderAB(global.__calcLast);
     });
     $("#btn-sens").addEventListener("click", renderSensitivity);
+    const bp = document.getElementById("btn-print");
+    if (bp) bp.addEventListener("click", printReview);
     renderSiteCards();
     // 부팅 기본값: 실데이터 기반 수도권 프리셋 (있으면) — 첫 화면부터 성립하는 딜
     if (presets["수도권아파트"]) Object.assign(st, presets["수도권아파트"]);
@@ -531,5 +640,5 @@
   }
 
   // refresh: 테마 토글 등 토큰 색 변경 후 SVG 재렌더용 (codex 리뷰 반영)
-  global.CalcUI = { init, refresh() { recalc(); renderSensitivity(); }, get mode() { return mode; } };
+  global.CalcUI = { init, refresh() { recalc(); renderSensitivity(); }, printReview, get mode() { return mode; } };
 })(typeof window !== "undefined" ? window : globalThis);

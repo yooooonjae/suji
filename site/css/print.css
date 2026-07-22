@@ -1,0 +1,98 @@
+/* ============================================================
+   투자심의표 인쇄 스타일 — A4 세로 1~2쪽 수렴.
+   화면에서는 #review-sheet 를 숨기고, 인쇄 시 이 노드만 남긴다.
+   [투자심의표 인쇄] → calc-ui.js buildReviewSheet() 가 #review-sheet 를 채우고 window.print().
+   ============================================================ */
+
+/* 화면: 심의표는 인쇄 전용 노드 — 숨김 */
+#review-sheet { display: none; }
+
+@media print {
+  @page { size: A4 portrait; margin: 13mm 12mm; }
+
+  /* 인쇄는 흑백지 위 먹선 — 화면 테마(다크 포함)와 무관하게 라이트 강제 */
+  :root, :root[data-theme="dark"], :root[data-theme="light"] {
+    --ink: #1a150f; --ink-2: #443c33; --ink-3: #6a6157;
+    --hairline: #d9d2c8; --hairline-2: #b9afa2;
+    --surface: #ffffff; --surface-2: #f6f4f1; --ground: #ffffff;
+    --blueprint: #b23c08; --blueprint-2: #b23c08; --blueprint-wash: #f6ece4;
+    --pos: #0e7a3c; --neg: #c23b2e;
+  }
+
+  /* body 직계 자식 중 심의표만 남기고 전부 숨김 (appbar·wrap·tip·progress 등) */
+  body > *:not(#review-sheet) { display: none !important; }
+  html, body { background: #fff !important; margin: 0; padding: 0; }
+
+  #review-sheet {
+    display: block !important; position: static; width: auto;
+    color: #1a150f;
+    font-family: "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", -apple-system, sans-serif;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  .rs-doc { font-size: 10.2pt; line-height: 1.5; }
+
+  /* 표제 */
+  .rs-head {
+    border-bottom: 2.2px solid #1a150f; padding-bottom: 7px; margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  }
+  .rs-brand { font-size: 17pt; font-weight: 800; letter-spacing: -.01em; white-space: nowrap; }
+  .rs-hanja { color: #b23c08; }
+  .rs-en { font-size: 9.5pt; font-weight: 600; color: #6a6157; letter-spacing: .04em; }
+  .rs-meta { font-size: 8.4pt; color: #6a6157; text-align: right; line-height: 1.4; }
+
+  /* 판정 배너 */
+  .rs-doc .verdict {
+    border: 1px solid #b9afa2; border-left: 4px solid #6a6157; border-radius: 4px;
+    padding: 7px 11px; margin: 0 0 11px; font-size: 9.6pt; font-weight: 600; background: #f6f4f1;
+  }
+  .rs-doc .verdict.good { border-left-color: #0e7a3c; }
+  .rs-doc .verdict.warn { border-left-color: #d97706; }
+  .rs-doc .verdict.bad  { border-left-color: #c23b2e; }
+
+  /* 2열 레이아웃 (개요·가정 / 수지·지표) */
+  .rs-two { display: grid; grid-template-columns: 1.05fr .95fr; gap: 16px; margin-bottom: 11px; align-items: start; }
+  .rs-block { break-inside: avoid; }
+  .rs-block h3 {
+    font-size: 10.4pt; font-weight: 800; margin: 0 0 6px; padding-bottom: 3px;
+    border-bottom: 1px solid #d9d2c8; color: #b23c08;
+  }
+  .rs-note { font-size: 8pt; font-weight: 500; color: #6a6157; }
+
+  /* 정의행 (개요·가정) */
+  .rs-row {
+    display: flex; justify-content: space-between; gap: 10px;
+    padding: 2.6px 0; border-bottom: 1px dotted #e3ddd4; font-size: 9.3pt;
+  }
+  .rs-k { color: #443c33; white-space: nowrap; }
+  .rs-v { font-weight: 700; text-align: right; }
+
+  /* 수익성 지표 */
+  table.rs-metrics { width: 100%; border-collapse: collapse; font-size: 9.3pt; }
+  table.rs-metrics td { padding: 3px 2px; border-bottom: 1px dotted #e3ddd4; }
+  table.rs-metrics td.num { text-align: right; font-family: "Charter", "Georgia", serif; font-weight: 700; }
+  .rs-doc .pos { color: #0e7a3c; }
+  .rs-doc .neg { color: #c23b2e; }
+  .rs-fund { margin-top: 7px; font-size: 8.7pt; padding: 6px 8px; background: #f6ece4; border-radius: 4px; line-height: 1.4; }
+  .rs-fund-k { font-weight: 800; color: #b23c08; display: block; margin-bottom: 1px; }
+
+  /* 사업수지·민감도 표 */
+  .rs-doc table.ledger, table.rs-sens { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  .rs-doc table.ledger td, .rs-doc table.ledger th,
+  table.rs-sens td, table.rs-sens th {
+    padding: 3.1px 6px; border-bottom: 1px solid #e8e2d9; text-align: right;
+  }
+  .rs-doc table.ledger td:first-child, .rs-doc table.ledger th:first-child,
+  table.rs-sens td:first-child, table.rs-sens th:first-child { text-align: left; }
+  .rs-doc table.ledger td.num, table.rs-sens td.num { font-family: "Charter", "Georgia", serif; }
+  .rs-doc table.ledger th, table.rs-sens th { font-size: 7.8pt; color: #6a6157; font-weight: 700; letter-spacing: .04em; }
+  .rs-doc table.ledger tr.sub td { color: #443c33; }
+  .rs-doc table.ledger tr.sum td { font-weight: 800; border-top: 1.6px solid #1a150f; border-bottom: none; }
+  .rs-doc table.ledger tbody tr:hover td { background: none; }  /* 인쇄엔 hover 무의미 */
+
+  /* 하단 — 기준일·면책 */
+  .rs-foot { margin-top: 12px; border-top: 1px solid #d9d2c8; padding-top: 7px; break-inside: avoid; }
+  .rs-basis { font-size: 8.3pt; color: #443c33; margin: 0 0 4px; }
+  .rs-disc { font-size: 7.7pt; color: #6a6157; line-height: 1.45; margin: 0; }
+}
