@@ -48,3 +48,4 @@ SUMMARY: Environment is healthy. cloudflared will use 'quic' as primary protocol
 2026-07-22T13:46:42Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.192.77
 2026-07-22T13:46:43Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveID(65074) CurveP256] connIndex=0 event=0 ip=198.41.192.77
 2026-07-22T13:46:43Z INF Registered tunnel connection connIndex=0 connection=e30c4814-8a7c-4717-adbe-613f67b18e09 event=0 ip=198.41.192.77 location=icn06 protocol=quic
+2026-07-23T01:55:29Z WRN Your version 2026.5.1 is outdated. We recommend upgrading it to 2026.7.2
