@@ -1,5 +1,5 @@
-if (typeof WebSocket === "undefined") { console.log("skip: 이 Node에는 내장 WebSocket이 없어 반응형 검사를 건너뜀(로컬 Node 22+에서 실행됨)"); process.exit(0); }
 #!/usr/bin/env node
+if (typeof WebSocket === "undefined") { console.log("skip: 이 Node에는 내장 WebSocket이 없어 반응형 검사를 건너뜀(로컬 Node 22+에서 실행됨)"); process.exit(0); }
 /*
  * responsive_check.js — 경량 다중 해상도 반응형 스모크 (Playwright 없이 CDP 직접)
  *
