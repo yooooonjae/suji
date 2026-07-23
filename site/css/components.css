@@ -197,6 +197,8 @@ figure.viz figcaption {
 .mode-tabs button[aria-pressed="true"] {
   background: var(--blueprint); border-color: var(--blueprint); color: #fff;
 }
+/* 초소형: 사업유형 4열 → 2×2 (좁은 폭 글자 눌림 방지) */
+@media (max-width: 420px) { .mode-tabs { grid-template-columns: repeat(2, 1fr); } }
 
 /* 입력 그룹 */
 .in-group { margin-bottom: 30px; }
@@ -525,6 +527,10 @@ section.chapter::after {
 }
 .chart-tools .zoom-reset:hover { background: var(--blueprint-wash); }
 @media (max-width: 640px) { .chart-tools .zoom-hint { display: none; } }
+/* 모바일 터치 타깃 — 핵심 버튼 최소 높이 44px (모드·프리셋·차트툴·지도 광역시) */
+@media (max-width: 640px) {
+  .mode-tabs button, .preset-row button, .chart-tools button, .km-metros .btn { min-height: 44px; }
+}
 
 /* ---------- 유기적 연결 — 벤치마크 표 선택·사례→계산기 ---------- */
 #bench-body tr:hover td { background: var(--blueprint-wash); }
@@ -539,10 +545,10 @@ section.chapter::after {
 
 /* ---------- 모바일 최적화 (UX 실측 검증 반영) ---------- */
 @media (max-width: 700px) {
-  /* 앱바 탭: 스크롤 가능함을 우측 페이드로 암시 */
+  /* 앱바 탭: 스크롤 가능함을 양쪽 가장자리 페이드로 암시 (좌우 대칭 마스크) */
   nav.appbar .tabs {
-    -webkit-mask-image: linear-gradient(90deg, #000 86%, transparent);
-    mask-image: linear-gradient(90deg, #000 86%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 88%, transparent);
   }
 }
 @media (max-width: 600px) {

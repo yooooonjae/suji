@@ -26,3 +26,18 @@ jobs:
         run: |
           find src -name '*.py' -exec python -m py_compile {} +
           for f in site/js/*.js; do node --check "$f"; done
+
+      # ── 반응형 스모크 (외부 반응형 감사) — 5뷰포트 가로 오버플로 0·핵심 터치 타깃 ≥44px ──
+      # Chrome 헤드리스(CDP, 의존성 0). ubuntu 러너 preinstall google-chrome 사용.
+      # data/ 는 .gitignore → CI 빌드가 산출물을 못 내면 검사는 자동 skip(exit 0). 기존 CI green 유지.
+      - name: 사이트 빌드 (반응형 검사 대상 · 데이터 부재 시 산출물 없음→검사 skip)
+        run: python src/build/assemble.py || echo "빌드 skip — 산출물 부재 시 반응형 검사 자동 skip"
+      - name: Ensure Chrome (install if missing · non-blocking)
+        run: |
+          if command -v google-chrome >/dev/null 2>&1 || command -v chromium >/dev/null 2>&1 || command -v chromium-browser >/dev/null 2>&1; then
+            echo "브라우저 존재 → 설치 생략"
+          else
+            sudo apt-get update -qq && sudo apt-get install -y -qq chromium || echo "설치 실패 — 반응형 검사 자동 skip"
+          fi
+      - name: 반응형 스모크 (다중 해상도)
+        run: node tests/responsive_check.js
