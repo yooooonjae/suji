@@ -340,6 +340,7 @@ nav.appbar {
   background: color-mix(in srgb, var(--ground) 88%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--hairline);
+  transition: background .25s ease, backdrop-filter .25s ease, border-color .25s ease, box-shadow .25s ease;
 }
 nav.appbar .brand {
   font-weight: 900; font-size: 17px; letter-spacing: 1px; color: var(--ink);
@@ -366,7 +367,8 @@ nav.appbar .tabs a.active { color: #fff; background: var(--blueprint); }
 .theme-toggle:hover { border-color: var(--blueprint); color: var(--blueprint); transform: translateY(-1px); }
 .theme-toggle .ico { pointer-events: none; }
 /* sticky 앱바는 흐름에 자리를 차지하므로 .wrap 보정 패딩 불필요 (fixed 시절 54px 패딩 제거) */
-body[data-view="home"] nav.appbar { display: none; }
+/* 홈 앱바의 '최상단 투명 ↔ 스크롤 후 유리 배경' 전환은 flourish.css 의 nav.appbar 규칙
+   바로 아래에서 정의한다 (그곳이 앱바의 실제 유리 질감·그림자선을 정하는 단일 지점). */
 
 /* 홈 챕터 카드 */
 #home-cards { padding-bottom: calc(var(--sp-7) / 2); }  /* 8차: 푸터 위 공백 절반으로 */

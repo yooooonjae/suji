@@ -20,6 +20,13 @@
     }
   }
 
+  /* ---------- 앱바 배경 — 홈 최상단은 투명, 80px 스크롤 후 블러+하단선 (장 화면과 동일) ---------- */
+  let _appbar = null;
+  function syncAppbar() {
+    if (!_appbar) _appbar = document.querySelector("nav.appbar");
+    if (_appbar) _appbar.classList.toggle("scrolled", scrollY > 80);
+  }
+
   /* ---------- 진행바·리빌 ---------- */
   function initChrome() {
     const bar = $("#progress");
@@ -27,6 +34,7 @@
       const h = document.documentElement;
       const denom = h.scrollHeight - h.clientHeight;
       bar.style.width = (denom > 0 ? (h.scrollTop / denom) * 100 : 0) + "%";
+      syncAppbar();
     }, { passive: true });
 
     const rev = new IntersectionObserver(es => {
@@ -57,6 +65,7 @@
     document.querySelectorAll(".appbar .tabs a").forEach(a =>
       a.classList.toggle("active", a.dataset.view === view));
     scrollTo(0, 0);
+    syncAppbar(); // 뷰 전환 직후 스크롤 위치(0) 기준으로 앱바 배경 즉시 동기화 (홈 상단 투명 보장)
   }
 
   /* ---------- 히어로 카운터 ---------- */
@@ -560,8 +569,13 @@
 
   /* ---------- 테마 토글 (히어로·앱바 공용) ---------- */
   function initTheme() {
+    const r = document.documentElement;
+    // 복원: 저장된 선택이 있으면 그대로, 없으면 prefers 를 초기 기본값으로만 사용 (순환·시차 방식)
+    let saved = null;
+    try { saved = localStorage.getItem("suji-theme"); } catch (e) { /* private mode 등 접근 차단 */ }
+    if (saved === "dark" || saved === "light") r.dataset.theme = saved;
     const syncPressed = () => {
-      const dark = (document.documentElement.dataset.theme ||
+      const dark = (r.dataset.theme ||
         (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark";
       document.querySelectorAll(".theme-toggle").forEach(b => {
         b.setAttribute("aria-pressed", String(dark));
@@ -570,9 +584,10 @@
       });
     };
     document.querySelectorAll(".theme-toggle").forEach(btn => btn.addEventListener("click", () => {
-      const r = document.documentElement;
       const cur = r.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-      r.dataset.theme = cur === "dark" ? "light" : "dark";
+      const next = cur === "dark" ? "light" : "dark";
+      r.dataset.theme = next;
+      try { localStorage.setItem("suji-theme", next); } catch (e) { /* 저장 실패는 무시 */ }
       syncPressed();
       renderAll(); // 차트 색 재계산
       if (window.CalcUI && window.CalcUI.refresh) window.CalcUI.refresh(); // 계산기·민감도도 재렌더
